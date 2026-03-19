@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+        "@delivest/*": ["libs/*/src/index.ts"],
+        "@delivest/types": ["libs/types/src/index.ts"],
+        "@delivest/*/package.json": ["libs/*/package.json"]
+    }
+  }
+}
