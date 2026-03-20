@@ -10,8 +10,10 @@
     "format:check": "prettier --check .",
     "format:fix": "prettier --write .",
     "test": "pnpm -r run test",
-    "api:dev": "pnpm --filter @delivest/api dev",
-    "web:dev": "pnpm --filter @delivest/web dev",
+    "api:dev": "pnpm --filter delivest-api dev",
+    "web:dev": "pnpm --filter delivest-web dev",
+    "prisma:generate": "pnpm --filter delivest-api prisma:generate",
+    "prisma:push": "pnpm --filter delivest-api prisma:push",
     "ci": "pnpm audit --production || true && pnpm format:check && pnpm lint && pnpm test"
   },
   "devDependencies": {

@@ -52,7 +52,7 @@ jobs:
       - name: Generate prisma client
         env:
           DATABASE_URL: "postgresql://user:pass@localhost:5432/dummy"
-        run: pnpm prisma generate client
+        run: pnpm prisma:generate
 
       - name: Audit
         run: pnpm audit --production || true
