@@ -25,18 +25,5 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
-  },
-
-  {
-    files: ["**/*.vue"],
-    extends: [...pluginVue.configs["flat/recommended"], ...tseslint.configs.recommendedTypeChecked],
-    languageOptions: {
-      parserOptions: {
-        parser: tseslint.parser,
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-        extraFileExtensions: [".vue"],
-      },
-    },
-  },
+  }
 );
