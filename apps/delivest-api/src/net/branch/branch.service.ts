@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service.js';
 
-import { CreateBranchDto } from './dto/create-branch.dto';
-import { BadRequestException } from '../../shared/exception/domain_exception/domain-exception';
+import { CreateBranchDto } from './dto/create-branch.dto.js';
+import { BadRequestException } from '../../shared/exception/domain_exception/domain-exception.js';
 
 @Injectable()
 export class BranchService {
