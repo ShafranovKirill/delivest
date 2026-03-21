@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 import {
