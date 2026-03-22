@@ -1,8 +1,15 @@
-export interface CreateBranchRequest {
+export interface GetBranchRequest {
+  id: string;
+}
+
+export interface BranchResponce {
+  id: string;
   name: string;
   alias: string;
 }
 
-export interface GetBranchRequest {
+export interface BranchDetailsResponce {
   id: string;
+  description?: string;
+  address?: string;
 }

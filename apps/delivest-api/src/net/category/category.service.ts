@@ -6,23 +6,23 @@ import {
   DomainException,
   NotFoundException,
 } from '../../shared/exception/domain_exception/domain-exception.js';
-import { GetBranchDto } from './dto/get-branch.dto.js';
 import { toDto } from '../../utils/to-dto.js';
-import { ReadBranchDto } from './dto/read-branch.dto.js';
-import { ReadBranchDetailsDto } from './dto/read-branch-details.dto.js';
+import { ReadCategoryDto } from './dto/read-category.dto.js';
 
 @Injectable()
-export class BranchService {
-  private readonly logger = new Logger(BranchService.name);
+export class CategoryService {
+  private readonly logger = new Logger(CategoryService.name);
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<ReadBranchDto[]> {
+  async findAll(branchId: string): Promise<ReadCategoryDto[]> {
     try {
-      const branches = await this.prisma.branch.findMany();
-      if (branches.length === 0) {
+      const categories = await this.prisma.category.findMany({
+        where: { branchId: branchId },
+      });
+      if (categories.length === 0) {
         throw new NotFoundException();
       }
-      return branches.map((branch) => toDto(branch, ReadBranchDto));
+      return categories.map((category) => toDto(category, ReadCategoryDto));
     } catch (error) {
       if (error instanceof DomainException) {
         throw error;
