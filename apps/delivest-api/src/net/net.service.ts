@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { BranchService } from './branch/branch.service.js';
 
 @Injectable()
 export class NetService {
-  constructor() {}
+  private readonly logger = new Logger(NetService.name);
+  constructor(private readonly branchServise: BranchService) {}
 }

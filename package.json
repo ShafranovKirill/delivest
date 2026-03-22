@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "pnpm -r --parallel run dev",
     "build": "pnpm -r run build",
-    "build:types":"pnpm --filter @delivest/types build",
-    "build:common":"pnpm --filter @delivest/common build",
+    "build:types": "pnpm --filter @delivest/types build",
+    "build:common": "pnpm --filter @delivest/common build",
     "lint": "pnpm -r run lint",
     "format:check": "prettier --check .",
     "format:fix": "prettier --write .",

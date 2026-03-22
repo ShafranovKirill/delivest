@@ -11,8 +11,13 @@ export class BranchController {
     return this.branchService.findAll();
   }
 
-  @Get('info')
-  async getBranchInfo(@Query() dto: GetBranchDto) {
-    return this.branchService.getInfo(dto.id);
+  @Get('branch')
+  async getBranch(@Query() dto: GetBranchDto) {
+    return this.branchService.findOne(dto);
+  }
+
+  @Get('details')
+  async getBranchDetails(@Query() dto: GetBranchDto) {
+    return this.branchService.getBranchDetails(dto);
   }
 }

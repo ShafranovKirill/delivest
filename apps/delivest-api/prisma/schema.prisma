@@ -8,9 +8,9 @@ datasource db {
 }
 
 model Branch {
-  id   String @id @default(uuid())
-  url  String @unique
-  name String
+  id    String @id @default(uuid())
+  alias String @unique
+  name  String
 
   info BranchInfo?
 
