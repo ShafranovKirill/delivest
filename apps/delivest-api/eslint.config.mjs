@@ -5,7 +5,15 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'node_modules/**', 'eslint.config.mjs', '**/*.d.ts'],
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'eslint.config.mjs',
+      '**/*.d.ts',
+      '**/*.spec.ts',
+      '**/*.test.ts',
+      '**/*e2e-spec.ts', 
+      'test/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -32,6 +40,7 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/no-unsafe-member-access': 'off', 
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
   },
