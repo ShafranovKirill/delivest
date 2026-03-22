@@ -12,7 +12,8 @@ model Branch {
   alias String @unique
   name  String
 
-  info BranchInfo?
+  info     BranchInfo?
+  category Category?
 
   @@map("branches")
 }
@@ -26,4 +27,15 @@ model BranchInfo {
   branchId String @unique @map("branch_id")
 
   @@map("branch_info")
+}
+
+model Category {
+  id    String @id @default(uuid())
+  name  String
+  order Int    @unique
+
+  branch   Branch @relation(fields: [branchId], references: [id])
+  branchId String @unique @map("branch_id")
+
+  @@map("category")
 }
