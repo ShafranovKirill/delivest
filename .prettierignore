@@ -1,4 +1,5 @@
 **/*.vue
+pnpm-lock.yaml
 dist
 node_modules
 apps/delivest-api/src/generated
