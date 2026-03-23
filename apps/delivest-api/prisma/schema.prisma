@@ -12,8 +12,9 @@ model Branch {
   alias String @unique
   name  String
 
-  info     BranchInfo?
-  category Category?
+  info       BranchInfo?
+  categories Category[]
+  products   Product[]
 
   @@map("branches")
 }
@@ -32,10 +33,26 @@ model BranchInfo {
 model Category {
   id    String @id @default(uuid())
   name  String
-  order Int    @unique
+  order Int
 
-  branch   Branch @relation(fields: [branchId], references: [id])
-  branchId String @unique @map("branch_id")
+  branch   Branch    @relation(fields: [branchId], references: [id])
+  branchId String    @map("branch_id")
+  products Product[]
 
-  @@map("category")
+  @@map("categories")
+}
+
+model Product {
+  id       String  @id @default(uuid())
+  name     String
+  price    Decimal @db.Decimal(10, 2)
+  isActive Boolean @default(true)
+
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  branchId String @map("branch_id")
+
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?   @map("category_id")
+
+  @@map("product")
 }
