@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "dist",
+    "composite": true,
+    "paths": {
+      "generated/*": ["../../apps/delivest-api/generated/*"]
+    },
+    "rootDir": "../../", 
+    "outDir": "../../dist/libs/types",
     "declaration": true
   },
-  "include": ["src"]
+  "include": ["src/**/*", "../../apps/delivest-api/generated/**/*"]
 }
