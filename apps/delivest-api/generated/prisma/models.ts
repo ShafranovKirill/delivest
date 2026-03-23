@@ -8,6 +8,8 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/Account.js'
+export type * from './models/Role.js'
 export type * from './models/Branch.js'
 export type * from './models/BranchInfo.js'
 export type * from './models/Category.js'

@@ -7,6 +7,27 @@ datasource db {
   provider = "postgresql"
 }
 
+model Account {
+  id           String @id @default(uuid())
+  login        String
+  passwordHash String @map("password_hash")
+
+  roleId String @map("role_id")
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  @@map("accounts")
+}
+
+model Role {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  Permissions Permission[]
+
+  accounts Account[]
+
+  @@map("roles")
+}
+
 model Branch {
   id    String @id @default(uuid())
   alias String @unique
@@ -55,4 +76,8 @@ model Product {
   categoryId String?   @map("category_id")
 
   @@map("product")
+}
+
+enum Permission {
+  ADMIN
 }

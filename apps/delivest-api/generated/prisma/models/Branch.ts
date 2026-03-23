@@ -287,10 +287,6 @@ export type BranchScalarRelationFilter = {
   isNot?: Prisma.BranchWhereInput
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
 export type BranchCreateNestedOneWithoutInfoInput = {
   create?: Prisma.XOR<Prisma.BranchCreateWithoutInfoInput, Prisma.BranchUncheckedCreateWithoutInfoInput>
   connectOrCreate?: Prisma.BranchCreateOrConnectWithoutInfoInput
