@@ -11,3 +11,14 @@ export interface AccessTokenPayload extends RefreshTokenPayload {
   role: string;
   permissions: Permission[];
 }
+
+export interface CreateAccountRequest {
+  login: string;
+  password: string;
+  roleId?: string;
+}
+
+export interface LoginRequest {
+  login: string;
+  password: string;
+}
