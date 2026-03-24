@@ -1,12 +1,12 @@
 export interface RefreshClientTokenPayload {
   sub: string;
   phone: string;
-  name?: string
+  name?: string;
   iat?: number;
   exp?: number;
 }
 
-export type AccessClientTokenPayload = RefreshClientTokenPayload
+export type AccessClientTokenPayload = RefreshClientTokenPayload;
 
 export interface CreateClientRequest {
   phone: string;
@@ -23,4 +23,9 @@ export interface ClientResponse {
   phone: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
 }

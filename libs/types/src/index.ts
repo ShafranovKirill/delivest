@@ -4,4 +4,3 @@ export * from "./product.js";
 export * from "./acl.js";
 export * from "./client.js";
 export * from "./staff.js";
-

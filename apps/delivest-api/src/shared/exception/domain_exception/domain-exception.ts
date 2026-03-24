@@ -109,6 +109,11 @@ export const EmailAlreadyExistsException = createException(
   HttpStatus.CONFLICT,
 );
 
+export const PhoneAlreadyExistsException = createException(
+  ErrorCodes.PHONE_ALREADY_EXISTS,
+  HttpStatus.CONFLICT,
+);
+
 export const DuplicateValueException = createException(
   ErrorCodes.DUPLICATE_VALUE,
   HttpStatus.CONFLICT,

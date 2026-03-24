@@ -2,7 +2,7 @@ import {
   AccessClientTokenPayload,
   RefreshClientTokenPayload,
 } from '@delivest/types';
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
@@ -13,12 +13,22 @@ import { CreateClientDto } from './dto/create.dto.js';
 import { ReadClientDto } from './dto/read.dto.js';
 import {
   BadRequestException,
+  DuplicateValueException,
   InvalidCredentialsException,
   NotFoundException,
+  PhoneAlreadyExistsException,
+  RegistrationFailedException,
   UserNotRegisteredException,
 } from '../../shared/exception/domain_exception/domain-exception.js';
 import { Client } from '../../../generated/prisma/client.js';
 import { LoginClientDto } from './dto/login.dto.js';
+import {
+  getInternalErrorCode,
+  getPrismaModelName,
+  isPrismaError,
+} from '../../shared/helpers/db-errors.js';
+import { PrismaErrorCode } from '@delivest/common';
+import { ChangePasswordDto } from './dto/change-password.dto.js';
 
 @Injectable()
 export class ClientService {
@@ -60,7 +70,94 @@ export class ClientService {
         `create() | ${(error as Error).message}`,
         (error as Error).stack,
       );
-      throw new BadRequestException('Failed to create account');
+      this.handleAccountConstraintError(error);
+    }
+  }
+
+  async refresh(refreshToken: string): Promise<string> {
+    try {
+      const payload = await this.jwt.verifyAsync<RefreshClientTokenPayload>(
+        refreshToken,
+        {
+          secret: this.refreshSecret,
+        },
+      );
+
+      const client = await this.prisma.client.findUnique({
+        where: {
+          id: payload.sub,
+        },
+      });
+
+      if (!client) {
+        throw new NotFoundException('Account not found');
+      }
+
+      return this.generateAccessToken(client);
+    } catch (e: unknown) {
+      if (e instanceof NotFoundException) {
+        throw e;
+      }
+      this.logger.warn(`refresh() | Invalid refresh token`);
+      throw new BadRequestException('Invalid or expired refresh token');
+    }
+  }
+
+  async changePassword(id: string, dto: ChangePasswordDto): Promise<void> {
+    this.logger.log(`changePassword() | id=${id}`);
+
+    const client = await this.prisma.client.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (!client) throw new NotFoundException('Account not found');
+
+    if (!client.passwordHash) {
+      throw new UserNotRegisteredException();
+    }
+    const isOldValid = await argon2.verify(
+      client.passwordHash,
+      dto.oldPassword,
+    );
+    if (!isOldValid) {
+      this.logger.warn(`changePassword() | Invalid old password | id=${id}`);
+      throw new ForbiddenException('Invalid old password');
+    }
+
+    const newPassword = await argon2.hash(dto.newPassword);
+
+    await this.prisma.client.update({
+      where: { id: id },
+      data: { passwordHash: newPassword },
+    });
+    this.logger.log(
+      `changePassword() | Password changed successfully | id=${id}`,
+    );
+  }
+
+  async softDelete(id: string): Promise<void> {
+    try {
+      await this.prisma.client.update({
+        where: { id: id },
+        data: { deletedAt: new Date() },
+      });
+      this.logger.log(`softDelete() | Account soft-deleted | id=${id}`);
+    } catch (error) {
+      this.logger.error(
+        `softDelete() | Error | id=${id}`,
+        (error as Error).stack,
+      );
+      if (isPrismaError(error)) {
+        const code = getInternalErrorCode(error);
+
+        if (code === PrismaErrorCode.RECORD_NOT_FOUND) {
+          throw new NotFoundException('Account not found');
+        }
+
+        this.handleAccountConstraintError(error);
+      }
+      throw error;
     }
   }
 
@@ -117,5 +214,26 @@ export class ClientService {
       path: '/',
       maxAge: refreshMaxAge,
     });
+  }
+
+  private handleAccountConstraintError(error: unknown): never {
+    if (!isPrismaError(error)) {
+      throw new RegistrationFailedException();
+    }
+    const internalCode = getInternalErrorCode(error);
+    const modelName = getPrismaModelName(error);
+
+    if (internalCode === PrismaErrorCode.UNIQUE_VIOLATION) {
+      if (modelName === 'Сlient') {
+        throw new PhoneAlreadyExistsException();
+      }
+      throw new DuplicateValueException();
+    }
+
+    if (internalCode === PrismaErrorCode.FOREIGN_KEY_VIOLATION) {
+      throw new BadRequestException();
+    }
+
+    throw new RegistrationFailedException();
   }
 }
