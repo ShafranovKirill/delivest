@@ -32,6 +32,9 @@ import { JwtStaffAuthGuard } from './guards/jwt-staff.guard.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { FindByLoginDto } from './dto/find-by-login.dto.js';
 import { CurrentStaff } from '../../shared/decorators/current-staff.decorator.js';
+import { AclGuard } from '../acl/guards/acl.guard.js';
+import { RequirePermission } from '../acl/decorators/require-permission.decorator.js';
+import { Permission } from '../../../generated/prisma/enums.js';
 
 @ApiTags('Staff (Работники)')
 @Controller('staff')
@@ -93,7 +96,8 @@ export class StaffController {
   @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Получить данные текущего пользователя' })
   @ApiOkResponse({ type: TokenStaffResponseDto })
-  @UseGuards(JwtStaffAuthGuard)
+  @UseGuards(JwtStaffAuthGuard, AclGuard)
+  @RequirePermission(Permission.ADMIN)
   async findMe(@CurrentStaff('sub') id: string) {
     return this.service.findOne(id);
   }
