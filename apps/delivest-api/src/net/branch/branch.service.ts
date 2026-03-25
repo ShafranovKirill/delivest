@@ -19,9 +19,6 @@ export class BranchService {
   async findAll(): Promise<ReadBranchDto[]> {
     try {
       const branches = await this.prisma.branch.findMany();
-      if (branches.length === 0) {
-        throw new NotFoundException();
-      }
       return branches.map((branch) => toDto(branch, ReadBranchDto));
     } catch (error) {
       if (error instanceof DomainException) {

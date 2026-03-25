@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { jest } from '@jest/globals';
-import { Category } from '../../generated/prisma/client.js';
+import { Category } from '../../../generated/prisma/client.js';
 import {
   BadRequestException,
   NotFoundException,

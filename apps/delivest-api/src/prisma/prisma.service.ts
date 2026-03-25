@@ -7,7 +7,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../generated/prisma/client.js';
+import { PrismaClient } from '../../generated/prisma/client.js';
 
 @Injectable()
 export class PrismaService
@@ -19,6 +19,7 @@ export class PrismaService
     const pool = new Pool({
       connectionString: configService.get<string>('DATABASE_URL'),
     });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const adapter = new PrismaPg(pool as any);
 
     super({ adapter });

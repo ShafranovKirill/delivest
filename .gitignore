@@ -2,3 +2,5 @@ node_modules
 dist
 .env
 .pnpm-debug.log*
+apps/delivest-api/generated
+apps/delivest-api/src/generated

@@ -1,10 +1,47 @@
 generator client {
   provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Client {
+  id           String  @id @default(uuid())
+  phone        String  @unique
+  passwordHash String? @map("password_hash")
+  name         String?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("clients")
+}
+
+model Staff {
+  id           String @id @default(uuid())
+  login        String @unique
+  passwordHash String @map("password_hash")
+
+  roleId String @map("role_id")
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("staffs")
+}
+
+model Role {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  Permissions Permission[]
+
+  staffs Staff[]
+
+  @@map("roles")
 }
 
 model Branch {
@@ -55,4 +92,8 @@ model Product {
   categoryId String?   @map("category_id")
 
   @@map("product")
+}
+
+enum Permission {
+  ADMIN
 }

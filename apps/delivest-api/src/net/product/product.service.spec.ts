@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '../../shared/exception/domain_exception/domain-exception.js';
 import { ProductService } from './product.service.js';
-import { Product } from '../../generated/prisma/client.js';
+import { Product } from '../../../generated/prisma/client.js';
 import { Decimal } from '@prisma/client/runtime/client';
 
 describe('ProductService', () => {

@@ -3,8 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CategoryController } from './category.controller.js';
 import { CategoryService } from './category.service.js';
 import { jest } from '@jest/globals';
-import { GetCategoryDto } from './dto/get-category.dto.js';
 import { ReadCategoryDto } from './dto/read-category.dto.js';
+import { GetCategoryDto } from './dto/get-category.dto.js';
+import { GetCategoryByBranchDto } from './dto/get-category-by-branch.dto.js';
 
 describe('CategoryController', () => {
   let controller: CategoryController;
@@ -15,7 +16,10 @@ describe('CategoryController', () => {
     findOne: jest.fn(),
   };
 
-  const mockDto: GetCategoryDto = { id: '123' };
+  const mockGetCategoryDto: GetCategoryDto = { id: '123' };
+  const mockGetByBranchCategoryDto: GetCategoryByBranchDto = {
+    branchId: '123',
+  };
   const mockResult: ReadCategoryDto = {
     id: '123',
     name: 'Пицца',
@@ -47,9 +51,13 @@ describe('CategoryController', () => {
       const mockResults = [mockResult];
       service.findAllByBranch.mockResolvedValue(mockResults);
 
-      const result = await controller.getAllCtaegory(mockDto);
+      const result = await controller.getAllCategory(
+        mockGetByBranchCategoryDto,
+      );
 
-      expect(service.findAllByBranch).toHaveBeenCalledWith(mockDto.id);
+      expect(service.findAllByBranch).toHaveBeenCalledWith(
+        mockGetByBranchCategoryDto.branchId,
+      );
       expect(service.findAllByBranch).toHaveBeenCalledTimes(1);
       expect(result).toEqual(mockResults);
     });
@@ -59,9 +67,9 @@ describe('CategoryController', () => {
     it('should call service.findOne and return category', async () => {
       service.findOne.mockResolvedValue(mockResult);
 
-      const result = await controller.getCategory(mockDto);
+      const result = await controller.getCategory(mockGetCategoryDto);
 
-      expect(service.findOne).toHaveBeenCalledWith(mockDto.id);
+      expect(service.findOne).toHaveBeenCalledWith(mockGetCategoryDto.id);
       expect(service.findOne).toHaveBeenCalledTimes(1);
       expect(result).toEqual(mockResult);
     });

@@ -93,6 +93,11 @@ export const MissingTokenException = createException(
   HttpStatus.BAD_REQUEST,
 );
 
+export const UserNotRegisteredException = createException(
+  ErrorCodes.USER_NOT_REGISTERED,
+  HttpStatus.NOT_FOUND,
+);
+
 // ========== Регистрация ==========
 export const RegistrationFailedException = createException(
   ErrorCodes.REGISTRATION_FAILED,
@@ -101,6 +106,11 @@ export const RegistrationFailedException = createException(
 
 export const EmailAlreadyExistsException = createException(
   ErrorCodes.EMAIL_ALREADY_EXISTS,
+  HttpStatus.CONFLICT,
+);
+
+export const PhoneAlreadyExistsException = createException(
+  ErrorCodes.PHONE_ALREADY_EXISTS,
   HttpStatus.CONFLICT,
 );
 

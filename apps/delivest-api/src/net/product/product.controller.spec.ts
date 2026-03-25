@@ -5,6 +5,8 @@ import { jest } from '@jest/globals';
 import { GetProductDto } from './dto/get-product.dto.js';
 import { ReadProductDto } from './dto/read-product.dto.js';
 import { FindProductsDto } from './dto/find-products.dto.js';
+import { GetProductsByCategoryDto } from './dto/get-product-by-category.dto.js';
+import { GetProductsByBranchDto } from './dto/get-product-by-branch.dto.js';
 
 describe('ProductController', () => {
   let controller: ProductController;
@@ -18,6 +20,10 @@ describe('ProductController', () => {
   };
 
   const mockGetDto: GetProductDto = { id: 'prod-123' };
+  const mockGetByCategoryDto: GetProductsByCategoryDto = {
+    categoryId: 'prod-123',
+  };
+  const mockGetByBranchDto: GetProductsByBranchDto = { branchId: 'prod-123' };
 
   const mockResult: ReadProductDto = {
     id: 'prod-123',
@@ -50,7 +56,8 @@ describe('ProductController', () => {
       const mockResults = [mockResult];
       service.findAllByBranch.mockResolvedValue(mockResults);
 
-      const result = await controller.getAllProductsByBranch(mockGetDto);
+      const result =
+        await controller.getAllProductsByBranch(mockGetByBranchDto);
 
       expect(service.findAllByBranch).toHaveBeenCalledWith(mockGetDto.id);
       expect(result).toEqual(mockResults);
@@ -62,7 +69,8 @@ describe('ProductController', () => {
       const mockResults = [mockResult];
       service.findAllByCategory.mockResolvedValue(mockResults);
 
-      const result = await controller.getAllProductsByCategory(mockGetDto);
+      const result =
+        await controller.getAllProductsByCategory(mockGetByCategoryDto);
 
       expect(service.findAllByCategory).toHaveBeenCalledWith(mockGetDto.id);
       expect(result).toEqual(mockResults);

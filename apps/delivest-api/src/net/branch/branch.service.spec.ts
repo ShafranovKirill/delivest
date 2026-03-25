@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BranchService } from './branch.service.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { jest } from '@jest/globals';
-import { Branch, BranchInfo } from '../../generated/prisma/client.js';
+import { Branch, BranchInfo } from '../../../generated/prisma/client.js';
 import { ReadBranchDto } from './dto/read-branch.dto.js';
 import {
   BadRequestException,
@@ -74,11 +74,6 @@ describe('BranchService', () => {
         },
       ];
       expect(result).toEqual(expectedOutput);
-    });
-
-    it('should throw not found exception if brach not exist', async () => {
-      mockPrisma.branch.findMany.mockResolvedValue([]);
-      await expect(service.findAll()).rejects.toThrow(NotFoundException);
     });
 
     it('should throw bad request exception if not domain exception', async () => {

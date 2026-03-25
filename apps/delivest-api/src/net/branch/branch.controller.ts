@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -24,20 +24,20 @@ export class BranchController {
     return this.branchService.findAll();
   }
 
-  @Get('one')
+  @Get(':id')
   @ApiOperation({ summary: 'Получить один филиал по айди' })
   @ApiOkResponse({ type: ReadBranchDto })
   @ApiNotFoundResponse({ description: 'Филиал не найден' })
-  async getBranch(@Query() dto: GetBranchDto) {
+  async getBranch(@Param() dto: GetBranchDto) {
     return this.branchService.findOne(dto);
   }
 
-  @Get('details')
+  @Get(':id/details')
   @ApiOperation({
     summary: 'Получить информицию по филиалу',
   })
   @ApiOkResponse({ type: ReadBranchDto })
-  async getBranchDetails(@Query() dto: GetBranchDto) {
+  async getBranchDetails(@Param() dto: GetBranchDto) {
     return this.branchService.getBranchDetails(dto);
   }
 }
