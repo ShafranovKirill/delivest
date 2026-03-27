@@ -139,7 +139,9 @@ export class ClientService {
     extended?: boolean,
   ): Promise<ReadClientDto[] | AdminReadClientDto[]> {
     try {
-      const clients = await this.prisma.client.findMany();
+      const clients = await this.prisma.client.findMany({
+        where: { deletedAt: null },
+      });
 
       if (extended === true) {
         return clients.map((client) => toDto(client, AdminReadClientDto));

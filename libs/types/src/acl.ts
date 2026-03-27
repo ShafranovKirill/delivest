@@ -5,6 +5,11 @@ export interface CreateRoleRequest {
   permissions?: Permission[];
 }
 
+export interface UpdateRoleRequest {
+  name?: string;
+  permissions?: Permission[];
+}
+
 export interface GetRoleRequest {
   id: string;
 }

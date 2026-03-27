@@ -43,8 +43,9 @@ model Role {
 
   staffs Staff[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@map("roles")
 }
@@ -109,7 +110,7 @@ enum Permission {
   CLIENT_READ
   CLIENT_UPDATE
   CLIENT_DELETE
-  ROLE_CERATE
+  ROLE_CREATE
   ROLE_READ
   ROLE_UPDATE
   ROLE_DELETE
