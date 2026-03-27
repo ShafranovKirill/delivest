@@ -21,9 +21,10 @@ model Client {
 }
 
 model Staff {
-  id           String @id @default(uuid())
-  login        String @unique
-  passwordHash String @map("password_hash")
+  id           String  @id @default(uuid())
+  login        String  @unique
+  passwordHash String  @map("password_hash")
+  name         String?
 
   roleId String @map("role_id")
   role   Role   @relation(fields: [roleId], references: [id])
@@ -38,12 +39,13 @@ model Staff {
 model Role {
   id          String       @id @default(uuid())
   name        String       @unique
-  Permissions Permission[]
+  permissions Permission[] @map("permissions")
 
   staffs Staff[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@map("roles")
 }
@@ -100,4 +102,16 @@ model Product {
 
 enum Permission {
   ADMIN
+  STAFF_CREATE
+  STAFF_READ
+  STAFF_UPDATE
+  STAFF_DELETE
+  CLIENT_CREATE
+  CLIENT_READ
+  CLIENT_UPDATE
+  CLIENT_DELETE
+  ROLE_CREATE
+  ROLE_READ
+  ROLE_UPDATE
+  ROLE_DELETE
 }

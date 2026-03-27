@@ -32,6 +32,7 @@ import { RoleService } from '../acl/role.service.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { LoginStaffDto } from './dto/login.dto.js';
 import { Response } from 'express';
+import { UpdateStaffDto } from './dto/update.dto.js';
 
 @Injectable()
 export class StaffService {
@@ -110,6 +111,25 @@ export class StaffService {
     }
   }
 
+  async findAll(): Promise<ReadStaffDto[]> {
+    try {
+      const staff = await this.prisma.staff.findMany({
+        where: { deletedAt: null },
+      });
+
+      return staff.map((s) => toDto(s, ReadStaffDto));
+    } catch (error: unknown) {
+      if (error instanceof DomainException) {
+        throw error;
+      }
+      this.logger.error(
+        `findAll() | ${(error as Error).message}`,
+        (error as Error).stack,
+      );
+      throw new BadRequestException('Failed to fetch staff');
+    }
+  }
+
   async create(dto: CreateStaffDto): Promise<Staff> {
     try {
       const passwordHash = await argon2.hash(dto.password);
@@ -129,7 +149,28 @@ export class StaffService {
         (error as Error).stack,
       );
       this.handleAccountConstraintError(error);
-      throw error;
+    }
+  }
+
+  async update(id: string, dto: UpdateStaffDto): Promise<ReadStaffDto> {
+    try {
+      const updatedStaff = await this.prisma.staff.update({
+        where: { id: id },
+        data: {
+          ...dto,
+        },
+      });
+
+      return toDto(updatedStaff, ReadStaffDto);
+    } catch (error: unknown) {
+      if (error instanceof DomainException) {
+        throw error;
+      }
+      this.logger.error(
+        `update() | ${(error as Error).message}`,
+        (error as Error).stack,
+      );
+      this.handleAccountConstraintError(error);
     }
   }
 
@@ -200,16 +241,8 @@ export class StaffService {
         `softDelete() | Error | id=${id}`,
         (error as Error).stack,
       );
-      if (isPrismaError(error)) {
-        const code = getInternalErrorCode(error);
 
-        if (code === PrismaErrorCode.RECORD_NOT_FOUND) {
-          throw new NotFoundException('Account not found');
-        }
-
-        this.handleAccountConstraintError(error);
-      }
-      throw error;
+      this.handleAccountConstraintError(error);
     }
   }
 
@@ -278,6 +311,9 @@ export class StaffService {
     const internalCode = getInternalErrorCode(error);
     const modelName = getPrismaModelName(error);
 
+    if (internalCode === PrismaErrorCode.RECORD_NOT_FOUND) {
+      throw new NotFoundException('Record not found');
+    }
     if (internalCode === PrismaErrorCode.UNIQUE_VIOLATION) {
       if (modelName === 'Staff') {
         throw new UserAlreadyExistsException();
@@ -289,6 +325,6 @@ export class StaffService {
       throw new NotFoundException();
     }
 
-    throw new RegistrationFailedException();
+    throw new BadRequestException();
   }
 }

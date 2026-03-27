@@ -9,7 +9,6 @@ import {
   Logger,
   Patch,
   Post,
-  Query,
   Req,
   Res,
   UseGuards,
@@ -31,7 +30,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { FindByPhoneDto } from './dto/find-by-phone.dto.js';
 
 @ApiTags('Client (Клиенты)')
 @Controller('client')
@@ -109,11 +107,5 @@ export class ClientController {
     @Body() dto: ChangePasswordDto,
   ) {
     await this.service.changePassword(userId, dto);
-  }
-
-  @Get('find-by-phone')
-  @ApiOperation({ summary: 'Найти клиента по номеру телефона' })
-  async findByPhone(@Query() dto: FindByPhoneDto) {
-    return await this.service.findOneByPhone(dto.phone);
   }
 }

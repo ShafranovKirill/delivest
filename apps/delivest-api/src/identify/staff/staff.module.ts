@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { StaffController } from './staff.controller.js';
 import { StaffService } from './staff.service.js';
 import { AclModule } from '../acl/acl.module.js';
 
 @Module({
-  imports: [AclModule],
+  imports: [AclModule, JwtModule, ConfigModule],
   controllers: [StaffController],
-  providers: [StaffService, ConfigService, PrismaService, JwtService],
-  exports: [StaffService],
+  providers: [StaffService, PrismaService],
+  exports: [StaffService, JwtModule],
 })
 export class StaffModule {}

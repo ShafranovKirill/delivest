@@ -7,4 +7,7 @@ export class ReadClientDto implements ClientResponse {
 
   @Expose()
   phone!: string;
+
+  @Expose()
+  name: string;
 }

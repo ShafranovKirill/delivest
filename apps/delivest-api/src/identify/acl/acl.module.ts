@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { RoleService } from './role.service.js';
+import { RoleController } from './role.controller.js';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [],
-  controllers: [],
+  imports: [JwtModule],
+  controllers: [RoleController],
   providers: [RoleService],
   exports: [RoleService],
 })

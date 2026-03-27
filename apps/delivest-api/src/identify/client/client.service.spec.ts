@@ -29,6 +29,8 @@ import { CreateClientDto } from './dto/create.dto.js';
 import { ForbiddenException } from '@nestjs/common/exceptions/index.js';
 
 import type { ClientService as ClientServiceType } from './client.service.js';
+import { AdminReadClientDto } from './dto/admin-read.dto.js';
+import { UpdateClientDto } from './dto/update.dto.js';
 
 describe('ClientService', () => {
   let service: ClientServiceType;
@@ -212,15 +214,12 @@ describe('ClientService', () => {
       );
     });
 
-    it('should throw RegistrationFailedException on any other DB error', async () => {
+    it('should throw original error on any other DB error', async () => {
       const dto: CreateClientDto = { phone: '+70000000000' };
-      mockPrisma.client.create.mockRejectedValue(
-        new Error('DB connection lost'),
-      );
+      const dbError = new Error('DB connection lost');
+      mockPrisma.client.create.mockRejectedValue(dbError);
 
-      await expect(service.create(dto)).rejects.toThrow(
-        RegistrationFailedException,
-      );
+      await expect(service.create(dto)).rejects.toThrow('DB connection lost');
     });
   });
 
@@ -489,6 +488,73 @@ describe('ClientService', () => {
     });
   });
 
+  describe('update', () => {
+    const clientId = '1';
+    const updateDto: UpdateClientDto = { name: 'New Name' };
+
+    it('should successfully update a client and return AdminReadClientDto', async () => {
+      const updatedClient = { ...mockClient, name: 'New Name' };
+      mockPrisma.client.update.mockResolvedValue(updatedClient);
+
+      const result = await service.update(clientId, updateDto);
+
+      expect(mockPrisma.client.update).toHaveBeenCalledWith({
+        where: { id: clientId },
+        data: { ...updateDto },
+      });
+
+      expect(result.name).toBe('New Name');
+      expect(result).toEqual(toDto(updatedClient, AdminReadClientDto));
+    });
+
+    it('should throw NotFoundException if client does not exist (P2025)', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError(
+        'Record to update not found.',
+        {
+          code: 'P2025',
+          clientVersion: '5.x.x',
+        },
+      );
+      mockPrisma.client.update.mockRejectedValue(prismaError);
+
+      await expect(service.update(clientId, updateDto)).rejects.toThrow(
+        NotFoundException,
+      );
+
+      expect((service as any).logger.error).toHaveBeenCalled();
+    });
+
+    it('should throw original error for generic connection issues', async () => {
+      const genericError = new Error('Database is down');
+      mockPrisma.client.update.mockRejectedValue(genericError);
+
+      await expect(service.update(clientId, updateDto)).rejects.toThrow(
+        'Database is down',
+      );
+
+      expect((service as any).logger.error).toHaveBeenCalledWith(
+        expect.stringContaining(`update() | Database is down`),
+        genericError.stack,
+      );
+    });
+
+    it('should throw PhoneAlreadyExistsException if update violates unique constraint', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError(
+        'Unique constraint failed',
+        {
+          code: 'P2002',
+          clientVersion: '5.x.x',
+          meta: { target: ['phone'], modelName: 'Client' },
+        },
+      );
+      mockPrisma.client.update.mockRejectedValue(prismaError);
+
+      await expect(service.update(clientId, updateDto)).rejects.toThrow(
+        PhoneAlreadyExistsException,
+      );
+    });
+  });
+
   describe('Error Handling (Constraint Violations)', () => {
     it('should throw PhoneAlreadyExistsException when Prisma returns P2002 on Client model', async () => {
       const dto: CreateClientDto = { phone: '12345', password: 'password' };
@@ -509,7 +575,7 @@ describe('ClientService', () => {
       );
     });
 
-    it('should throw RegistrationFailedException for unknown Prisma errors', async () => {
+    it('should throw BadRequestException for unknown Prisma errors', async () => {
       const dto: CreateClientDto = { phone: '12345' };
       const unknownPrismaError = new Prisma.PrismaClientKnownRequestError(
         'Something went wrong',
@@ -518,8 +584,10 @@ describe('ClientService', () => {
 
       mockPrisma.client.create.mockRejectedValue(unknownPrismaError);
 
+      await expect(service.create(dto)).rejects.toThrow(BadRequestException);
+
       await expect(service.create(dto)).rejects.toThrow(
-        RegistrationFailedException,
+        'Database operation failed',
       );
     });
   });

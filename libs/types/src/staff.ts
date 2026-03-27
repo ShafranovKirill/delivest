@@ -1,5 +1,4 @@
 import { Permission } from "../../../apps/delivest-api/generated/prisma/enums.js";
-import { Role } from "../../../apps/delivest-api/generated/prisma/client.js";
 
 export interface RefreshStaffTokenPayload {
   sub: string;
@@ -17,6 +16,17 @@ export interface CreateStaffRequest {
   login: string;
   password: string;
   roleId: string;
+  name: string;
+}
+
+export interface UpdateStaffRequest {
+  login: string;
+  roleId: string;
+  name: string;
+}
+
+export interface GetStaffRequest {
+  id: string;
 }
 
 export interface LoginStaffRequest {
@@ -28,6 +38,7 @@ export interface StaffResponse {
   id: string;
   login: string;
   roleId: string;
+  name?: string;
   createdAt: Date;
   updatedAt: Date;
 }

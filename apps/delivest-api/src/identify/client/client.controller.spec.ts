@@ -140,17 +140,4 @@ describe('ClientController', () => {
       expect(service.changePassword).toHaveBeenCalledWith(clientId, dto);
     });
   });
-
-  describe('findByPhone', () => {
-    it('should find client by phone number', async () => {
-      const dto = { phone: '79991234567' };
-      const mockResult = { id: '1', phone: '79991234567' };
-      service.findOneByPhone.mockResolvedValue(mockResult as any);
-
-      const result = await controller.findByPhone(dto);
-
-      expect(service.findOneByPhone).toHaveBeenCalledWith(dto.phone);
-      expect(result).toEqual(mockResult);
-    });
-  });
 });

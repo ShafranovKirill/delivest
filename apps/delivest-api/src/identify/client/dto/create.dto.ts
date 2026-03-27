@@ -24,4 +24,13 @@ export class CreateClientDto implements CreateClientRequest {
   @Matches(PASSWORD_REGEX)
   @IsOptional()
   password?: string;
+
+  @ApiPropertyOptional({
+    description: 'Имя клиента',
+    example: 'Иван Иванов',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  name?: string;
 }

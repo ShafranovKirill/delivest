@@ -18,7 +18,6 @@ import {
   InvalidCredentialsException,
   NotFoundException,
   PhoneAlreadyExistsException,
-  RegistrationFailedException,
   UserNotFoundException,
   UserNotRegisteredException,
 } from '../../shared/exception/domain_exception/domain-exception.js';
@@ -31,6 +30,8 @@ import {
 } from '../../shared/helpers/db-errors.js';
 import { PrismaErrorCode } from '@delivest/common';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
+import { AdminReadClientDto } from './dto/admin-read.dto.js';
+import { UpdateClientDto } from './dto/update.dto.js';
 
 @Injectable()
 export class ClientService {
@@ -60,7 +61,13 @@ export class ClientService {
     );
   }
 
-  async findOne(id: string): Promise<ReadClientDto> {
+  async findOne(id: string, extended: true): Promise<AdminReadClientDto>;
+  async findOne(id: string): Promise<ReadClientDto>;
+
+  async findOne(
+    id: string,
+    extended?: boolean,
+  ): Promise<ReadClientDto | AdminReadClientDto> {
     try {
       const client = await this.prisma.client.findUnique({
         where: { id: id },
@@ -71,6 +78,9 @@ export class ClientService {
         throw new UserNotFoundException('Client not found');
       }
 
+      if (extended === true) {
+        return toDto(client, AdminReadClientDto);
+      }
       return toDto(client, ReadClientDto);
     } catch (error: unknown) {
       if (error instanceof DomainException) {
@@ -84,7 +94,16 @@ export class ClientService {
     }
   }
 
-  async findOneByPhone(phone: string): Promise<ReadClientDto> {
+  async findOneByPhone(
+    phone: string,
+    extended: true,
+  ): Promise<AdminReadClientDto>;
+  async findOneByPhone(phone: string): Promise<ReadClientDto>;
+
+  async findOneByPhone(
+    phone: string,
+    extended?: boolean,
+  ): Promise<ReadClientDto | AdminReadClientDto> {
     try {
       const client = await this.prisma.client.findUnique({
         where: { phone: phone },
@@ -97,6 +116,9 @@ export class ClientService {
         throw new UserNotFoundException('Client not found');
       }
 
+      if (extended === true) {
+        return toDto(client, AdminReadClientDto);
+      }
       return toDto(client, ReadClientDto);
     } catch (error: unknown) {
       if (error instanceof DomainException) {
@@ -110,6 +132,29 @@ export class ClientService {
     }
   }
 
+  async findAll(): Promise<ReadClientDto[]>;
+  async findAll(extended: true): Promise<AdminReadClientDto[]>;
+
+  async findAll(
+    extended?: boolean,
+  ): Promise<ReadClientDto[] | AdminReadClientDto[]> {
+    try {
+      const clients = await this.prisma.client.findMany({
+        where: { deletedAt: null },
+      });
+
+      if (extended === true) {
+        return clients.map((client) => toDto(client, AdminReadClientDto));
+      }
+      return clients.map((client) => toDto(client, ReadClientDto));
+    } catch (error) {
+      this.logger.error(
+        `findAll() | error find all client ${(error as Error).stack}`,
+      );
+      throw new BadRequestException();
+    }
+  }
+
   async create(dto: CreateClientDto): Promise<Client> {
     try {
       const passwordHash = dto.password
@@ -119,6 +164,7 @@ export class ClientService {
         data: {
           phone: dto.phone,
           passwordHash: passwordHash,
+          name: dto.name,
         },
       });
 
@@ -127,6 +173,28 @@ export class ClientService {
     } catch (error: unknown) {
       this.logger.error(
         `create() | ${(error as Error).message}`,
+        (error as Error).stack,
+      );
+      this.handleAccountConstraintError(error);
+    }
+  }
+
+  async update(id: string, dto: UpdateClientDto): Promise<AdminReadClientDto> {
+    try {
+      const updatedClient = await this.prisma.client.update({
+        where: { id: id },
+        data: {
+          ...dto,
+        },
+      });
+
+      return toDto(updatedClient, AdminReadClientDto);
+    } catch (error: unknown) {
+      if (error instanceof DomainException) {
+        throw error;
+      }
+      this.logger.error(
+        `update() | ${(error as Error).message}`,
         (error as Error).stack,
       );
       this.handleAccountConstraintError(error);
@@ -203,16 +271,8 @@ export class ClientService {
         `softDelete() | Error | id=${id}`,
         (error as Error).stack,
       );
-      if (isPrismaError(error)) {
-        const code = getInternalErrorCode(error);
 
-        if (code === PrismaErrorCode.RECORD_NOT_FOUND) {
-          throw new NotFoundException('Account not found');
-        }
-
-        this.handleAccountConstraintError(error);
-      }
-      throw error;
+      this.handleAccountConstraintError(error);
     }
   }
 
@@ -272,11 +332,20 @@ export class ClientService {
   }
 
   private handleAccountConstraintError(error: unknown): never {
-    if (!isPrismaError(error)) {
-      throw new RegistrationFailedException();
+    if (error instanceof DomainException) {
+      throw error;
     }
+
+    if (!isPrismaError(error)) {
+      throw error as Error;
+    }
+
     const internalCode = getInternalErrorCode(error);
     const modelName = getPrismaModelName(error);
+
+    if (internalCode === PrismaErrorCode.RECORD_NOT_FOUND) {
+      throw new NotFoundException('Record not found');
+    }
 
     if (internalCode === PrismaErrorCode.UNIQUE_VIOLATION) {
       if (modelName === 'Client') {
@@ -285,10 +354,6 @@ export class ClientService {
       throw new DuplicateValueException();
     }
 
-    if (internalCode === PrismaErrorCode.FOREIGN_KEY_VIOLATION) {
-      throw new BadRequestException();
-    }
-
-    throw new RegistrationFailedException();
+    throw new BadRequestException('Database operation failed');
   }
 }

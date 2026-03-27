@@ -5,6 +5,8 @@ import { jest } from '@jest/globals';
 import { Response, Request } from 'express';
 import { MissingTokenException } from '../../shared/exception/domain_exception/domain-exception.js';
 import { JwtStaffAuthGuard } from './guards/jwt-staff.guard.js';
+import { AclGuard } from '../acl/guards/acl.guard.js';
+import { UpdateStaffDto } from './dto/update.dto.js';
 
 describe('StaffController', () => {
   let controller: StaffController;
@@ -20,6 +22,9 @@ describe('StaffController', () => {
     findOne: jest.fn(),
     changePassword: jest.fn(),
     findOneByLogin: jest.fn(),
+    update: jest.fn(),
+    softDelete: jest.fn(),
+    findAll: jest.fn(),
   };
 
   const mockResponse = {
@@ -38,6 +43,8 @@ describe('StaffController', () => {
       ],
     })
       .overrideGuard(JwtStaffAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(AclGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -77,6 +84,7 @@ describe('StaffController', () => {
         login: 'new_manager',
         password: 'password',
         roleId: 'role-1',
+        name: 'Иван Иванов',
       };
       const mockStaff = { id: 'staff-2' };
       const accessToken = 'access_token_reg';
@@ -99,9 +107,8 @@ describe('StaffController', () => {
 
   describe('refresh', () => {
     it('should return new access token if staff cookie exists', async () => {
-      // Используем ключ из твоего контроллера (client_refresh_token)
       const mockRequest = {
-        cookies: { client_refresh_token: 'valid_refresh_token' },
+        cookies: { staff_refresh_token: 'valid_refresh_token' },
       } as unknown as Request;
       const newAccessToken = 'brand_new_access_token';
 
@@ -152,9 +159,65 @@ describe('StaffController', () => {
       const mockResult = { id: '10', login: 'search_me' };
       service.findOneByLogin.mockResolvedValue(mockResult as any);
 
-      const result = await controller.findByPhone(dto);
+      const result = await controller.findByLogin(dto);
 
       expect(service.findOneByLogin).toHaveBeenCalledWith(dto.login);
+      expect(result).toEqual(mockResult);
+    });
+  });
+
+  describe('update', () => {
+    it('should update staff data and return ReadStaffDto', async () => {
+      const id = 'staff-1';
+      const dto = { name: 'Обновленное Имя' } as UpdateStaffDto;
+      const mockResult = { id, name: 'Обновленное Имя', login: 'admin' };
+
+      service.update.mockResolvedValue(mockResult as any);
+
+      const result = await controller.update(id, dto);
+
+      expect(service.update).toHaveBeenCalledWith(id, dto);
+      expect(result).toEqual(mockResult);
+    });
+  });
+
+  describe('softDelete', () => {
+    it('should call softDelete on service with correct id', async () => {
+      const id = 'staff-to-delete';
+      service.softDelete.mockResolvedValue(undefined);
+
+      await controller.softDelete(id);
+
+      expect(service.softDelete).toHaveBeenCalledWith(id);
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return an array of staff members', async () => {
+      const mockStaffList = [
+        { id: '1', login: 'admin' },
+        { id: '2', login: 'manager' },
+      ];
+      service.findAll.mockResolvedValue(mockStaffList as any);
+
+      const result = await controller.findAll();
+
+      expect(service.findAll).toHaveBeenCalled();
+      expect(result).toEqual(mockStaffList);
+      expect(result.length).toBe(2);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return a single staff member by id from Param DTO', async () => {
+      const dto = { id: 'specific-staff-id' };
+      const mockResult = { id: 'specific-staff-id', login: 'target_user' };
+
+      service.findOne.mockResolvedValue(mockResult as any);
+
+      const result = await controller.findOne(dto);
+
+      expect(service.findOne).toHaveBeenCalledWith(dto.id);
       expect(result).toEqual(mockResult);
     });
   });

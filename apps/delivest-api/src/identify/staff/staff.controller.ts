@@ -3,13 +3,14 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Logger,
+  Param,
   Patch,
   Post,
-  Query,
   Req,
   Res,
   UseGuards,
@@ -32,6 +33,12 @@ import { JwtStaffAuthGuard } from './guards/jwt-staff.guard.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { FindByLoginDto } from './dto/find-by-login.dto.js';
 import { CurrentStaff } from '../../shared/decorators/current-staff.decorator.js';
+import { AclGuard } from '../acl/guards/acl.guard.js';
+import { RequirePermission } from '../acl/decorators/require-permission.decorator.js';
+import { Permission } from '../../../generated/prisma/enums.js';
+import { GetStaffDto } from './dto/get-staff.dto.js';
+import { ReadStaffDto } from './dto/read.dto.js';
+import { UpdateStaffDto } from './dto/update.dto.js';
 
 @ApiTags('Staff (Работники)')
 @Controller('staff')
@@ -56,10 +63,11 @@ export class StaffController {
     return { accessToken };
   }
 
-  @Post('register')
-  @ApiOperation({ summary: 'Регистрация' })
-  @ApiOkResponse({ type: TokenStaffResponseDto })
-  @HttpCode(HttpStatus.CREATED)
+  @Post('create')
+  @ApiBearerAuth('staff-auth')
+  @ApiOperation({ summary: 'Создать работника' })
+  @UseGuards(JwtStaffAuthGuard, AclGuard)
+  @RequirePermission(Permission.STAFF_CREATE)
   async register(
     @Res({ passthrough: true }) res: Response,
     @Body() dto: CreateStaffDto,
@@ -73,12 +81,33 @@ export class StaffController {
     return { accessToken };
   }
 
+  @Patch('update/:id')
+  @ApiBearerAuth('staff-auth')
+  @ApiOperation({ summary: 'Обновить данные работника' })
+  @UseGuards(JwtStaffAuthGuard, AclGuard)
+  @RequirePermission(Permission.STAFF_UPDATE)
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateStaffDto,
+  ): Promise<ReadStaffDto> {
+    return await this.service.update(id, dto);
+  }
+
+  @Delete('delete/:id')
+  @ApiBearerAuth('staff-auth')
+  @ApiOperation({ summary: 'Удалить работника' })
+  @UseGuards(JwtStaffAuthGuard, AclGuard)
+  @RequirePermission(Permission.STAFF_DELETE)
+  async softDelete(@Param('id') id: string) {
+    return await this.service.softDelete(id);
+  }
+
   @Get('refresh')
   @ApiCookieAuth('staff_refresh_token')
   @ApiOperation({ summary: 'Рефреш токен' })
   @ApiOkResponse({ type: TokenStaffResponseDto })
   async refresh(@Req() req: Request) {
-    const token = req.cookies?.['client_refresh_token'];
+    const token = req.cookies?.['staff_refresh_token'];
 
     if (!token) {
       throw new MissingTokenException('Missing refresh token');
@@ -99,7 +128,7 @@ export class StaffController {
   }
 
   @Patch('me/password')
-  @ApiBearerAuth('client-auth')
+  @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Изменить пароль' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiResponse({ status: 204, description: 'Пароль успешно изменен' })
@@ -111,9 +140,30 @@ export class StaffController {
     await this.service.changePassword(userId, dto);
   }
 
-  @Get('find-by-login')
+  @Get('find-by-login/:login')
+  @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Найти работника по логину' })
-  async findByPhone(@Query() dto: FindByLoginDto) {
+  @UseGuards(JwtStaffAuthGuard, AclGuard)
+  @RequirePermission(Permission.STAFF_READ)
+  async findByLogin(@Param() dto: FindByLoginDto): Promise<ReadStaffDto> {
     return await this.service.findOneByLogin(dto.login);
+  }
+
+  @Get('all')
+  @ApiBearerAuth('staff-auth')
+  @ApiOperation({ summary: 'Получить список всех работников' })
+  @UseGuards(JwtStaffAuthGuard, AclGuard)
+  @RequirePermission(Permission.STAFF_READ)
+  async findAll(): Promise<ReadStaffDto[]> {
+    return await this.service.findAll();
+  }
+
+  @Get(':id')
+  @ApiBearerAuth('staff-auth')
+  @ApiOperation({ summary: 'Получить данные работника по айди' })
+  @UseGuards(JwtStaffAuthGuard, AclGuard)
+  @RequirePermission(Permission.STAFF_READ)
+  async findOne(@Param() dto: GetStaffDto): Promise<ReadStaffDto> {
+    return this.service.findOne(dto.id);
   }
 }

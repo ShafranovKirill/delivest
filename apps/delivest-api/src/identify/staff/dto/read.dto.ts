@@ -12,6 +12,9 @@ export class ReadStaffDto implements StaffResponse {
   roleId: string;
 
   @Expose()
+  name: string;
+
+  @Expose()
   createdAt: Date;
 
   @Expose()

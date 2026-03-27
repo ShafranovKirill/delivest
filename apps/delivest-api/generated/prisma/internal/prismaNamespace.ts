@@ -984,6 +984,7 @@ export const StaffScalarFieldEnum = {
   id: 'id',
   login: 'login',
   passwordHash: 'passwordHash',
+  name: 'name',
   roleId: 'roleId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -996,9 +997,10 @@ export type StaffScalarFieldEnum = (typeof StaffScalarFieldEnum)[keyof typeof St
 export const RoleScalarFieldEnum = {
   id: 'id',
   name: 'name',
-  Permissions: 'Permissions',
+  permissions: 'permissions',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 } as const
 
 export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
