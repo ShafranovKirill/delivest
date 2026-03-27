@@ -14,7 +14,7 @@ import { CreateRoleDto } from './dto/create-role.dto.js';
 import { UpdateRoleDto } from './dto/update-role.dto.js';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtStaffAuthGuard } from '../staff/guards/jwt-staff.guard.js';
-import { Permission } from '../../../generated/prisma/enums.js'; // Убедись, что путь к Enum верный
+import { Permission } from '../../../generated/prisma/enums.js';
 import { GetRoleDto } from './dto/get-role.dto.js';
 import { RequirePermission } from '../acl/decorators/require-permission.decorator.js';
 import { AclGuard } from '../acl/guards/acl.guard.js';
