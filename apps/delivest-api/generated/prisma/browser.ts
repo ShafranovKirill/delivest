@@ -52,3 +52,8 @@ export type Category = Prisma.CategoryModel
  * 
  */
 export type Product = Prisma.ProductModel
+/**
+ * Model OutboxMessage
+ * 
+ */
+export type OutboxMessage = Prisma.OutboxMessageModel
