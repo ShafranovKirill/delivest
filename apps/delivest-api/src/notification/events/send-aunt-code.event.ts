@@ -4,6 +4,6 @@ export class SendAuthCodeEvent {
 
     public readonly number: string,
 
-    public readonly code: number,
+    public readonly code: string,
   ) {}
 }

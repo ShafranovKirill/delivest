@@ -21,37 +21,43 @@ export class OutboxProcessor {
     this.isProcessing = true;
 
     try {
-      await this.prisma.$transaction(async (tx) => {
-        const messages = await this.prisma.$queryRaw<OutboxMessage[]>`
-            SELECT * FROM "outbox_messages"
-            ORDER BY "created_at" ASC
-            LIMIT 50
-            FOR UPDATE SKIP LOCKED
-          `;
+      // Используем сырой запрос для атомарности (SKIP LOCKED)
+      const messages = await this.prisma.$queryRaw<OutboxMessage[]>`
+          SELECT * FROM "outbox_messages"
+          ORDER BY "created_at" ASC
+          LIMIT 50
+          FOR UPDATE SKIP LOCKED
+      `;
 
-        if (messages.length === 0) return;
+      if (messages.length === 0) return;
 
-        this.logger.log(`Processing ${messages.length} outbox messages...`);
+      this.logger.debug(`Found ${messages.length} messages in outbox`);
 
-        for (const msg of messages) {
-          try {
+      for (const msg of messages) {
+        try {
+          await this.prisma.$transaction(async (tx) => {
+            // КРИТИЧНО: Этот промис должен отклониться (reject),
+            // если слушатель (SendCodeListener) выбросил ошибку.
             await this.eventBus.publish(msg.type, msg.payload);
 
+            // Если выполнение дошло сюда, значит publish прошел успешно
             await tx.outboxMessage.delete({
               where: { id: msg.id },
             });
 
-            this.logger.debug(`otp message deleted from db`);
-          } catch (err) {
-            this.logger.error(
-              `Failed to process message ${msg.id}: ${(err as Error).message}`,
+            this.logger.log(
+              `[Outbox] Message ${msg.id} (${msg.type}) successfully processed and DELETED.`,
             );
-            throw err;
-          }
+          });
+        } catch (err) {
+          // Если транзакция упала, управление попадает сюда. Запись в БД НЕ удаляется.
+          this.logger.error(
+            `[Outbox] FAILED message ${msg.id}. Transaction rolled back. Reason: ${(err as Error).message}`,
+          );
         }
-      });
+      }
     } catch (err) {
-      this.logger.error('Outbox processing batch failed', (err as Error).stack);
+      this.logger.error('Outbox batch selection failed', (err as Error).stack);
     } finally {
       this.isProcessing = false;
     }

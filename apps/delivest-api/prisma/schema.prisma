@@ -113,7 +113,7 @@ model OutboxMessage {
 model AuthMessage {
   id     String  @id @default(uuid())
   phone  String
-  code   Int
+  code   String
   callId String? @map("call_id")
 
   status AuthStatus @default(PENDING)

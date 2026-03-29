@@ -262,7 +262,7 @@ export class ClientService {
   }
 
   async sendCode(number: string) {
-    return await this.notificationService.sendAuthCode(number, 123);
+    return await this.notificationService.sendAuthCode(number);
   }
 
   async softDelete(id: string): Promise<void> {

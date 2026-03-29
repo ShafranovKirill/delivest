@@ -14,15 +14,17 @@ export class NotificationService {
     private readonly prisma: PrismaService,
     private readonly outboxService: OutboxService,
   ) {}
-
   @Transactional()
-  async sendAuthCode(phone: string, code: number) {
+  async sendAuthCode(phone: string) {
     try {
       this.logger.log(`sendAuthCode() | start sending auth code to ${phone}`);
+
+      const code = this.generateFourDigitCode();
+
       const codeMessage = await this.prisma.authMessage.create({
         data: {
-          phone,
-          code,
+          phone: phone,
+          code: code,
         },
       });
 
@@ -40,6 +42,13 @@ export class NotificationService {
       return codeMessage;
     } catch (error) {
       this.logger.error(`sendAuthCode() failed: ${(error as Error).message}`);
+      throw error;
     }
+  }
+
+  private generateFourDigitCode(): string {
+    return Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, '0');
   }
 }
