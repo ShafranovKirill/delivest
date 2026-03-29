@@ -28,11 +28,7 @@ export class NotificationService {
         },
       });
 
-      const event = new SendAuthCodeEvent(
-        codeMessage.id,
-        codeMessage.phone,
-        codeMessage.code,
-      );
+      const event = new SendAuthCodeEvent(codeMessage.id);
 
       await this.outboxService.save(
         DelivestEvent.AUTH_CODE_REQUESTED,

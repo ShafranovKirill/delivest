@@ -21,7 +21,6 @@ export class OutboxProcessor {
     this.isProcessing = true;
 
     try {
-      // Используем сырой запрос для атомарности (SKIP LOCKED)
       const messages = await this.prisma.$queryRaw<OutboxMessage[]>`
           SELECT * FROM "outbox_messages"
           ORDER BY "created_at" ASC
@@ -36,23 +35,19 @@ export class OutboxProcessor {
       for (const msg of messages) {
         try {
           await this.prisma.$transaction(async (tx) => {
-            // КРИТИЧНО: Этот промис должен отклониться (reject),
-            // если слушатель (SendCodeListener) выбросил ошибку.
             await this.eventBus.publish(msg.type, msg.payload);
 
-            // Если выполнение дошло сюда, значит publish прошел успешно
             await tx.outboxMessage.delete({
               where: { id: msg.id },
             });
 
-            this.logger.log(
-              `[Outbox] Message ${msg.id} (${msg.type}) successfully processed and DELETED.`,
+            this.logger.debug(
+              `Message ${msg.id}type ${msg.type} successfully processed and DELETED.`,
             );
           });
         } catch (err) {
-          // Если транзакция упала, управление попадает сюда. Запись в БД НЕ удаляется.
           this.logger.error(
-            `[Outbox] FAILED message ${msg.id}. Transaction rolled back. Reason: ${(err as Error).message}`,
+            `FAILED message ${msg.id}. Transaction rolled back. Reason: ${(err as Error).message}`,
           );
         }
       }

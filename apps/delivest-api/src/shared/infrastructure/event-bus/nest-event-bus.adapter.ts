@@ -9,10 +9,9 @@ export class NestEventBusAdapter implements IEventBus {
   constructor(private readonly eventEmitter: EventEmitter2) {}
 
   async publish<T>(eventName: string, payload: T): Promise<void> {
-    this.logger.debug(`[EventBus] Publishing: ${eventName}`);
+    this.logger.debug(`Publishing event: ${eventName}`);
 
     const results = await this.eventEmitter.emitAsync(eventName, payload);
-    this.logger.log('[DEBUG] EventBus results:', results);
     this.validateResults(results, eventName);
   }
 
@@ -22,9 +21,7 @@ export class NestEventBusAdapter implements IEventBus {
     const firstError = results.find((res) => res instanceof Error);
 
     if (firstError) {
-      this.logger.warn(
-        `[EventBus] Error detected in listener for "${eventName}"`,
-      );
+      this.logger.warn(`Error detected in listener for "${eventName}"`);
       throw firstError;
     }
   }

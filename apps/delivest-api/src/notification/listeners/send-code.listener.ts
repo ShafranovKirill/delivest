@@ -15,7 +15,7 @@ export class SendCodeListener {
   @OnEvent(DelivestEvent.AUTH_CODE_REQUESTED)
   async handleSendAuthCode(payload: SendAuthCodeEvent) {
     try {
-      await this.authCodeSender.send(payload.number, payload.code);
+      await this.authCodeSender.send(payload.authCodeId);
     } catch (err) {
       this.logger.error(`handleSendAuthCode() | ${(err as Error).message}`);
       return err as Error;
