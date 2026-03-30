@@ -7,6 +7,7 @@ import { TelegramSmsAdapter } from './adapters/sms/telegram.adapter.js';
 import { UCallerSmsAdapter } from './adapters/sms/ucaller.adapter.js';
 import { isDev, isProd } from '../utils/env.js';
 import { HttpModule } from '@nestjs/axios';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [OutboxModule, PrismaModule, HttpModule],
@@ -16,6 +17,7 @@ import { HttpModule } from '@nestjs/axios';
     SendCodeListener,
     TelegramSmsAdapter,
     UCallerSmsAdapter,
+    ConfigModule,
     {
       provide: 'IAuthCodeSender',
       inject: [TelegramSmsAdapter, UCallerSmsAdapter],
