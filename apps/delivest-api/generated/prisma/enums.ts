@@ -36,3 +36,10 @@ export const Permission = {
 } as const
 
 export type Permission = (typeof Permission)[keyof typeof Permission]
+
+
+export const SendCodeType = {
+  UCALLER: 'UCALLER'
+} as const
+
+export type SendCodeType = (typeof SendCodeType)[keyof typeof SendCodeType]

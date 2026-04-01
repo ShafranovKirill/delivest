@@ -42,6 +42,11 @@ export const NotFoundException = createException(
   HttpStatus.NOT_FOUND,
 );
 
+export const ForbiddenException = createException(
+  ErrorCodes.FORBIDDEN,
+  HttpStatus.FORBIDDEN,
+);
+
 // ========== Auth ошибки ==========
 export const InvalidCredentialsException = createException(
   ErrorCodes.INVALID_CREDENTIALS,

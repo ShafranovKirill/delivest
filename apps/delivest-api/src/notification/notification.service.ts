@@ -5,6 +5,8 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { SendAuthCodeEvent } from './events/send-aunt-code.event.js';
 import { DelivestEvent } from '../shared/events/types.js';
 import { toPrismaJson } from '../utils/to-prisma-json.js';
+import { ForbiddenException } from '../shared/exception/domain_exception/domain-exception.js';
+import { SendCodeType } from '../../generated/prisma/enums.js';
 
 @Injectable()
 export class NotificationService {
@@ -15,16 +17,17 @@ export class NotificationService {
     private readonly outboxService: OutboxService,
   ) {}
   @Transactional()
-  async sendAuthCode(phone: string) {
+  async sendAuthCode(target: string, type: SendCodeType) {
     try {
-      this.logger.log(`sendAuthCode() | start sending auth code to ${phone}`);
+      this.logger.log(`sendAuthCode() | start sending auth code to ${target}`);
 
       const code = this.generateFourDigitCode();
 
       const codeMessage = await this.prisma.authMessage.create({
         data: {
-          target: phone,
+          target: target,
           code: code,
+          type: type,
         },
       });
 
@@ -36,6 +39,23 @@ export class NotificationService {
       );
 
       return codeMessage;
+    } catch (error) {
+      this.logger.error(`sendAuthCode() failed: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+
+  async checkAuthCode(target: string, code: string) {
+    try {
+      const codeMessage = await this.prisma.authMessage.findFirst({
+        where: { target },
+      });
+
+      if (code === codeMessage?.code) {
+        return;
+      } else {
+        throw new ForbiddenException();
+      }
     } catch (error) {
       this.logger.error(`sendAuthCode() failed: ${(error as Error).message}`);
       throw error;

@@ -261,8 +261,12 @@ export class ClientService {
     this.logger.log(`changePassword() | Client id=${id} changed password`);
   }
 
-  async sendCode(number: string) {
-    return await this.notificationService.sendAuthCode(number);
+  async sendCode(target: string) {
+    return await this.notificationService.sendAuthCode(target);
+  }
+
+  async loginByCode(target: string, code: string) {
+    return await this.notificationService.checkAuthCode(target, code);
   }
 
   async softDelete(id: string): Promise<void> {

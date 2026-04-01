@@ -173,6 +173,7 @@ export const AuthMessageScalarFieldEnum = {
   target: 'target',
   code: 'code',
   callId: 'callId',
+  type: 'type',
   status: 'status',
   ipAddress: 'ipAddress',
   requestHash: 'requestHash',

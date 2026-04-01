@@ -55,6 +55,22 @@ export class ClientController {
     return { accessToken };
   }
 
+  @Post('login-by-code')
+  @ApiOperation({ summary: 'Вход по коду' })
+  @ApiOkResponse({ type: TokenClientResponseDto })
+  async loginByCode(
+    @Body() dto: LoginClientDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<TokenClientResponseDto> {
+    const account = await this.service.validateCredentials(dto);
+    const accessToken = await this.service.generateAccessToken(account);
+    const refreshToken = await this.service.generateRefreshToken(account);
+
+    this.service.setRefreshCookie(res, refreshToken);
+
+    return { accessToken };
+  }
+
   @Post('send-code')
   @ApiOperation({ summary: 'Отправить код' })
   @ApiOkResponse({ type: TokenClientResponseDto })

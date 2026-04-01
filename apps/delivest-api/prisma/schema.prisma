@@ -111,10 +111,11 @@ model OutboxMessage {
 }
 
 model AuthMessage {
-  id     String  @id @default(uuid())
+  id     String       @id @default(uuid())
   target String
   code   String
-  callId String? @map("call_id")
+  callId String?      @map("call_id")
+  type   SendCodeType
 
   status AuthStatus @default(PENDING)
 
@@ -153,4 +154,8 @@ enum Permission {
   ROLE_READ
   ROLE_UPDATE
   ROLE_DELETE
+}
+
+enum SendCodeType {
+  UCALLER
 }

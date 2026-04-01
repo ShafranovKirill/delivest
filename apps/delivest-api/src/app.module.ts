@@ -11,7 +11,6 @@ import { PrismaService } from './prisma/prisma.service.js';
 import { OutboxModule } from './outbox/outbox.module.js';
 import { SharedModule } from './shared/shared.module.js';
 import { NotificationModule } from './notification/notification.module.js';
-import { TelegrafModule } from 'nestjs-telegraf';
 
 @Module({
   imports: [
@@ -35,9 +34,6 @@ import { TelegrafModule } from 'nestjs-telegraf';
           }),
         }),
       ],
-    }),
-    TelegrafModule.forRoot({
-      token: process.env.TELEGRAM_BOT_TOKEN!,
     }),
   ],
   controllers: [],
