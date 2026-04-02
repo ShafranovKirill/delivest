@@ -11,10 +11,16 @@ import { toDto } from '../../utils/to-dto.js';
 import { CreateClientDto } from './dto/create.dto.js';
 import { ReadClientDto } from './dto/read.dto.js';
 import {
+  CountryCode,
+  parsePhoneNumberWithError,
+  PhoneNumber,
+} from 'libphonenumber-js';
+import {
   BadRequestException,
   DomainException,
   DuplicateValueException,
   ForbiddenException,
+  InvalidPhoneNumberException,
   NotFoundException,
   PhoneAlreadyExistsException,
   UserNotFoundException,
@@ -224,29 +230,29 @@ export class ClientService {
     }
   }
 
-  async sendCode(target: string, type: SendCodeType) {
+  async sendCode(phone: string, type: SendCodeType) {
+    const validPhone = this.validatePhoneNumber(phone);
     try {
       const client = await this.prisma.client.findUnique({
-        where: { phone: target },
+        where: { phone: validPhone },
       });
 
       if (!client) {
-        const newClient = await this.prisma.client.create({
-          data: { phone: target },
-        });
+        const newClient = await this.create({ phone: validPhone, name: '' });
+
         this.logger.log(
-          `sendCode() | New client created for phone=${target} | id=${newClient.id}`,
+          `sendCode() | New client created for phone=${validPhone} | id=${newClient.id}`,
         );
       }
 
-      return await this.notificationService.sendAuthCode(target, type);
+      return await this.notificationService.sendAuthCode(validPhone, type);
     } catch (error: unknown) {
       if (error instanceof DomainException) {
         throw error;
       }
 
       this.logger.error(
-        `sendCode() | Error sending code to ${target}: ${(error as Error).message}`,
+        `sendCode() | Error sending code to ${validPhone}: ${(error as Error).message}`,
         (error as Error).stack,
       );
 
@@ -323,6 +329,29 @@ export class ClientService {
     } catch (error) {
       this.logger.error(`checkAuthCode() failed: ${(error as Error).message}`);
       throw error;
+    }
+  }
+
+  validatePhoneNumber(number: string): string {
+    const defaultCountry: CountryCode = 'RU';
+    try {
+      const phoneNumber: PhoneNumber = parsePhoneNumberWithError(
+        number,
+        defaultCountry,
+      );
+
+      if (!phoneNumber.isValid()) {
+        throw new Error('Number is not valid for the detected country');
+      }
+
+      this.logger.log(`Phone validated: ${phoneNumber.number}`);
+
+      return phoneNumber.number;
+    } catch (error) {
+      const message = (error as Error).message;
+      this.logger.warn(`Phone validation failed for "${number}": ${message}`);
+
+      throw new InvalidPhoneNumberException(message);
     }
   }
 

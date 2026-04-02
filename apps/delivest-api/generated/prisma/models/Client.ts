@@ -27,7 +27,6 @@ export type AggregateClient = {
 export type ClientMinAggregateOutputType = {
   id: string | null
   phone: string | null
-  passwordHash: string | null
   name: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -37,7 +36,6 @@ export type ClientMinAggregateOutputType = {
 export type ClientMaxAggregateOutputType = {
   id: string | null
   phone: string | null
-  passwordHash: string | null
   name: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -47,7 +45,6 @@ export type ClientMaxAggregateOutputType = {
 export type ClientCountAggregateOutputType = {
   id: number
   phone: number
-  passwordHash: number
   name: number
   createdAt: number
   updatedAt: number
@@ -59,7 +56,6 @@ export type ClientCountAggregateOutputType = {
 export type ClientMinAggregateInputType = {
   id?: true
   phone?: true
-  passwordHash?: true
   name?: true
   createdAt?: true
   updatedAt?: true
@@ -69,7 +65,6 @@ export type ClientMinAggregateInputType = {
 export type ClientMaxAggregateInputType = {
   id?: true
   phone?: true
-  passwordHash?: true
   name?: true
   createdAt?: true
   updatedAt?: true
@@ -79,7 +74,6 @@ export type ClientMaxAggregateInputType = {
 export type ClientCountAggregateInputType = {
   id?: true
   phone?: true
-  passwordHash?: true
   name?: true
   createdAt?: true
   updatedAt?: true
@@ -162,7 +156,6 @@ export type ClientGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 export type ClientGroupByOutputType = {
   id: string
   phone: string
-  passwordHash: string | null
   name: string | null
   createdAt: Date
   updatedAt: Date
@@ -193,7 +186,6 @@ export type ClientWhereInput = {
   NOT?: Prisma.ClientWhereInput | Prisma.ClientWhereInput[]
   id?: Prisma.StringFilter<"Client"> | string
   phone?: Prisma.StringFilter<"Client"> | string
-  passwordHash?: Prisma.StringNullableFilter<"Client"> | string | null
   name?: Prisma.StringNullableFilter<"Client"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Client"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Client"> | Date | string
@@ -203,7 +195,6 @@ export type ClientWhereInput = {
 export type ClientOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
-  passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -216,7 +207,6 @@ export type ClientWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.ClientWhereInput | Prisma.ClientWhereInput[]
   OR?: Prisma.ClientWhereInput[]
   NOT?: Prisma.ClientWhereInput | Prisma.ClientWhereInput[]
-  passwordHash?: Prisma.StringNullableFilter<"Client"> | string | null
   name?: Prisma.StringNullableFilter<"Client"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Client"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Client"> | Date | string
@@ -226,7 +216,6 @@ export type ClientWhereUniqueInput = Prisma.AtLeast<{
 export type ClientOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
-  passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -242,7 +231,6 @@ export type ClientScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ClientScalarWhereWithAggregatesInput | Prisma.ClientScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Client"> | string
   phone?: Prisma.StringWithAggregatesFilter<"Client"> | string
-  passwordHash?: Prisma.StringNullableWithAggregatesFilter<"Client"> | string | null
   name?: Prisma.StringNullableWithAggregatesFilter<"Client"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Client"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Client"> | Date | string
@@ -252,7 +240,6 @@ export type ClientScalarWhereWithAggregatesInput = {
 export type ClientCreateInput = {
   id?: string
   phone: string
-  passwordHash?: string | null
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -262,7 +249,6 @@ export type ClientCreateInput = {
 export type ClientUncheckedCreateInput = {
   id?: string
   phone: string
-  passwordHash?: string | null
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -272,7 +258,6 @@ export type ClientUncheckedCreateInput = {
 export type ClientUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -282,7 +267,6 @@ export type ClientUpdateInput = {
 export type ClientUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -292,7 +276,6 @@ export type ClientUncheckedUpdateInput = {
 export type ClientCreateManyInput = {
   id?: string
   phone: string
-  passwordHash?: string | null
   name?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -302,7 +285,6 @@ export type ClientCreateManyInput = {
 export type ClientUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -312,7 +294,6 @@ export type ClientUpdateManyMutationInput = {
 export type ClientUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
-  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -322,7 +303,6 @@ export type ClientUncheckedUpdateManyInput = {
 export type ClientCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
-  passwordHash?: Prisma.SortOrder
   name?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -332,7 +312,6 @@ export type ClientCountOrderByAggregateInput = {
 export type ClientMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
-  passwordHash?: Prisma.SortOrder
   name?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -342,7 +321,6 @@ export type ClientMaxOrderByAggregateInput = {
 export type ClientMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
-  passwordHash?: Prisma.SortOrder
   name?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -370,7 +348,6 @@ export type NullableDateTimeFieldUpdateOperationsInput = {
 export type ClientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   phone?: boolean
-  passwordHash?: boolean
   name?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -380,7 +357,6 @@ export type ClientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type ClientSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   phone?: boolean
-  passwordHash?: boolean
   name?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -390,7 +366,6 @@ export type ClientSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type ClientSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   phone?: boolean
-  passwordHash?: boolean
   name?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -400,14 +375,13 @@ export type ClientSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type ClientSelectScalar = {
   id?: boolean
   phone?: boolean
-  passwordHash?: boolean
   name?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
 }
 
-export type ClientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "phone" | "passwordHash" | "name" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["client"]>
+export type ClientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "phone" | "name" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["client"]>
 
 export type $ClientPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Client"
@@ -415,7 +389,6 @@ export type $ClientPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     phone: string
-    passwordHash: string | null
     name: string | null
     createdAt: Date
     updatedAt: Date
@@ -845,7 +818,6 @@ export interface Prisma__ClientClient<T, Null = never, ExtArgs extends runtime.T
 export interface ClientFieldRefs {
   readonly id: Prisma.FieldRef<"Client", 'String'>
   readonly phone: Prisma.FieldRef<"Client", 'String'>
-  readonly passwordHash: Prisma.FieldRef<"Client", 'String'>
   readonly name: Prisma.FieldRef<"Client", 'String'>
   readonly createdAt: Prisma.FieldRef<"Client", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Client", 'DateTime'>

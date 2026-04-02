@@ -1,18 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OutboxService } from '../outbox/outbox.service.js';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { Transactional } from '@nestjs-cls/transactional';
+import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { SendAuthCodeEvent } from './events/send-aunt-code.event.js';
 import { DelivestEvent } from '../shared/events/types.js';
 import { toPrismaJson } from '../utils/to-prisma-json.js';
 import { SendCodeType } from '../../generated/prisma/enums.js';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { PrismaClient } from '../../generated/prisma/client.js';
 
 @Injectable()
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly txHost: TransactionHost<
+      TransactionalAdapterPrisma<PrismaClient>
+    >,
     private readonly outboxService: OutboxService,
   ) {}
   @Transactional()
@@ -22,16 +25,15 @@ export class NotificationService {
 
       const code = this.generateFourDigitCode();
 
-      const codeMessage = await this.prisma.authMessage.create({
+      const codeMessage = await this.txHost.tx.authMessage.create({
         data: {
-          target: target,
-          code: code,
-          type: type,
+          target,
+          type,
+          code,
         },
       });
 
       const event = new SendAuthCodeEvent(codeMessage.id);
-
       await this.outboxService.save(
         DelivestEvent.AUTH_CODE_REQUESTED,
         toPrismaJson(event),

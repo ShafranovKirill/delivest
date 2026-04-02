@@ -46,6 +46,7 @@
     "dotenv": "^17.3.1",
     "dotenv-expand": "^12.0.3",
     "https-proxy-agent": "^8.0.0",
+    "libphonenumber-js": "^1.12.41",
     "nestjs-cls": "^6.2.0",
     "pg": "^8.20.0",
     "reflect-metadata": "^0.2.2",

@@ -103,6 +103,11 @@ export const UserNotRegisteredException = createException(
   HttpStatus.NOT_FOUND,
 );
 
+export const InvalidPhoneNumberException = createException(
+  ErrorCodes.INVALID_PHONE_NUMBER,
+  HttpStatus.BAD_REQUEST,
+);
+
 // ========== Регистрация ==========
 export const RegistrationFailedException = createException(
   ErrorCodes.REGISTRATION_FAILED,
