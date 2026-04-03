@@ -8,7 +8,7 @@ import { isProd } from '../utils/env.js';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { DevelopSmsAdapter } from './adapters/ucaller/develop.adapter.js';
-import { AuthCleanupJob } from './jobs/auth-cleanup.job.js';
+import { AuthCleanupJob } from './workers/auth-cleanup.job.js';
 
 @Module({
   imports: [OutboxModule, PrismaModule, HttpModule],

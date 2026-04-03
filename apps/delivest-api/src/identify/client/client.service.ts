@@ -19,12 +19,22 @@ import {
   BadRequestException,
   DomainException,
   DuplicateValueException,
+  ForbiddenException,
+  InternalErrorException,
   InvalidPhoneNumberException,
   NotFoundException,
   PhoneAlreadyExistsException,
+  ResendLimitExceededException,
+  ResendTooFastException,
   UserNotFoundException,
 } from '../../shared/exception/domain_exception/domain-exception.js';
-import { Client, SendCodeType } from '../../../generated/prisma/client.js';
+import {
+  AuthMessage,
+  AuthStatus,
+  Client,
+  PrismaClient,
+  SendCodeType,
+} from '../../../generated/prisma/client.js';
 import {
   getInternalErrorCode,
   getPrismaModelName,
@@ -34,6 +44,8 @@ import { PrismaErrorCode } from '@delivest/common';
 import { AdminReadClientDto } from './dto/admin-read.dto.js';
 import { UpdateClientDto } from './dto/update.dto.js';
 import { NotificationService } from '../../notification/notification.service.js';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class ClientService {
@@ -43,7 +55,18 @@ export class ClientService {
   private readonly refreshTtl: number;
   private readonly accessSecret: string;
   private readonly refreshSecret: string;
+
+  private readonly authConfig = {
+    maxResendCount: 3,
+    minResendIntervalMs: 60000,
+    codeLifetimeMinutes: 5,
+    maxVerificationAttempts: 3,
+  };
+
   constructor(
+    private readonly txHost: TransactionHost<
+      TransactionalAdapterPrisma<PrismaClient>
+    >,
     private readonly config: ConfigService,
     private readonly jwt: JwtService,
     private readonly prisma: PrismaService,
@@ -237,14 +260,10 @@ export class ClientService {
       });
 
       if (!client) {
-        const newClient = await this.create({ phone: validPhone, name: '' });
-
-        this.logger.log(
-          `sendCode() | New client created for phone=${validPhone} | id=${newClient.id}`,
-        );
+        await this.create({ phone: validPhone, name: '' });
       }
 
-      return await this.notificationService.sendAuthCode(validPhone, type);
+      return await this.requestAuthCode(validPhone, type);
     } catch (error: unknown) {
       if (error instanceof DomainException) {
         throw error;
@@ -270,7 +289,7 @@ export class ClientService {
         throw new NotFoundException('Client not found after code verification');
       }
 
-      await this.notificationService.checkAuthCode(target, code);
+      await this.checkAuthCode(target, code);
 
       this.logger.log(`loginByCode() | Client logged in | id=${client.id}`);
       return client;
@@ -285,6 +304,18 @@ export class ClientService {
 
       throw new BadRequestException('Failed to login by code');
     }
+  }
+
+  setRefreshCookie(res: Response, token: string): void {
+    const refreshMaxAge = this.refreshTtl * 1000;
+
+    res.cookie('client_refresh_token', token, {
+      httpOnly: true,
+      secure: this.config.get<string>('NODE_ENV') === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: refreshMaxAge,
+    });
   }
 
   validatePhoneNumber(number: string): string {
@@ -348,16 +379,164 @@ export class ClientService {
     });
   }
 
-  setRefreshCookie(res: Response, token: string): void {
-    const refreshMaxAge = this.refreshTtl * 1000;
+  async requestAuthCode(target: string, type: SendCodeType) {
+    try {
+      const pendingCode = await this.findPendingCode(target);
 
-    res.cookie('client_refresh_token', token, {
-      httpOnly: true,
-      secure: this.config.get<string>('NODE_ENV') === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: refreshMaxAge,
+      if (pendingCode) {
+        return await this.handleExistingAuthCode(pendingCode);
+      } else {
+        return await this.handleNewAuthCode(target, type);
+      }
+    } catch (error) {
+      this.handleAuthCodeError(error);
+    }
+  }
+
+  async checkAuthCode(target: string, code: string) {
+    try {
+      const codeMessage = await this.findPendingCode(target);
+      if (!codeMessage) {
+        this.logger.warn(
+          `checkAuthCode() | No PENDING code found for ${target}`,
+        );
+        throw new ForbiddenException('Code not found or already used');
+      }
+
+      if (code === codeMessage?.code) {
+        await this.prisma.authMessage.update({
+          where: { id: codeMessage.id },
+          data: { status: 'VERIFIED' },
+        });
+        return;
+      }
+      const currentAttempts = codeMessage.attemptsCount + 1;
+      const isFailed =
+        currentAttempts >= this.authConfig.maxVerificationAttempts;
+
+      await this.prisma.authMessage.update({
+        where: { id: codeMessage.id },
+        data: {
+          attemptsCount: currentAttempts,
+          status: isFailed ? 'FAILED' : 'PENDING',
+        },
+      });
+
+      if (isFailed) {
+        this.logger.warn(
+          `checkAuthCode() | Max attempts reached for ${target}`,
+        );
+      }
+
+      throw new ForbiddenException('Invalid verification code');
+    } catch (error) {
+      if (error instanceof DomainException) {
+        throw error;
+      }
+
+      this.logger.error(
+        `checkAuthCode() | Unexpected error: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
+
+      throw new InternalErrorException(
+        'Ошибка при проверке кода подтверждения',
+      );
+    }
+  }
+
+  private async handleExistingAuthCode(code: AuthMessage) {
+    this.validateResendAuthCodeLimits(code);
+
+    const updatedCode = await this.txHost.tx.authMessage.update({
+      where: { id: code.id },
+      data: {
+        resendCount: { increment: 1 },
+        updatedAt: new Date(),
+        expiresAt: this.getExpiryAuthCodeDate(),
+      },
     });
+
+    await this.notificationService.publishAuthEvent(updatedCode.id);
+
+    this.logger.log(
+      `sendAuthCode() | Resent: ${updatedCode.id}, count: ${updatedCode.resendCount}`,
+    );
+    return updatedCode;
+  }
+
+  private async handleNewAuthCode(target: string, type: SendCodeType) {
+    const code = this.generateFourDigitCode();
+
+    const newRecord = await this.txHost.tx.authMessage.create({
+      data: {
+        target,
+        type,
+        code,
+        expiresAt: this.getExpiryAuthCodeDate(),
+        status: AuthStatus.PENDING,
+      },
+    });
+
+    await this.notificationService.publishAuthEvent(newRecord.id);
+
+    this.logger.log(
+      `handleNewCode() | Created: ${newRecord.id}, expires: ${newRecord.expiresAt?.toISOString()}`,
+    );
+    return newRecord;
+  }
+
+  private validateResendAuthCodeLimits(code: AuthMessage) {
+    if (code.resendCount >= this.authConfig.maxResendCount) {
+      throw new ResendLimitExceededException(
+        'Превышен лимит запросов на отправку кода подтверждения',
+      );
+    }
+
+    const lastSendTime = code.updatedAt.getTime();
+    const timeSinceLastSend = Date.now() - lastSendTime;
+
+    if (timeSinceLastSend < this.authConfig.minResendIntervalMs) {
+      const waitSeconds = Math.ceil(
+        (this.authConfig.minResendIntervalMs - timeSinceLastSend) / 1000,
+      );
+      throw new ResendTooFastException(
+        `Подождите ${waitSeconds} сек. перед повторной отправкой`,
+      );
+    }
+  }
+
+  private getExpiryAuthCodeDate(): Date {
+    return new Date(
+      Date.now() + this.authConfig.codeLifetimeMinutes * 60 * 1000,
+    );
+  }
+
+  private handleAuthCodeError(error: unknown): never {
+    this.logger.error(`sendAuthCode() failed: ${(error as Error).message}`);
+
+    if (error instanceof DomainException) {
+      throw error;
+    }
+
+    throw new InternalErrorException('Не удалось отправить код подтверждения');
+  }
+
+  private async findPendingCode(target: string) {
+    return await this.prisma.authMessage.findFirst({
+      where: {
+        target,
+        status: AuthStatus.PENDING,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  private generateFourDigitCode(): string {
+    return Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, '0');
   }
 
   private handleAccountConstraintError(error: unknown): never {

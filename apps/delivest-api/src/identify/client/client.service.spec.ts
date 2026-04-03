@@ -7,6 +7,19 @@ jest.unstable_mockModule('argon2', () => ({
 
 const argon2 = await import('argon2');
 
+jest.unstable_mockModule('@nestjs-cls/transactional', () => ({
+  TransactionHost: class {
+    get tx() {
+      return {};
+    }
+  },
+  Transactional:
+    () => (target: any, key: string, descriptor: PropertyDescriptor) =>
+      descriptor,
+}));
+
+const { TransactionHost } = await import('@nestjs-cls/transactional');
+
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
@@ -24,6 +37,8 @@ import {
   ForbiddenException,
   NotFoundException,
   PhoneAlreadyExistsException,
+  ResendLimitExceededException,
+  ResendTooFastException,
   UserNotFoundException,
   UserNotRegisteredException,
 } from '../../shared/exception/domain_exception/domain-exception.js';
@@ -50,6 +65,7 @@ describe('ClientService', () => {
   const notificationMock = {
     sendAuthCode: jest.fn<any>().mockResolvedValue({ success: true }),
     checkAuthCode: jest.fn(),
+    publishAuthEvent: jest.fn().mockImplementation(() => Promise.resolve()),
   };
 
   const mockClient: Client = {
@@ -59,6 +75,28 @@ describe('ClientService', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
     deletedAt: null,
+  };
+  const mockAuthMessageRecord = {
+    id: 'auth-id-123',
+    target: '+79161234567',
+    code: '1234',
+    status: 'PENDING',
+    resendCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    expiresAt: new Date(Date.now() + 300000),
+  };
+
+  const mockTx = {
+    authMessage: {
+      findFirst: jest.fn() as jest.MockedFunction<any>,
+      update: jest.fn() as jest.MockedFunction<any>,
+      create: jest.fn() as jest.MockedFunction<any>,
+    },
+  };
+
+  const mockTxHost = {
+    tx: mockTx,
   };
 
   beforeEach(async () => {
@@ -103,12 +141,18 @@ describe('ClientService', () => {
           provide: JwtService,
           useValue: { signAsync: jest.fn(), verifyAsync: jest.fn() },
         },
+        { provide: TransactionHost, useValue: mockTxHost },
       ],
     }).compile();
 
     service = module.get<ClientServiceType>(ClientService);
     mockPrisma = module.get(PrismaService);
     notificationService = module.get<NotificationService>(NotificationService);
+
+    // Внутри beforeEach, после инициализации prismaMock:
+    mockTx.authMessage.findFirst.mockResolvedValue(null);
+    mockTx.authMessage.create.mockResolvedValue(mockAuthMessageRecord);
+    mockTx.authMessage.update.mockResolvedValue(mockAuthMessageRecord);
 
     jest.spyOn((service as any).logger, 'error').mockImplementation(() => {});
     jest.spyOn((service as any).logger, 'warn').mockImplementation(() => {});
@@ -129,17 +173,18 @@ describe('ClientService', () => {
         phone: normalizedPhone,
       });
 
+      mockTx.authMessage.findFirst.mockResolvedValue(null);
+
       await service.sendCode(rawPhone, SendCodeType.UCALLER);
 
-      expect(notificationMock.sendAuthCode).toHaveBeenCalledWith(
-        normalizedPhone,
-        SendCodeType.UCALLER,
+      expect(mockTx.authMessage.create).toHaveBeenCalled();
+
+      expect(notificationService.publishAuthEvent).toHaveBeenCalledWith(
+        'auth-id-123',
       );
 
-      expect(mockPrisma.client.create).not.toHaveBeenCalled();
       validateSpy.mockRestore();
     });
-
     it('should create new client and send code if phone not found', async () => {
       const validateSpy = jest
         .spyOn(service, 'validatePhoneNumber')
@@ -151,18 +196,19 @@ describe('ClientService', () => {
         phone: normalizedPhone,
       });
 
+      // Важно: requestAuthCode тоже полезет в БД искать старые коды
+      mockTx.authMessage.findFirst.mockResolvedValue(null);
+      mockTx.authMessage.create.mockResolvedValue(mockAuthMessageRecord);
+
       await service.sendCode(rawPhone, SendCodeType.UCALLER);
 
       expect(mockPrisma.client.create).toHaveBeenCalledWith({
-        data: {
-          phone: normalizedPhone,
-          name: '',
-        },
+        data: { phone: normalizedPhone, name: '' },
       });
 
-      expect(notificationMock.sendAuthCode).toHaveBeenCalledWith(
-        normalizedPhone,
-        SendCodeType.UCALLER,
+      // Проверяем вызов нового метода уведомлений
+      expect(notificationService.publishAuthEvent).toHaveBeenCalledWith(
+        mockAuthMessageRecord.id,
       );
 
       validateSpy.mockRestore();
@@ -170,12 +216,12 @@ describe('ClientService', () => {
   });
 
   describe('loginByCode', () => {
-    it('should return client after successful code verification', async () => {
+    it('should return client after succ5essful code verification', async () => {
       mockPrisma.client.findUnique.mockResolvedValue(mockClient);
 
       const checkSpy = jest
-        .spyOn(notificationService, 'checkAuthCode')
-        .mockResolvedValue(undefined as any); // Возвращает void
+        .spyOn(service, 'checkAuthCode')
+        .mockResolvedValue(undefined as any);
 
       const result = await service.loginByCode(mockClient.phone, '1234');
 
@@ -550,6 +596,134 @@ describe('ClientService', () => {
       await expect(service.create(dto)).rejects.toThrow(
         'Database operation failed',
       );
+    });
+  });
+
+  describe('Auth Logic (AuthMessage)', () => {
+    const target = '+79161234567';
+
+    describe('requestAuthCode', () => {
+      it('should create a new auth record if no pending code exists', async () => {
+        jest.spyOn(service as any, 'findPendingCode').mockResolvedValue(null);
+        mockTx.authMessage.create.mockResolvedValue(mockAuthMessageRecord);
+
+        const result = await (service as any).requestAuthCode(
+          target,
+          SendCodeType.UCALLER,
+        );
+
+        expect(mockTx.authMessage.create).toHaveBeenCalled();
+        expect(notificationMock.publishAuthEvent).toHaveBeenCalledWith(
+          mockAuthMessageRecord.id,
+        );
+        expect(result).toEqual(mockAuthMessageRecord);
+      });
+
+      it('should resend (update) existing code if within limits', async () => {
+        const existingCode = {
+          ...mockAuthMessageRecord,
+          resendCount: 0,
+          updatedAt: new Date(Date.now() - 70000),
+        };
+
+        jest
+          .spyOn(service as any, 'findPendingCode')
+          .mockResolvedValue(existingCode);
+        mockTx.authMessage.update.mockResolvedValue({
+          ...existingCode,
+          resendCount: 1,
+        });
+
+        await (service as any).requestAuthCode(target, SendCodeType.UCALLER);
+
+        expect(mockTx.authMessage.update).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: { id: existingCode.id },
+            data: expect.objectContaining({ resendCount: { increment: 1 } }),
+          }),
+        );
+      });
+
+      it('should throw ResendTooFastException if resending too quickly', async () => {
+        const recentCode = {
+          ...mockAuthMessageRecord,
+          updatedAt: new Date(),
+        };
+        jest
+          .spyOn(service as any, 'findPendingCode')
+          .mockResolvedValue(recentCode);
+
+        await expect(
+          (service as any).requestAuthCode(target, SendCodeType.UCALLER),
+        ).rejects.toThrow(ResendTooFastException);
+      });
+
+      it('should throw ResendLimitExceededException if maxResendCount reached', async () => {
+        const exhaustedCode = {
+          ...mockAuthMessageRecord,
+          resendCount: 3,
+          updatedAt: new Date(Date.now() - 70000),
+        };
+        jest
+          .spyOn(service as any, 'findPendingCode')
+          .mockResolvedValue(exhaustedCode);
+
+        await expect(
+          (service as any).requestAuthCode(target, SendCodeType.UCALLER),
+        ).rejects.toThrow(ResendLimitExceededException);
+      });
+    });
+
+    describe('checkAuthCode', () => {
+      it('should verify successfully and set status to VERIFIED', async () => {
+        jest
+          .spyOn(service as any, 'findPendingCode')
+          .mockResolvedValue(mockAuthMessageRecord);
+
+        mockPrisma.authMessage.update.mockResolvedValue({
+          ...mockAuthMessageRecord,
+          status: 'VERIFIED',
+        });
+
+        await service.checkAuthCode(target, mockAuthMessageRecord.code);
+
+        expect(mockPrisma.authMessage.update).toHaveBeenCalledWith({
+          where: { id: mockAuthMessageRecord.id },
+          data: { status: 'VERIFIED' },
+        });
+      });
+
+      it('should increment attempts and throw ForbiddenException on wrong code', async () => {
+        jest.spyOn(service as any, 'findPendingCode').mockResolvedValue({
+          ...mockAuthMessageRecord,
+          attemptsCount: 0,
+        });
+
+        await expect(
+          service.checkAuthCode(target, 'WRONG_CODE'),
+        ).rejects.toThrow(ForbiddenException);
+
+        expect(mockPrisma.authMessage.update).toHaveBeenCalledWith({
+          where: { id: mockAuthMessageRecord.id },
+          data: { attemptsCount: 1, status: 'PENDING' },
+        });
+      });
+
+      it('should set status to FAILED if max verification attempts reached', async () => {
+        jest.spyOn(service as any, 'findPendingCode').mockResolvedValue({
+          ...mockAuthMessageRecord,
+          attemptsCount: 2,
+        });
+
+        await expect(
+          service.checkAuthCode(target, 'WRONG_CODE'),
+        ).rejects.toThrow(ForbiddenException);
+
+        expect(mockPrisma.authMessage.update).toHaveBeenCalledWith({
+          where: { id: mockAuthMessageRecord.id },
+          data: { attemptsCount: 3, status: 'FAILED' },
+        });
+      });
     });
   });
 });
