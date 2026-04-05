@@ -36,4 +36,4 @@ export interface CreateProductRequest {
   description?: string;
 }
 
-export interface UpdateProductRequest extends Partial<CreateProductRequest> {}
+export type UpdateProductRequest = Partial<CreateProductRequest>;

@@ -50,9 +50,12 @@ model Role {
 }
 
 model Branch {
-  id    String @id @default(uuid())
-  alias String @unique
-  name  String
+  id        String    @id @default(uuid())
+  alias     String    @unique
+  name      String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   info       BranchInfo?
   categories Category[]
@@ -62,9 +65,12 @@ model Branch {
 }
 
 model BranchInfo {
-  id          String  @id @default(uuid())
-  description String? @db.Text
+  id          String    @id @default(uuid())
+  description String?   @db.Text
   address     String
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
 
   branch   Branch @relation(fields: [branchId], references: [id])
   branchId String @unique @map("branch_id")
@@ -80,6 +86,10 @@ model Category {
   branch   Branch    @relation(fields: [branchId], references: [id])
   branchId String    @map("branch_id")
   products Product[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@map("categories")
 }
@@ -166,6 +176,16 @@ enum Permission {
   PRODUCT_READ
   PRODUCT_UPDATE
   PRODUCT_DELETE
+  //Категория
+  CATEGORY_CREATE
+  CATEGORY_READ
+  CATEGORY_UPDATE
+  CATEGORY_DELETE
+  //Филиал
+  BRANCH_CREATE
+  BRANCH_READ
+  BRANCH_UPDATE
+  BRANCH_DELETE
 }
 
 enum SendCodeType {

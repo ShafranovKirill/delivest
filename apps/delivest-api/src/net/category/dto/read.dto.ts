@@ -1,8 +1,8 @@
-import { CategoryResponce } from '@delivest/types';
+import { CategoryResponse } from '@delivest/types';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 
-export class ReadCategoryDto implements CategoryResponce {
+export class ReadCategoryDto implements CategoryResponse {
   @ApiProperty()
   @Expose()
   id!: string;
@@ -14,4 +14,8 @@ export class ReadCategoryDto implements CategoryResponce {
   @ApiProperty()
   @Expose()
   order!: number;
+
+  @ApiProperty()
+  @Expose()
+  branchId!: string;
 }

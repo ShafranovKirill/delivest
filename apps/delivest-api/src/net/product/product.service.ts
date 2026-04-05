@@ -29,7 +29,10 @@ export class ProductService {
     branchId: string,
     extended: true,
   ): Promise<AdminReadProductDto[]>;
-  async findAllByBranch(branchId: string, extended?: boolean): Promise<any[]> {
+  async findAllByBranch(
+    branchId: string,
+    extended?: boolean,
+  ): Promise<ReadProductDto[] | AdminReadProductDto[]> {
     try {
       const products = await this.prisma.product.findMany({
         where: { branchId, deletedAt: null },
@@ -56,7 +59,7 @@ export class ProductService {
   async findAllByCategory(
     categoryId: string,
     extended?: boolean,
-  ): Promise<any[]> {
+  ): Promise<ReadProductDto[] | AdminReadProductDto[]> {
     try {
       const products = await this.prisma.product.findMany({
         where: { categoryId, deletedAt: null },
@@ -80,7 +83,10 @@ export class ProductService {
     productId: string,
     extended: true,
   ): Promise<AdminReadProductDto>;
-  async findOne(productId: string, extended?: boolean): Promise<any> {
+  async findOne(
+    productId: string,
+    extended?: boolean,
+  ): Promise<ReadProductDto | AdminReadProductDto> {
     try {
       const product = await this.prisma.product.findUnique({
         where: { id: productId },
@@ -123,7 +129,7 @@ export class ProductService {
     branchId: string,
     name: string,
     extended?: boolean,
-  ): Promise<any[]> {
+  ): Promise<ReadProductDto[] | AdminReadProductDto[]> {
     try {
       const products = await this.prisma.product.findMany({
         where: {

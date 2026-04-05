@@ -1,10 +1,10 @@
-import { GetCategoryRequest } from '@delivest/types';
+import { FindCategoryByBranchRequest } from '@delivest/types';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class GetCategoryDto implements GetCategoryRequest {
+export class FindCategoryByBranchDto implements FindCategoryByBranchRequest {
   @ApiProperty({ description: 'Id филиала' })
   @IsString()
   @IsNotEmpty()
-  id!: string;
+  branchId!: string;
 }

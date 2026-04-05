@@ -119,7 +119,10 @@ export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof Role
 export const BranchScalarFieldEnum = {
   id: 'id',
   alias: 'alias',
-  name: 'name'
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 } as const
 
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
@@ -129,6 +132,9 @@ export const BranchInfoScalarFieldEnum = {
   id: 'id',
   description: 'description',
   address: 'address',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt',
   branchId: 'branchId'
 } as const
 
@@ -139,7 +145,10 @@ export const CategoryScalarFieldEnum = {
   id: 'id',
   name: 'name',
   order: 'order',
-  branchId: 'branchId'
+  branchId: 'branchId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 } as const
 
 export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]

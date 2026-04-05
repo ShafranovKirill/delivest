@@ -28,18 +28,27 @@ export type BranchMinAggregateOutputType = {
   id: string | null
   alias: string | null
   name: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
+  deletedAt: Date | null
 }
 
 export type BranchMaxAggregateOutputType = {
   id: string | null
   alias: string | null
   name: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
+  deletedAt: Date | null
 }
 
 export type BranchCountAggregateOutputType = {
   id: number
   alias: number
   name: number
+  createdAt: number
+  updatedAt: number
+  deletedAt: number
   _all: number
 }
 
@@ -48,18 +57,27 @@ export type BranchMinAggregateInputType = {
   id?: true
   alias?: true
   name?: true
+  createdAt?: true
+  updatedAt?: true
+  deletedAt?: true
 }
 
 export type BranchMaxAggregateInputType = {
   id?: true
   alias?: true
   name?: true
+  createdAt?: true
+  updatedAt?: true
+  deletedAt?: true
 }
 
 export type BranchCountAggregateInputType = {
   id?: true
   alias?: true
   name?: true
+  createdAt?: true
+  updatedAt?: true
+  deletedAt?: true
   _all?: true
 }
 
@@ -139,6 +157,9 @@ export type BranchGroupByOutputType = {
   id: string
   alias: string
   name: string
+  createdAt: Date
+  updatedAt: Date
+  deletedAt: Date | null
   _count: BranchCountAggregateOutputType | null
   _min: BranchMinAggregateOutputType | null
   _max: BranchMaxAggregateOutputType | null
@@ -166,6 +187,9 @@ export type BranchWhereInput = {
   id?: Prisma.StringFilter<"Branch"> | string
   alias?: Prisma.StringFilter<"Branch"> | string
   name?: Prisma.StringFilter<"Branch"> | string
+  createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"Branch"> | Date | string | null
   info?: Prisma.XOR<Prisma.BranchInfoNullableScalarRelationFilter, Prisma.BranchInfoWhereInput> | null
   categories?: Prisma.CategoryListRelationFilter
   products?: Prisma.ProductListRelationFilter
@@ -175,6 +199,9 @@ export type BranchOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   alias?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   info?: Prisma.BranchInfoOrderByWithRelationInput
   categories?: Prisma.CategoryOrderByRelationAggregateInput
   products?: Prisma.ProductOrderByRelationAggregateInput
@@ -187,6 +214,9 @@ export type BranchWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.BranchWhereInput[]
   NOT?: Prisma.BranchWhereInput | Prisma.BranchWhereInput[]
   name?: Prisma.StringFilter<"Branch"> | string
+  createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"Branch"> | Date | string | null
   info?: Prisma.XOR<Prisma.BranchInfoNullableScalarRelationFilter, Prisma.BranchInfoWhereInput> | null
   categories?: Prisma.CategoryListRelationFilter
   products?: Prisma.ProductListRelationFilter
@@ -196,6 +226,9 @@ export type BranchOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   alias?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.BranchCountOrderByAggregateInput
   _max?: Prisma.BranchMaxOrderByAggregateInput
   _min?: Prisma.BranchMinOrderByAggregateInput
@@ -208,12 +241,18 @@ export type BranchScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Branch"> | string
   alias?: Prisma.StringWithAggregatesFilter<"Branch"> | string
   name?: Prisma.StringWithAggregatesFilter<"Branch"> | string
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"Branch"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Branch"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Branch"> | Date | string | null
 }
 
 export type BranchCreateInput = {
   id?: string
   alias: string
   name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
   info?: Prisma.BranchInfoCreateNestedOneWithoutBranchInput
   categories?: Prisma.CategoryCreateNestedManyWithoutBranchInput
   products?: Prisma.ProductCreateNestedManyWithoutBranchInput
@@ -223,6 +262,9 @@ export type BranchUncheckedCreateInput = {
   id?: string
   alias: string
   name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
   info?: Prisma.BranchInfoUncheckedCreateNestedOneWithoutBranchInput
   categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutBranchInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutBranchInput
@@ -232,6 +274,9 @@ export type BranchUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   alias?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   info?: Prisma.BranchInfoUpdateOneWithoutBranchNestedInput
   categories?: Prisma.CategoryUpdateManyWithoutBranchNestedInput
   products?: Prisma.ProductUpdateManyWithoutBranchNestedInput
@@ -241,6 +286,9 @@ export type BranchUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   alias?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   info?: Prisma.BranchInfoUncheckedUpdateOneWithoutBranchNestedInput
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutBranchNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutBranchNestedInput
@@ -250,36 +298,54 @@ export type BranchCreateManyInput = {
   id?: string
   alias: string
   name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
 }
 
 export type BranchUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   alias?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type BranchUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   alias?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type BranchCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   alias?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type BranchMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   alias?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type BranchMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   alias?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type BranchScalarRelationFilter = {
@@ -333,6 +399,9 @@ export type BranchCreateWithoutInfoInput = {
   id?: string
   alias: string
   name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
   categories?: Prisma.CategoryCreateNestedManyWithoutBranchInput
   products?: Prisma.ProductCreateNestedManyWithoutBranchInput
 }
@@ -341,6 +410,9 @@ export type BranchUncheckedCreateWithoutInfoInput = {
   id?: string
   alias: string
   name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
   categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutBranchInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutBranchInput
 }
@@ -365,6 +437,9 @@ export type BranchUpdateWithoutInfoInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   alias?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   categories?: Prisma.CategoryUpdateManyWithoutBranchNestedInput
   products?: Prisma.ProductUpdateManyWithoutBranchNestedInput
 }
@@ -373,6 +448,9 @@ export type BranchUncheckedUpdateWithoutInfoInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   alias?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutBranchNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutBranchNestedInput
 }
@@ -381,6 +459,9 @@ export type BranchCreateWithoutCategoriesInput = {
   id?: string
   alias: string
   name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
   info?: Prisma.BranchInfoCreateNestedOneWithoutBranchInput
   products?: Prisma.ProductCreateNestedManyWithoutBranchInput
 }
@@ -389,6 +470,9 @@ export type BranchUncheckedCreateWithoutCategoriesInput = {
   id?: string
   alias: string
   name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
   info?: Prisma.BranchInfoUncheckedCreateNestedOneWithoutBranchInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutBranchInput
 }
@@ -413,6 +497,9 @@ export type BranchUpdateWithoutCategoriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   alias?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   info?: Prisma.BranchInfoUpdateOneWithoutBranchNestedInput
   products?: Prisma.ProductUpdateManyWithoutBranchNestedInput
 }
@@ -421,6 +508,9 @@ export type BranchUncheckedUpdateWithoutCategoriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   alias?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   info?: Prisma.BranchInfoUncheckedUpdateOneWithoutBranchNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutBranchNestedInput
 }
@@ -429,6 +519,9 @@ export type BranchCreateWithoutProductsInput = {
   id?: string
   alias: string
   name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
   info?: Prisma.BranchInfoCreateNestedOneWithoutBranchInput
   categories?: Prisma.CategoryCreateNestedManyWithoutBranchInput
 }
@@ -437,6 +530,9 @@ export type BranchUncheckedCreateWithoutProductsInput = {
   id?: string
   alias: string
   name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
   info?: Prisma.BranchInfoUncheckedCreateNestedOneWithoutBranchInput
   categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutBranchInput
 }
@@ -461,6 +557,9 @@ export type BranchUpdateWithoutProductsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   alias?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   info?: Prisma.BranchInfoUpdateOneWithoutBranchNestedInput
   categories?: Prisma.CategoryUpdateManyWithoutBranchNestedInput
 }
@@ -469,6 +568,9 @@ export type BranchUncheckedUpdateWithoutProductsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   alias?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   info?: Prisma.BranchInfoUncheckedUpdateOneWithoutBranchNestedInput
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutBranchNestedInput
 }
@@ -517,6 +619,9 @@ export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   id?: boolean
   alias?: boolean
   name?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  deletedAt?: boolean
   info?: boolean | Prisma.Branch$infoArgs<ExtArgs>
   categories?: boolean | Prisma.Branch$categoriesArgs<ExtArgs>
   products?: boolean | Prisma.Branch$productsArgs<ExtArgs>
@@ -527,21 +632,30 @@ export type BranchSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   id?: boolean
   alias?: boolean
   name?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  deletedAt?: boolean
 }, ExtArgs["result"]["branch"]>
 
 export type BranchSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   alias?: boolean
   name?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  deletedAt?: boolean
 }, ExtArgs["result"]["branch"]>
 
 export type BranchSelectScalar = {
   id?: boolean
   alias?: boolean
   name?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  deletedAt?: boolean
 }
 
-export type BranchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "alias" | "name", ExtArgs["result"]["branch"]>
+export type BranchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "alias" | "name" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["branch"]>
 export type BranchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   info?: boolean | Prisma.Branch$infoArgs<ExtArgs>
   categories?: boolean | Prisma.Branch$categoriesArgs<ExtArgs>
@@ -562,6 +676,9 @@ export type $BranchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     id: string
     alias: string
     name: string
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date | null
   }, ExtArgs["result"]["branch"]>
   composites: {}
 }
@@ -991,6 +1108,9 @@ export interface BranchFieldRefs {
   readonly id: Prisma.FieldRef<"Branch", 'String'>
   readonly alias: Prisma.FieldRef<"Branch", 'String'>
   readonly name: Prisma.FieldRef<"Branch", 'String'>
+  readonly createdAt: Prisma.FieldRef<"Branch", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"Branch", 'DateTime'>
+  readonly deletedAt: Prisma.FieldRef<"Branch", 'DateTime'>
 }
     
 

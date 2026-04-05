@@ -3,9 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CategoryController } from './category.controller.js';
 import { CategoryService } from './category.service.js';
 import { jest } from '@jest/globals';
-import { ReadCategoryDto } from './dto/read-category.dto.js';
-import { GetCategoryDto } from './dto/get-category.dto.js';
-import { GetCategoryByBranchDto } from './dto/get-category-by-branch.dto.js';
+import { ReadCategoryDto } from './dto/read.dto.js';
+import { FindCategoryDto } from './dto/find.dto.js';
+import { GetCategoryByBranchDto } from './dto/find-by-branch.dto.js';
 
 describe('CategoryController', () => {
   let controller: CategoryController;
@@ -16,7 +16,7 @@ describe('CategoryController', () => {
     findOne: jest.fn(),
   };
 
-  const mockGetCategoryDto: GetCategoryDto = { id: '123' };
+  const mockGetCategoryDto: FindCategoryDto = { id: '123' };
   const mockGetByBranchCategoryDto: GetCategoryByBranchDto = {
     branchId: '123',
   };

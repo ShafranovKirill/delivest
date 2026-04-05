@@ -5,10 +5,10 @@ import {
   ApiOkResponse,
   ApiNotFoundResponse,
 } from '@nestjs/swagger';
-import { ReadCategoryDto } from './dto/read-category.dto.js';
+import { ReadCategoryDto } from './dto/read.dto.js';
 import { CategoryService } from './category.service.js';
-import { GetCategoryByBranchDto } from './dto/get-category-by-branch.dto.js';
-import { GetCategoryDto } from './dto/get-category.dto.js';
+import { FindCategoryDto } from './dto/find.dto.js';
+import { FindCategoryByBranchDto } from './dto/find-by-branch.dto.js';
 
 @ApiTags('Category (Категории)')
 @Controller('category')
@@ -19,7 +19,7 @@ export class CategoryController {
   @ApiOperation({ summary: 'Получить все категории по айди филиала' })
   @ApiOkResponse({ type: ReadCategoryDto })
   @ApiNotFoundResponse({ description: 'Категории не найдены' })
-  async getAllCategory(@Param() dto: GetCategoryByBranchDto) {
+  async getAllCategory(@Param() dto: FindCategoryByBranchDto) {
     return this.categoryService.findAllByBranch(dto.branchId);
   }
 
@@ -27,7 +27,7 @@ export class CategoryController {
   @ApiOperation({ summary: 'Получить одну категорию по айди' })
   @ApiOkResponse({ type: ReadCategoryDto })
   @ApiNotFoundResponse({ description: 'Категория не найдена' })
-  async getCategory(@Param() dto: GetCategoryDto) {
+  async getCategory(@Param() dto: FindCategoryDto) {
     return this.categoryService.findOne(dto.id);
   }
 }

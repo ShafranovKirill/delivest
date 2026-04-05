@@ -12,7 +12,6 @@ import { UpdateProductDto } from './dto/update.dto.js';
 import { PrismaErrorCode } from '@delivest/common';
 import * as DbErrors from '../../shared/helpers/db-errors.js';
 
-// Мокаем хелперы для обработки ошибок Prisma
 jest.mock('../../shared/helpers/db-errors.js', () => ({
   isPrismaError: jest.fn(),
   getInternalErrorCode: jest.fn(),
