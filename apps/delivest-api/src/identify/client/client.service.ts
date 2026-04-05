@@ -44,7 +44,7 @@ import { PrismaErrorCode } from '@delivest/common';
 import { AdminReadClientDto } from './dto/admin-read.dto.js';
 import { UpdateClientDto } from './dto/update.dto.js';
 import { NotificationService } from '../../notification/notification.service.js';
-import { TransactionHost } from '@nestjs-cls/transactional';
+import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
@@ -251,7 +251,7 @@ export class ClientService {
       throw new BadRequestException('Invalid or expired refresh token');
     }
   }
-
+  @Transactional()
   async sendCode(phone: string, type: SendCodeType) {
     const validPhone = this.validatePhoneNumber(phone);
     try {

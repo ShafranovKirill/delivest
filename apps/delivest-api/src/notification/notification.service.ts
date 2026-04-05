@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OutboxService } from '../outbox/outbox.service.js';
-import { Transactional } from '@nestjs-cls/transactional';
 import { SendAuthCodeEvent } from './events/send-aunt-code.event.js';
 import { DelivestEvent } from '../shared/events/types.js';
 import { toPrismaJson } from '../utils/to-prisma-json.js';
@@ -15,7 +14,6 @@ export class NotificationService {
     private readonly prisma: PrismaService,
   ) {}
 
-  @Transactional()
   async publishAuthEvent(authCodeId: string) {
     try {
       const event = new SendAuthCodeEvent(authCodeId);
