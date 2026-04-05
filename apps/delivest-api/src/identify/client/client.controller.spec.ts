@@ -5,21 +5,21 @@ import { jest } from '@jest/globals';
 import { Response, Request } from 'express';
 import { MissingTokenException } from '../../shared/exception/domain_exception/domain-exception.js';
 import { JwtClientAuthGuard } from './guards/jwt-client.guard.js';
+import { SendCodeType } from '../../../generated/prisma/client.js';
 
 describe('ClientController', () => {
   let controller: ClientController;
   let service: jest.Mocked<ClientService>;
 
   const mockClientService = {
-    validateCredentials: jest.fn(),
+    loginByCode: jest.fn(),
     generateAccessToken: jest.fn(),
     generateRefreshToken: jest.fn(),
     setRefreshCookie: jest.fn(),
-    create: jest.fn(),
+    sendCode: jest.fn(),
     refresh: jest.fn(),
     findOne: jest.fn(),
     changePassword: jest.fn(),
-    findOneByPhone: jest.fn(),
   };
 
   const mockResponse = {
@@ -49,20 +49,21 @@ describe('ClientController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('login', () => {
-    it('should login client and return access token', async () => {
-      const dto = { phone: '79991234567', password: 'password' };
-      const mockClient = { id: '1' };
+  describe('loginByCode', () => {
+    it('should login client by code and return access token', async () => {
+      const dto = { phone: '79991234567', code: '1234' };
+      const mockAccount = { id: '1' };
       const accessToken = 'access_token';
       const refreshToken = 'refresh_token';
 
-      service.validateCredentials.mockResolvedValue(mockClient as any);
+      service.loginByCode.mockResolvedValue(mockAccount as any);
       service.generateAccessToken.mockResolvedValue(accessToken);
       service.generateRefreshToken.mockResolvedValue(refreshToken);
 
-      const result = await controller.login(dto, mockResponse);
+      const result = await controller.loginByCode(dto, mockResponse);
 
-      expect(service.validateCredentials).toHaveBeenCalledWith(dto);
+      expect(service.loginByCode).toHaveBeenCalledWith(dto.phone, dto.code);
+      expect(service.generateAccessToken).toHaveBeenCalledWith(mockAccount);
       expect(service.setRefreshCookie).toHaveBeenCalledWith(
         mockResponse,
         refreshToken,
@@ -71,25 +72,20 @@ describe('ClientController', () => {
     });
   });
 
-  describe('register', () => {
-    it('should register client and return access token', async () => {
-      const dto = { phone: '79991234567', password: 'password', name: 'Test' };
-      const mockClient = { id: '1' };
-      const accessToken = 'access_token';
-      const refreshToken = 'refresh_token';
+  describe('sendCode', () => {
+    it('should call service.sendCode with Zvonok type', async () => {
+      const dto = { phone: '79991234567' };
+      const expectedResponse = { success: true };
 
-      service.create.mockResolvedValue(mockClient as any);
-      service.generateAccessToken.mockResolvedValue(accessToken);
-      service.generateRefreshToken.mockResolvedValue(refreshToken);
+      service.sendCode.mockResolvedValue(expectedResponse as any);
 
-      const result = await controller.register(mockResponse, dto);
+      const result = await controller.sendCode(dto);
 
-      expect(service.create).toHaveBeenCalledWith(dto);
-      expect(service.setRefreshCookie).toHaveBeenCalledWith(
-        mockResponse,
-        refreshToken,
+      expect(service.sendCode).toHaveBeenCalledWith(
+        dto.phone,
+        SendCodeType.ZVONOK,
       );
-      expect(result).toEqual({ accessToken });
+      expect(result).toEqual(expectedResponse);
     });
   });
 
@@ -127,17 +123,6 @@ describe('ClientController', () => {
 
       expect(service.findOne).toHaveBeenCalledWith(clientId);
       expect(result).toEqual(mockResult);
-    });
-  });
-
-  describe('changePassword', () => {
-    it('should call service.changePassword', async () => {
-      const clientId = 'user-123';
-      const dto = { oldPassword: '123', newPassword: '456' };
-
-      await controller.changePassword(clientId, dto);
-
-      expect(service.changePassword).toHaveBeenCalledWith(clientId, dto);
     });
   });
 });

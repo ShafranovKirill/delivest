@@ -1,4 +1,4 @@
-import { Permission } from "../../../apps/delivest-api/generated/prisma/enums.js";
+import { Permission } from "../../../../apps/delivest-api/generated/prisma/enums.js";
 
 export interface RefreshStaffTokenPayload {
   sub: string;

@@ -9,6 +9,8 @@ import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { PrismaService } from './prisma/prisma.service.js';
 import { OutboxModule } from './outbox/outbox.module.js';
+import { SharedModule } from './shared/shared.module.js';
+import { NotificationModule } from './notification/notification.module.js';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { OutboxModule } from './outbox/outbox.module.js';
     NetModule,
     IdentityModule,
     OutboxModule,
+    SharedModule,
+    NotificationModule,
     ClsModule.forRoot({
       global: true,
       middleware: { mount: true },

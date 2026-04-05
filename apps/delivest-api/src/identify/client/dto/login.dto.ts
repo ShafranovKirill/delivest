@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PASSWORD_REGEX } from '@delivest/common';
 import { LoginClientRequest } from '@delivest/types';
-import { IsString, Matches } from 'class-validator';
+import { IsString } from 'class-validator';
 
 export class LoginClientDto implements LoginClientRequest {
   @ApiProperty({
@@ -13,12 +12,10 @@ export class LoginClientDto implements LoginClientRequest {
   phone!: string;
 
   @ApiProperty({
-    description: 'Пароль клиента',
-    example: 'SecurePass123!',
+    description: 'Код клиента для входа',
+    example: '1234',
     required: true,
-    pattern: PASSWORD_REGEX.source,
   })
   @IsString()
-  @Matches(PASSWORD_REGEX)
-  password!: string;
+  code: string;
 }

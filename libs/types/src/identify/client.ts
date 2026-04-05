@@ -10,7 +10,6 @@ export type AccessClientTokenPayload = RefreshClientTokenPayload;
 
 export interface CreateClientRequest {
   phone: string;
-  password?: string;
   name?: string;
 }
 
@@ -24,7 +23,7 @@ export interface GetClientRequest {
 
 export interface LoginClientRequest {
   phone: string;
-  password: string;
+  code: string;
 }
 
 export interface ClientResponse {

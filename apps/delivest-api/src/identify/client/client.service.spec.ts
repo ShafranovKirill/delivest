@@ -7,9 +7,26 @@ jest.unstable_mockModule('argon2', () => ({
 
 const argon2 = await import('argon2');
 
+jest.unstable_mockModule('@nestjs-cls/transactional', () => ({
+  TransactionHost: class {
+    get tx() {
+      return {};
+    }
+  },
+  Transactional:
+    () => (target: any, key: string, descriptor: PropertyDescriptor) =>
+      descriptor,
+}));
+
+const { TransactionHost } = await import('@nestjs-cls/transactional');
+
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Client, Prisma } from '../../../generated/prisma/client.js';
+import {
+  Client,
+  Prisma,
+  SendCodeType,
+} from '../../../generated/prisma/client.js';
 import { toDto } from '../../utils/to-dto.js';
 import { ReadClientDto } from './dto/read.dto.js';
 import { ConfigService } from '@nestjs/config';
@@ -17,24 +34,26 @@ import { JwtService } from '@nestjs/jwt';
 
 import {
   BadRequestException,
-  InvalidCredentialsException,
+  ForbiddenException,
   NotFoundException,
   PhoneAlreadyExistsException,
-  RegistrationFailedException,
+  ResendLimitExceededException,
+  ResendTooFastException,
   UserNotFoundException,
   UserNotRegisteredException,
 } from '../../shared/exception/domain_exception/domain-exception.js';
 
 import { CreateClientDto } from './dto/create.dto.js';
-import { ForbiddenException } from '@nestjs/common/exceptions/index.js';
 
 import type { ClientService as ClientServiceType } from './client.service.js';
 import { AdminReadClientDto } from './dto/admin-read.dto.js';
 import { UpdateClientDto } from './dto/update.dto.js';
+import { NotificationService } from '../../notification/notification.service.js';
 
 describe('ClientService', () => {
   let service: ClientServiceType;
   let mockPrisma: any;
+  let notificationService: NotificationService;
 
   const mockArgonVerify = argon2.verify as unknown as jest.MockedFunction<
     typeof argon2.verify
@@ -43,17 +62,42 @@ describe('ClientService', () => {
     typeof argon2.hash
   >;
 
+  const notificationMock = {
+    sendAuthCode: jest.fn<any>().mockResolvedValue({ success: true }),
+    checkAuthCode: jest.fn(),
+    publishAuthEvent: jest.fn().mockImplementation(() => Promise.resolve()),
+  };
+
   const mockClient: Client = {
     id: '1',
     name: 'John Doe',
     phone: '1234567890',
     createdAt: new Date(),
     updatedAt: new Date(),
-    passwordHash: 'hashedpassword',
     deletedAt: null,
   };
+  const mockAuthMessageRecord = {
+    id: 'auth-id-123',
+    target: '+79161234567',
+    code: '1234',
+    status: 'PENDING',
+    resendCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    expiresAt: new Date(Date.now() + 300000),
+  };
 
-  const mockGetUserDto = { id: '1' };
+  const mockTx = {
+    authMessage: {
+      findFirst: jest.fn() as jest.MockedFunction<any>,
+      update: jest.fn() as jest.MockedFunction<any>,
+      create: jest.fn() as jest.MockedFunction<any>,
+    },
+  };
+
+  const mockTxHost = {
+    tx: mockTx,
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -65,6 +109,10 @@ describe('ClientService', () => {
         findUnique: jest.fn(),
         findMany: jest.fn(),
         create: jest.fn(),
+        update: jest.fn(),
+      },
+      authMessage: {
+        findFirst: jest.fn(),
         update: jest.fn(),
       },
     };
@@ -84,46 +132,122 @@ describe('ClientService', () => {
                 JWT_REFRESH_SECRET_CLIENT: 'REFRESH_SECRET',
                 NODE_ENV: 'test',
               };
-              return config[key as keyof typeof config] || null;
+              return config[key as keyof typeof config] || 900;
             }),
           },
         },
+        { provide: NotificationService, useValue: notificationMock },
         {
           provide: JwtService,
           useValue: { signAsync: jest.fn(), verifyAsync: jest.fn() },
         },
+        { provide: TransactionHost, useValue: mockTxHost },
       ],
     }).compile();
 
     service = module.get<ClientServiceType>(ClientService);
     mockPrisma = module.get(PrismaService);
+    notificationService = module.get<NotificationService>(NotificationService);
 
-    // Глушим логгеры
+    // Внутри beforeEach, после инициализации prismaMock:
+    mockTx.authMessage.findFirst.mockResolvedValue(null);
+    mockTx.authMessage.create.mockResolvedValue(mockAuthMessageRecord);
+    mockTx.authMessage.update.mockResolvedValue(mockAuthMessageRecord);
+
     jest.spyOn((service as any).logger, 'error').mockImplementation(() => {});
     jest.spyOn((service as any).logger, 'warn').mockImplementation(() => {});
     jest.spyOn((service as any).logger, 'log').mockImplementation(() => {});
   });
+
+  describe('sendCode', () => {
+    const rawPhone = '89161234567';
+    const normalizedPhone = '+79161234567';
+
+    it('should send code to existing client', async () => {
+      const validateSpy = jest
+        .spyOn(service, 'validatePhoneNumber')
+        .mockReturnValue(normalizedPhone);
+
+      mockPrisma.client.findUnique.mockResolvedValue({
+        ...mockClient,
+        phone: normalizedPhone,
+      });
+
+      mockTx.authMessage.findFirst.mockResolvedValue(null);
+
+      await service.sendCode(rawPhone, SendCodeType.ZVONOK);
+
+      expect(mockTx.authMessage.create).toHaveBeenCalled();
+
+      expect(notificationService.publishAuthEvent).toHaveBeenCalledWith(
+        'auth-id-123',
+      );
+
+      validateSpy.mockRestore();
+    });
+    it('should create new client and send code if phone not found', async () => {
+      const validateSpy = jest
+        .spyOn(service, 'validatePhoneNumber')
+        .mockReturnValue(normalizedPhone);
+
+      mockPrisma.client.findUnique.mockResolvedValue(null);
+      mockPrisma.client.create.mockResolvedValue({
+        id: 'new-id',
+        phone: normalizedPhone,
+      });
+
+      // Важно: requestAuthCode тоже полезет в БД искать старые коды
+      mockTx.authMessage.findFirst.mockResolvedValue(null);
+      mockTx.authMessage.create.mockResolvedValue(mockAuthMessageRecord);
+
+      await service.sendCode(rawPhone, SendCodeType.ZVONOK);
+
+      expect(mockPrisma.client.create).toHaveBeenCalledWith({
+        data: { phone: normalizedPhone, name: '' },
+      });
+
+      // Проверяем вызов нового метода уведомлений
+      expect(notificationService.publishAuthEvent).toHaveBeenCalledWith(
+        mockAuthMessageRecord.id,
+      );
+
+      validateSpy.mockRestore();
+    });
+  });
+
+  describe('loginByCode', () => {
+    it('should return client after succ5essful code verification', async () => {
+      mockPrisma.client.findUnique.mockResolvedValue(mockClient);
+
+      const checkSpy = jest
+        .spyOn(service, 'checkAuthCode')
+        .mockResolvedValue(undefined as any);
+
+      const result = await service.loginByCode(mockClient.phone, '1234');
+
+      expect(result).toEqual(mockClient);
+
+      expect(checkSpy).toHaveBeenCalledWith(mockClient.phone, '1234');
+    });
+
+    it('should throw NotFoundException if client disappears', async () => {
+      mockPrisma.client.findUnique.mockResolvedValue(null);
+      await expect(service.loginByCode('phone', '1234')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
   describe('findOne', () => {
     it('should return a client', async () => {
       mockPrisma.client.findUnique.mockResolvedValue(mockClient);
-      const result = await service.findOne(mockGetUserDto.id);
-      const expectedOutput = toDto(mockClient, ReadClientDto);
-      expect(result).toEqual(expectedOutput);
+      const result = await service.findOne(mockClient.id);
+      expect(result).toEqual(toDto(mockClient, ReadClientDto));
     });
 
-    it('should throw an exception if client not found', async () => {
-      mockPrisma.client.findUnique.mockResolvedValue(null);
-      await expect(service.findOne(mockGetUserDto.id)).rejects.toThrow(
-        UserNotFoundException,
-      );
-    });
-
-    it('should throw bad request exception if not domain exception', async () => {
-      const dbError = new Error('Conection refused');
-      mockPrisma.client.findUnique.mockRejectedValue(dbError);
-      await expect(service.findOne(mockGetUserDto.id)).rejects.toThrow(
-        BadRequestException,
-      );
+    it('should return AdminReadClientDto if extended is true', async () => {
+      mockPrisma.client.findUnique.mockResolvedValue(mockClient);
+      const result = await service.findOne(mockClient.id, true);
+      expect(result).toEqual(toDto(mockClient, AdminReadClientDto));
     });
   });
 
@@ -151,17 +275,14 @@ describe('ClientService', () => {
     });
   });
   describe('create', () => {
-    it('should create a client with password hash', async () => {
+    it('should create a client', async () => {
       const dto: CreateClientDto = {
         phone: '+79991112233',
-        password: 'securePassword123',
       };
-      mockArgonHash.mockResolvedValue('argon_hash');
 
       mockPrisma.client.create.mockResolvedValue({
         ...mockClient,
         phone: dto.phone,
-        passwordHash: 'argon_hash',
       });
 
       const result = await service.create(dto);
@@ -170,33 +291,12 @@ describe('ClientService', () => {
       expect(mockPrisma.client.create).toHaveBeenCalledWith({
         data: {
           phone: dto.phone,
-          passwordHash: expect.any(String),
-        },
-      });
-    });
-
-    it('should create a client without password (passwordHash = null)', async () => {
-      const dto: CreateClientDto = { phone: '+79991112233' };
-
-      mockPrisma.client.create.mockResolvedValue({
-        ...mockClient,
-        phone: dto.phone,
-        passwordHash: null,
-      });
-
-      const result = await service.create(dto);
-
-      expect(result.passwordHash).toBeNull();
-      expect(mockPrisma.client.create).toHaveBeenCalledWith({
-        data: {
-          phone: dto.phone,
-          passwordHash: null,
         },
       });
     });
 
     it('should throw PhoneAlreadyExistsException on unique constraint violation', async () => {
-      const dto: CreateClientDto = { phone: '+79991112233', password: '123' };
+      const dto: CreateClientDto = { phone: '+79991112233' };
 
       const prismaError = new Prisma.PrismaClientKnownRequestError(
         'Unique constraint failed',
@@ -275,50 +375,6 @@ describe('ClientService', () => {
     });
   });
 
-  describe('changePassword', () => {
-    const changePasswordDto = {
-      oldPassword: 'old-password',
-      newPassword: 'new-password-123',
-    };
-
-    it('should successfully change password', async () => {
-      mockPrisma.client.findUnique.mockResolvedValue(mockClient);
-      mockArgonVerify.mockResolvedValue(true);
-      mockArgonHash.mockResolvedValue('new-hashed-password');
-
-      await service.changePassword(mockClient.id, changePasswordDto);
-
-      expect(mockArgonVerify).toHaveBeenCalledWith(
-        mockClient.passwordHash,
-        changePasswordDto.oldPassword,
-      );
-      expect(mockArgonHash).toHaveBeenCalledWith(changePasswordDto.newPassword);
-      expect(mockPrisma.client.update).toHaveBeenCalledWith({
-        where: { id: mockClient.id },
-        data: { passwordHash: 'new-hashed-password' },
-      });
-    });
-
-    it('should throw ForbiddenException if old password is invalid', async () => {
-      mockPrisma.client.findUnique.mockResolvedValue(mockClient);
-      mockArgonVerify.mockResolvedValue(false);
-
-      await expect(
-        service.changePassword(mockClient.id, changePasswordDto),
-      ).rejects.toThrow(ForbiddenException);
-      expect(mockPrisma.client.update).not.toHaveBeenCalled();
-    });
-
-    it('should throw UserNotRegisteredException if passwordHash is missing', async () => {
-      const clientWithoutHash = { ...mockClient, passwordHash: null };
-      mockPrisma.client.findUnique.mockResolvedValue(clientWithoutHash);
-
-      await expect(
-        service.changePassword(mockClient.id, changePasswordDto),
-      ).rejects.toThrow(UserNotRegisteredException);
-    });
-  });
-
   describe('softDelete', () => {
     const clientId = '123';
 
@@ -366,55 +422,6 @@ describe('ClientService', () => {
       expect((service as any).logger.error).toHaveBeenCalledWith(
         expect.stringContaining(`softDelete() | Error | id=${clientId}`),
         genericError.stack,
-      );
-    });
-  });
-
-  describe('validateCredentials', () => {
-    const loginDto = {
-      phone: '1234567890',
-      password: 'correct-password',
-    };
-
-    it('should return client on valid credentials', async () => {
-      mockPrisma.client.findUnique.mockResolvedValue(mockClient);
-      mockArgonVerify.mockResolvedValue(true);
-
-      const result = await service.validateCredentials(loginDto);
-
-      expect(mockPrisma.client.findUnique).toHaveBeenCalledWith({
-        where: { phone: loginDto.phone },
-      });
-      expect(mockArgonVerify).toHaveBeenCalledWith(
-        mockClient.passwordHash,
-        loginDto.password,
-      );
-      expect(result).toEqual(mockClient);
-    });
-
-    it('should throw NotFoundException if client does not exist', async () => {
-      mockPrisma.client.findUnique.mockResolvedValue(null);
-
-      await expect(service.validateCredentials(loginDto)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-
-    it('should throw UserNotRegisteredException if client has no passwordHash', async () => {
-      const clientWithoutHash = { ...mockClient, passwordHash: null };
-      mockPrisma.client.findUnique.mockResolvedValue(clientWithoutHash);
-
-      await expect(service.validateCredentials(loginDto)).rejects.toThrow(
-        UserNotRegisteredException,
-      );
-    });
-
-    it('should throw InvalidCredentialsException if password is incorrect', async () => {
-      mockPrisma.client.findUnique.mockResolvedValue(mockClient);
-      mockArgonVerify.mockResolvedValue(false);
-
-      await expect(service.validateCredentials(loginDto)).rejects.toThrow(
-        InvalidCredentialsException,
       );
     });
   });
@@ -557,7 +564,7 @@ describe('ClientService', () => {
 
   describe('Error Handling (Constraint Violations)', () => {
     it('should throw PhoneAlreadyExistsException when Prisma returns P2002 on Client model', async () => {
-      const dto: CreateClientDto = { phone: '12345', password: 'password' };
+      const dto: CreateClientDto = { phone: '12345' };
 
       const prismaError = new Prisma.PrismaClientKnownRequestError(
         'Unique constraint failed',
@@ -589,6 +596,134 @@ describe('ClientService', () => {
       await expect(service.create(dto)).rejects.toThrow(
         'Database operation failed',
       );
+    });
+  });
+
+  describe('Auth Logic (AuthMessage)', () => {
+    const target = '+79161234567';
+
+    describe('requestAuthCode', () => {
+      it('should create a new auth record if no pending code exists', async () => {
+        jest.spyOn(service as any, 'findPendingCode').mockResolvedValue(null);
+        mockTx.authMessage.create.mockResolvedValue(mockAuthMessageRecord);
+
+        const result = await (service as any).requestAuthCode(
+          target,
+          SendCodeType.ZVONOK,
+        );
+
+        expect(mockTx.authMessage.create).toHaveBeenCalled();
+        expect(notificationMock.publishAuthEvent).toHaveBeenCalledWith(
+          mockAuthMessageRecord.id,
+        );
+        expect(result).toEqual(mockAuthMessageRecord);
+      });
+
+      it('should resend (update) existing code if within limits', async () => {
+        const existingCode = {
+          ...mockAuthMessageRecord,
+          resendCount: 0,
+          updatedAt: new Date(Date.now() - 70000),
+        };
+
+        jest
+          .spyOn(service as any, 'findPendingCode')
+          .mockResolvedValue(existingCode);
+        mockTx.authMessage.update.mockResolvedValue({
+          ...existingCode,
+          resendCount: 1,
+        });
+
+        await (service as any).requestAuthCode(target, SendCodeType.ZVONOK);
+
+        expect(mockTx.authMessage.update).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: { id: existingCode.id },
+            data: expect.objectContaining({ resendCount: { increment: 1 } }),
+          }),
+        );
+      });
+
+      it('should throw ResendTooFastException if resending too quickly', async () => {
+        const recentCode = {
+          ...mockAuthMessageRecord,
+          updatedAt: new Date(),
+        };
+        jest
+          .spyOn(service as any, 'findPendingCode')
+          .mockResolvedValue(recentCode);
+
+        await expect(
+          (service as any).requestAuthCode(target, SendCodeType.ZVONOK),
+        ).rejects.toThrow(ResendTooFastException);
+      });
+
+      it('should throw ResendLimitExceededException if maxResendCount reached', async () => {
+        const exhaustedCode = {
+          ...mockAuthMessageRecord,
+          resendCount: 3,
+          updatedAt: new Date(Date.now() - 70000),
+        };
+        jest
+          .spyOn(service as any, 'findPendingCode')
+          .mockResolvedValue(exhaustedCode);
+
+        await expect(
+          (service as any).requestAuthCode(target, SendCodeType.ZVONOK),
+        ).rejects.toThrow(ResendLimitExceededException);
+      });
+    });
+
+    describe('checkAuthCode', () => {
+      it('should verify successfully and set status to VERIFIED', async () => {
+        jest
+          .spyOn(service as any, 'findPendingCode')
+          .mockResolvedValue(mockAuthMessageRecord);
+
+        mockPrisma.authMessage.update.mockResolvedValue({
+          ...mockAuthMessageRecord,
+          status: 'VERIFIED',
+        });
+
+        await service.checkAuthCode(target, mockAuthMessageRecord.code);
+
+        expect(mockPrisma.authMessage.update).toHaveBeenCalledWith({
+          where: { id: mockAuthMessageRecord.id },
+          data: { status: 'VERIFIED' },
+        });
+      });
+
+      it('should increment attempts and throw ForbiddenException on wrong code', async () => {
+        jest.spyOn(service as any, 'findPendingCode').mockResolvedValue({
+          ...mockAuthMessageRecord,
+          attemptsCount: 0,
+        });
+
+        await expect(
+          service.checkAuthCode(target, 'WRONG_CODE'),
+        ).rejects.toThrow(ForbiddenException);
+
+        expect(mockPrisma.authMessage.update).toHaveBeenCalledWith({
+          where: { id: mockAuthMessageRecord.id },
+          data: { attemptsCount: 1, status: 'PENDING' },
+        });
+      });
+
+      it('should set status to FAILED if max verification attempts reached', async () => {
+        jest.spyOn(service as any, 'findPendingCode').mockResolvedValue({
+          ...mockAuthMessageRecord,
+          attemptsCount: 2,
+        });
+
+        await expect(
+          service.checkAuthCode(target, 'WRONG_CODE'),
+        ).rejects.toThrow(ForbiddenException);
+
+        expect(mockPrisma.authMessage.update).toHaveBeenCalledWith({
+          where: { id: mockAuthMessageRecord.id },
+          data: { attemptsCount: 3, status: 'FAILED' },
+        });
+      });
     });
   });
 });

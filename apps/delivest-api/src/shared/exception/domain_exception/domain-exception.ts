@@ -42,6 +42,11 @@ export const NotFoundException = createException(
   HttpStatus.NOT_FOUND,
 );
 
+export const ForbiddenException = createException(
+  ErrorCodes.FORBIDDEN,
+  HttpStatus.FORBIDDEN,
+);
+
 // ========== Auth ошибки ==========
 export const InvalidCredentialsException = createException(
   ErrorCodes.INVALID_CREDENTIALS,
@@ -96,6 +101,21 @@ export const MissingTokenException = createException(
 export const UserNotRegisteredException = createException(
   ErrorCodes.USER_NOT_REGISTERED,
   HttpStatus.NOT_FOUND,
+);
+
+export const InvalidPhoneNumberException = createException(
+  ErrorCodes.INVALID_PHONE_NUMBER,
+  HttpStatus.BAD_REQUEST,
+);
+
+export const ResendLimitExceededException = createException(
+  ErrorCodes.RESEND_LIMIT_EXCEEDED,
+  HttpStatus.BAD_REQUEST,
+);
+
+export const ResendTooFastException = createException(
+  ErrorCodes.RESEND_TOO_FAST,
+  HttpStatus.BAD_REQUEST,
 );
 
 // ========== Регистрация ==========

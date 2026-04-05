@@ -8,10 +8,9 @@ datasource db {
 }
 
 model Client {
-  id           String  @id @default(uuid())
-  phone        String  @unique
-  passwordHash String? @map("password_hash")
-  name         String?
+  id    String  @id @default(uuid())
+  phone String  @unique
+  name  String?
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -86,16 +85,21 @@ model Category {
 }
 
 model Product {
-  id       String  @id @default(uuid())
-  name     String
-  price    Decimal @db.Decimal(10, 2)
-  isActive Boolean @default(true)
+  id          String  @id @default(uuid())
+  name        String
+  price       Decimal @db.Decimal(10, 2)
+  isActive    Boolean @default(true)
+  description String?
 
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
   branchId String @map("branch_id")
 
   category   Category? @relation(fields: [categoryId], references: [id])
   categoryId String?   @map("category_id")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@map("product")
 }
@@ -110,18 +114,60 @@ model OutboxMessage {
   @@map("outbox_messages")
 }
 
+model AuthMessage {
+  id     String       @id @default(uuid())
+  target String
+  code   String
+  callId String?      @map("call_id")
+  type   SendCodeType
+
+  status AuthStatus @default(PENDING)
+
+  ipAddress   String? @map("ip_address")
+  requestHash String? @map("request_hash")
+
+  attemptsCount Int @default(0) @map("attempts_count")
+  resendCount   Int @default(0) @map("resend_count")
+
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([target])
+  @@map("auth_message")
+}
+
+enum AuthStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  FAILED
+}
+
 enum Permission {
   ADMIN
+  //Работник
   STAFF_CREATE
   STAFF_READ
   STAFF_UPDATE
   STAFF_DELETE
+  //Клиент
   CLIENT_CREATE
   CLIENT_READ
   CLIENT_UPDATE
   CLIENT_DELETE
+  //Роль
   ROLE_CREATE
   ROLE_READ
   ROLE_UPDATE
   ROLE_DELETE
+  //Продукт
+  PRODUCT_CREATE
+  PRODUCT_READ
+  PRODUCT_UPDATE
+  PRODUCT_DELETE
+}
+
+enum SendCodeType {
+  ZVONOK
 }

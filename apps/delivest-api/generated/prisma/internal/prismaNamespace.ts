@@ -391,7 +391,8 @@ export const ModelName = {
   BranchInfo: 'BranchInfo',
   Category: 'Category',
   Product: 'Product',
-  OutboxMessage: 'OutboxMessage'
+  OutboxMessage: 'OutboxMessage',
+  AuthMessage: 'AuthMessage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -407,7 +408,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "client" | "staff" | "role" | "branch" | "branchInfo" | "category" | "product" | "outboxMessage"
+    modelProps: "client" | "staff" | "role" | "branch" | "branchInfo" | "category" | "product" | "outboxMessage" | "authMessage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1003,6 +1004,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AuthMessage: {
+      payload: Prisma.$AuthMessagePayload<ExtArgs>
+      fields: Prisma.AuthMessageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AuthMessageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthMessagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AuthMessageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthMessagePayload>
+        }
+        findFirst: {
+          args: Prisma.AuthMessageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthMessagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AuthMessageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthMessagePayload>
+        }
+        findMany: {
+          args: Prisma.AuthMessageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthMessagePayload>[]
+        }
+        create: {
+          args: Prisma.AuthMessageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthMessagePayload>
+        }
+        createMany: {
+          args: Prisma.AuthMessageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AuthMessageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthMessagePayload>[]
+        }
+        delete: {
+          args: Prisma.AuthMessageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthMessagePayload>
+        }
+        update: {
+          args: Prisma.AuthMessageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthMessagePayload>
+        }
+        deleteMany: {
+          args: Prisma.AuthMessageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AuthMessageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AuthMessageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthMessagePayload>[]
+        }
+        upsert: {
+          args: Prisma.AuthMessageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuthMessagePayload>
+        }
+        aggregate: {
+          args: Prisma.AuthMessageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAuthMessage>
+        }
+        groupBy: {
+          args: Prisma.AuthMessageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuthMessageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AuthMessageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuthMessageCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1045,7 +1120,6 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const ClientScalarFieldEnum = {
   id: 'id',
   phone: 'phone',
-  passwordHash: 'passwordHash',
   name: 'name',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -1115,8 +1189,12 @@ export const ProductScalarFieldEnum = {
   name: 'name',
   price: 'price',
   isActive: 'isActive',
+  description: 'description',
   branchId: 'branchId',
-  categoryId: 'categoryId'
+  categoryId: 'categoryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 } as const
 
 export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
@@ -1130,6 +1208,25 @@ export const OutboxMessageScalarFieldEnum = {
 } as const
 
 export type OutboxMessageScalarFieldEnum = (typeof OutboxMessageScalarFieldEnum)[keyof typeof OutboxMessageScalarFieldEnum]
+
+
+export const AuthMessageScalarFieldEnum = {
+  id: 'id',
+  target: 'target',
+  code: 'code',
+  callId: 'callId',
+  type: 'type',
+  status: 'status',
+  ipAddress: 'ipAddress',
+  requestHash: 'requestHash',
+  attemptsCount: 'attemptsCount',
+  resendCount: 'resendCount',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AuthMessageScalarFieldEnum = (typeof AuthMessageScalarFieldEnum)[keyof typeof AuthMessageScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1270,6 +1367,34 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
+ * Reference to a field of type 'SendCodeType'
+ */
+export type EnumSendCodeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SendCodeType'>
+    
+
+
+/**
+ * Reference to a field of type 'SendCodeType[]'
+ */
+export type ListEnumSendCodeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SendCodeType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AuthStatus'
+ */
+export type EnumAuthStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuthStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AuthStatus[]'
+ */
+export type ListEnumAuthStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuthStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1385,6 +1510,7 @@ export type GlobalOmitConfig = {
   category?: Prisma.CategoryOmit
   product?: Prisma.ProductOmit
   outboxMessage?: Prisma.OutboxMessageOmit
+  authMessage?: Prisma.AuthMessageOmit
 }
 
 /* Types for Logging */

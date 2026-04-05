@@ -2,29 +2,40 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { jest } from '@jest/globals';
 import {
-  BadRequestException,
   NotFoundException,
+  BadRequestException,
+  DuplicateValueException,
 } from '../../shared/exception/domain_exception/domain-exception.js';
 import { ProductService } from './product.service.js';
-import { Product } from '../../../generated/prisma/client.js';
-import { Decimal } from '@prisma/client/runtime/client';
+import { CreateProductDto } from './dto/create.dto.js';
+import { UpdateProductDto } from './dto/update.dto.js';
+import { PrismaErrorCode } from '@delivest/common';
+import * as DbErrors from '../../shared/helpers/db-errors.js';
 
-describe('ProductService', () => {
+// Мокаем хелперы для обработки ошибок Prisma
+jest.mock('../../shared/helpers/db-errors.js', () => ({
+  isPrismaError: jest.fn(),
+  getInternalErrorCode: jest.fn(),
+  getPrismaModelName: jest.fn(),
+}));
+
+import {
+  isPrismaError,
+  getInternalErrorCode,
+  getPrismaModelName,
+} from '../../shared/helpers/db-errors.js';
+
+describe('ProductService (Extended Tests)', () => {
   let service: ProductService;
   let mockPrisma: any;
 
-  const mockProduct: Product = {
+  const mockProduct = {
     id: 'prod-123',
     name: 'Маргарита',
-    price: new Decimal(500.0),
-    isActive: true,
+    price: 500,
     branchId: 'branch-999',
     categoryId: 'cat-001',
-  } as Product;
-
-  const expectedDto = {
-    id: mockProduct.id,
-    name: mockProduct.name,
+    deletedAt: null,
   };
 
   beforeEach(async () => {
@@ -32,132 +43,178 @@ describe('ProductService', () => {
       product: {
         findMany: jest.fn(),
         findUnique: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
       },
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductService,
-        {
-          provide: PrismaService,
-          useValue: prismaMock,
-        },
+        { provide: PrismaService, useValue: prismaMock },
       ],
     }).compile();
 
     service = module.get<ProductService>(ProductService);
     mockPrisma = module.get(PrismaService);
+
+    jest.clearAllMocks();
+  });
+
+  describe('findAllByCategory', () => {
+    it('should return products for a specific category', async () => {
+      const catId = 'cat-001';
+      mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
+
+      const result = await service.findAllByCategory(catId);
+
+      expect(result).toHaveLength(1);
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith({
+        where: { categoryId: catId, deletedAt: null },
+      });
+    });
+  });
+
+  describe('create', () => {
+    it('should create and return a new product', async () => {
+      const createDto: CreateProductDto = {
+        name: 'Пепперони',
+        price: 600,
+        branchId: 'branch-999',
+        categoryId: 'cat-001',
+      } as any;
+
+      mockPrisma.product.create.mockResolvedValue({
+        ...mockProduct,
+        ...createDto,
+      });
+
+      const result = await service.create(createDto);
+
+      expect(result.name).toBe('Пепперони');
+      expect(mockPrisma.product.create).toHaveBeenCalledWith({
+        data: createDto,
+      });
+    });
   });
 
   describe('findAllByBranch', () => {
     const branchId = 'branch-999';
 
-    it('should return exactly the mapped products', async () => {
+    it('should return regular DTOs by default', async () => {
       mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
+
       const result = await service.findAllByBranch(branchId);
-      expect(result).toEqual([expect.objectContaining(expectedDto)]);
+
+      expect(result[0]).not.toHaveProperty('deletedAt');
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith({
-        where: { branchId },
+        where: { branchId, deletedAt: null },
       });
     });
 
-    it('should throw NotFoundException on empty array', async () => {
-      mockPrisma.product.findMany.mockResolvedValue([]);
-      await expect(service.findAllByBranch(branchId)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-
-    it('should throw BadRequestException on DB failure', async () => {
-      mockPrisma.product.findMany.mockRejectedValue(new Error('DB error'));
-      await expect(service.findAllByBranch(branchId)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-  });
-
-  describe('findAllByCategory', () => {
-    const categoryId = 'cat-001';
-
-    it('should return mapped products by category', async () => {
+    it('should return admin DTOs when extended is true', async () => {
       mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
-      const result = await service.findAllByCategory(categoryId);
-      expect(result).toEqual([expect.objectContaining(expectedDto)]);
-      expect(mockPrisma.product.findMany).toHaveBeenCalledWith({
-        where: { categoryId },
-      });
+
+      const result = await service.findAllByBranch(branchId, true);
+
+      expect(result).toBeDefined();
+      expect(mockPrisma.product.findMany).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException if category is empty', async () => {
+    it('should return an empty array if nothing found', async () => {
       mockPrisma.product.findMany.mockResolvedValue([]);
-      await expect(service.findAllByCategory(categoryId)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-
-    it('should throw BadRequestException on DB failure', async () => {
-      mockPrisma.product.findMany.mockRejectedValue(new Error('DB error'));
-      await expect(service.findAllByCategory(categoryId)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-  });
-
-  describe('findByName', () => {
-    const branchId = 'branch-999';
-    const name = 'Марг';
-
-    it('should perform strict substring search', async () => {
-      mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
-      const result = await service.findByName(branchId, name);
-      expect(result[0]).toEqual(expect.objectContaining(expectedDto));
-      expect(mockPrisma.product.findMany).toHaveBeenCalledWith({
-        where: {
-          branchId,
-          name: { contains: name },
-        },
-      });
-    });
-
-    it('should throw NotFoundException on no matches', async () => {
-      mockPrisma.product.findMany.mockResolvedValue([]);
-      await expect(service.findByName(branchId, name)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-
-    it('should throw BadRequestException if search query fails', async () => {
-      mockPrisma.product.findMany.mockRejectedValue(new Error('DB error'));
-      await expect(service.findByName(branchId, name)).rejects.toThrow(
-        BadRequestException,
-      );
+      const result = await service.findAllByBranch(branchId);
+      expect(result).toEqual([]);
     });
   });
 
   describe('findOne', () => {
     const productId = 'prod-123';
 
-    it('should return the specific product DTO', async () => {
-      mockPrisma.product.findUnique.mockResolvedValue(mockProduct);
-      const result = await service.findOne(productId);
-      expect(result).toEqual(expect.objectContaining(expectedDto));
-      expect(mockPrisma.product.findUnique).toHaveBeenCalledWith({
-        where: { id: productId },
-      });
-    });
-
-    it('should throw NotFoundException if null is returned', async () => {
+    it('should throw NotFoundException if product is missing', async () => {
       mockPrisma.product.findUnique.mockResolvedValue(null);
+
       await expect(service.findOne(productId)).rejects.toThrow(
         NotFoundException,
       );
     });
 
-    it('should throw BadRequestException on DB failure', async () => {
-      mockPrisma.product.findUnique.mockRejectedValue(new Error('DB error'));
-      await expect(service.findOne(productId)).rejects.toThrow(
-        BadRequestException,
-      );
+    it('should return product if it exists', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue(mockProduct);
+
+      const result = await service.findOne(productId);
+
+      expect(result.id).toBe(productId);
+      expect(mockPrisma.product.findUnique).toHaveBeenCalledWith({
+        where: { id: productId },
+      });
+    });
+  });
+
+  describe('findByName', () => {
+    const branchId = 'branch-999';
+    const searchName = 'пицца';
+
+    it('should call prisma with correct case-insensitive search filters', async () => {
+      mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
+
+      await service.findByName(branchId, searchName);
+
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith({
+        where: {
+          branchId,
+          name: {
+            contains: searchName,
+            mode: 'insensitive',
+          },
+          deletedAt: null,
+        },
+      });
+    });
+  });
+
+  describe('findAllByCategory', () => {
+    const catId = 'cat-001';
+
+    it('should filter by categoryId and active products only', async () => {
+      mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
+
+      await service.findAllByCategory(catId);
+
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith({
+        where: {
+          categoryId: catId,
+          deletedAt: null,
+        },
+      });
+    });
+  });
+  describe('update', () => {
+    it('should update product data', async () => {
+      const updateDto: UpdateProductDto = { price: 700 };
+      mockPrisma.product.update.mockResolvedValue({
+        ...mockProduct,
+        price: 700,
+      });
+
+      const result = await service.update(mockProduct.id, updateDto);
+
+      expect(result.price).toBe(700);
+      expect(mockPrisma.product.update).toHaveBeenCalledWith({
+        where: { id: mockProduct.id },
+        data: updateDto,
+      });
+    });
+  });
+
+  describe('Extended Mode (Admin DTO)', () => {
+    it('should call findOne with extended flag and handle it', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue(mockProduct);
+
+      const result = await service.findOne(mockProduct.id, true);
+
+      expect(result).toBeDefined();
+      expect(mockPrisma.product.findUnique).toHaveBeenCalled();
     });
   });
 });

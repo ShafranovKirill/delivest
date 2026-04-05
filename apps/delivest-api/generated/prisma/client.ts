@@ -81,3 +81,8 @@ export type Product = Prisma.ProductModel
  * 
  */
 export type OutboxMessage = Prisma.OutboxMessageModel
+/**
+ * Model AuthMessage
+ * 
+ */
+export type AuthMessage = Prisma.AuthMessageModel

@@ -7,7 +7,12 @@ import { DomainExceptionFilter } from './shared/exception/domain_exception/domai
 import { ApiExceptionFilter } from './shared/exception/api_exception/api-exception.filter.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const isProduction = process.env.NODE_ENV === 'production';
+  const app = await NestFactory.create(AppModule, {
+    logger: isProduction
+      ? ['error', 'warn', 'log']
+      : ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 
@@ -53,12 +58,12 @@ async function bootstrap() {
       name: 'client_refresh_token',
       description: 'Refresh token for Clients',
     })
-    // .addCookieAuth('staff_refresh_token', {
-    //   type: 'apiKey',
-    //   in: 'cookie',
-    //   name: 'staff_refresh_token',
-    //   description: 'Refresh token for Staff',
-    // })
+    .addCookieAuth('staff_refresh_token', {
+      type: 'apiKey',
+      in: 'cookie',
+      name: 'staff_refresh_token',
+      description: 'Refresh token for Staff',
+    })
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -76,9 +81,9 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
   Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`,
+    `Application is running on: http://localhost:${port}/${globalPrefix}`,
   );
-  Logger.log(`📖 Docs available at: http://localhost:${port}/docs`);
+  Logger.log(`Docs available at: http://localhost:${port}/docs`);
 }
 
 bootstrap();

@@ -9,6 +9,16 @@
 * 🟢 You can import this file directly.
 */
 
+export const AuthStatus = {
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  EXPIRED: 'EXPIRED',
+  FAILED: 'FAILED'
+} as const
+
+export type AuthStatus = (typeof AuthStatus)[keyof typeof AuthStatus]
+
+
 export const Permission = {
   ADMIN: 'ADMIN',
   STAFF_CREATE: 'STAFF_CREATE',
@@ -22,7 +32,18 @@ export const Permission = {
   ROLE_CREATE: 'ROLE_CREATE',
   ROLE_READ: 'ROLE_READ',
   ROLE_UPDATE: 'ROLE_UPDATE',
-  ROLE_DELETE: 'ROLE_DELETE'
+  ROLE_DELETE: 'ROLE_DELETE',
+  PRODUCT_CREATE: 'PRODUCT_CREATE',
+  PRODUCT_READ: 'PRODUCT_READ',
+  PRODUCT_UPDATE: 'PRODUCT_UPDATE',
+  PRODUCT_DELETE: 'PRODUCT_DELETE'
 } as const
 
 export type Permission = (typeof Permission)[keyof typeof Permission]
+
+
+export const SendCodeType = {
+  ZVONOK: 'ZVONOK'
+} as const
+
+export type SendCodeType = (typeof SendCodeType)[keyof typeof SendCodeType]

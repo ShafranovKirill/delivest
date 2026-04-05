@@ -1,8 +1,8 @@
-import { FindProductsRequest } from '@delivest/types';
+import { FindProductsByNameRequest } from '@delivest/types';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class FindProductsDto implements FindProductsRequest {
+export class FindProductsByNameDto implements FindProductsByNameRequest {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()

@@ -58,7 +58,8 @@ export const ModelName = {
   BranchInfo: 'BranchInfo',
   Category: 'Category',
   Product: 'Product',
-  OutboxMessage: 'OutboxMessage'
+  OutboxMessage: 'OutboxMessage',
+  AuthMessage: 'AuthMessage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -80,7 +81,6 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const ClientScalarFieldEnum = {
   id: 'id',
   phone: 'phone',
-  passwordHash: 'passwordHash',
   name: 'name',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -150,8 +150,12 @@ export const ProductScalarFieldEnum = {
   name: 'name',
   price: 'price',
   isActive: 'isActive',
+  description: 'description',
   branchId: 'branchId',
-  categoryId: 'categoryId'
+  categoryId: 'categoryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 } as const
 
 export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
@@ -165,6 +169,25 @@ export const OutboxMessageScalarFieldEnum = {
 } as const
 
 export type OutboxMessageScalarFieldEnum = (typeof OutboxMessageScalarFieldEnum)[keyof typeof OutboxMessageScalarFieldEnum]
+
+
+export const AuthMessageScalarFieldEnum = {
+  id: 'id',
+  target: 'target',
+  code: 'code',
+  callId: 'callId',
+  type: 'type',
+  status: 'status',
+  ipAddress: 'ipAddress',
+  requestHash: 'requestHash',
+  attemptsCount: 'attemptsCount',
+  resendCount: 'resendCount',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AuthMessageScalarFieldEnum = (typeof AuthMessageScalarFieldEnum)[keyof typeof AuthMessageScalarFieldEnum]
 
 
 export const SortOrder = {
