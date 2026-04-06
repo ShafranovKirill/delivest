@@ -39,6 +39,7 @@ import { Permission } from '../../../generated/prisma/enums.js';
 import { GetStaffDto } from './dto/get-staff.dto.js';
 import { ReadStaffDto } from './dto/read.dto.js';
 import { UpdateStaffDto } from './dto/update.dto.js';
+import { COOKIE_NAMES } from '@delivest/common';
 
 @ApiTags('Staff (Работники)')
 @Controller('staff')
@@ -103,12 +104,11 @@ export class StaffController {
   }
 
   @Get('refresh')
-  @ApiCookieAuth('staff_refresh_token')
+  @ApiCookieAuth(COOKIE_NAMES.STAFF_REFRESH_TOKEN)
   @ApiOperation({ summary: 'Рефреш токен' })
   @ApiOkResponse({ type: TokenStaffResponseDto })
   async refresh(@Req() req: Request) {
-    const token = req.cookies?.['staff_refresh_token'];
-
+    const token = req.cookies?.[COOKIE_NAMES.STAFF_REFRESH_TOKEN];
     if (!token) {
       throw new MissingTokenException('Missing refresh token');
     }

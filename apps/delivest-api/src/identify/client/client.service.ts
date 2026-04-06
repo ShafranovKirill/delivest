@@ -40,7 +40,7 @@ import {
   getPrismaModelName,
   isPrismaError,
 } from '../../shared/helpers/db-errors.js';
-import { PrismaErrorCode } from '@delivest/common';
+import { COOKIE_NAMES, PrismaErrorCode } from '@delivest/common';
 import { AdminReadClientDto } from './dto/admin-read.dto.js';
 import { UpdateClientDto } from './dto/update.dto.js';
 import { NotificationService } from '../../notification/notification.service.js';
@@ -309,7 +309,7 @@ export class ClientService {
   setRefreshCookie(res: Response, token: string): void {
     const refreshMaxAge = this.refreshTtl * 1000;
 
-    res.cookie('client_refresh_token', token, {
+    res.cookie(COOKIE_NAMES.CLIENT_REFRESH_TOKEN, token, {
       httpOnly: true,
       secure: this.config.get<string>('NODE_ENV') === 'production',
       sameSite: 'strict',

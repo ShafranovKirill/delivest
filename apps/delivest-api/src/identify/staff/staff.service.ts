@@ -23,7 +23,7 @@ import {
   getPrismaModelName,
   isPrismaError,
 } from '../../shared/helpers/db-errors.js';
-import { PrismaErrorCode } from '@delivest/common';
+import { COOKIE_NAMES, PrismaErrorCode } from '@delivest/common';
 import {
   AccessStaffTokenPayload,
   RefreshStaffTokenPayload,
@@ -295,7 +295,7 @@ export class StaffService {
   setRefreshCookie(res: Response, token: string): void {
     const refreshMaxAge = this.refreshTtl * 1000;
 
-    res.cookie('staff_refresh_token', token, {
+    res.cookie(COOKIE_NAMES.STAFF_REFRESH_TOKEN, token, {
       httpOnly: true,
       secure: this.config.get<string>('NODE_ENV') === 'production',
       sameSite: 'strict',

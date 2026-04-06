@@ -8,6 +8,7 @@
     "build": "pnpm -r run build",
     "build:types": "pnpm --filter @delivest/types build",
     "build:common": "pnpm --filter @delivest/common build",
+    "build:all": "pnpm run prisma:push && pnpm run prisma:generate && pnpm run build:types && pnpm run build:common",
     "lint": "pnpm -r run lint",
     "format:check": "prettier --check .",
     "format:fix": "prettier --write .",
