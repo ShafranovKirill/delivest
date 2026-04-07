@@ -25,6 +25,7 @@ export interface CartResponse {
     sessionId: string;
     items: CartItemResponse[];
     totalPrice: number;
+    totalItems: number;
     createdAt: Date;
     updatedAt: Date;
 }

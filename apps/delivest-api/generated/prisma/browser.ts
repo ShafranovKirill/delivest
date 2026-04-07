@@ -57,8 +57,3 @@ export type OutboxMessage = Prisma.OutboxMessageModel
  * 
  */
 export type AuthMessage = Prisma.AuthMessageModel
-/**
- * Model Carts
- * 
- */
-export type Carts = Prisma.CartsModel

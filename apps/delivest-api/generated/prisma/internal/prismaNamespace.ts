@@ -391,8 +391,7 @@ export const ModelName = {
   Category: 'Category',
   Product: 'Product',
   OutboxMessage: 'OutboxMessage',
-  AuthMessage: 'AuthMessage',
-  Carts: 'Carts'
+  AuthMessage: 'AuthMessage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -408,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "client" | "staff" | "role" | "branch" | "branchInfo" | "category" | "product" | "outboxMessage" | "authMessage" | "carts"
+    modelProps: "client" | "staff" | "role" | "branch" | "branchInfo" | "category" | "product" | "outboxMessage" | "authMessage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1004,80 +1003,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Carts: {
-      payload: Prisma.$CartsPayload<ExtArgs>
-      fields: Prisma.CartsFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.CartsFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartsPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.CartsFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartsPayload>
-        }
-        findFirst: {
-          args: Prisma.CartsFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartsPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.CartsFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartsPayload>
-        }
-        findMany: {
-          args: Prisma.CartsFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartsPayload>[]
-        }
-        create: {
-          args: Prisma.CartsCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartsPayload>
-        }
-        createMany: {
-          args: Prisma.CartsCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.CartsCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartsPayload>[]
-        }
-        delete: {
-          args: Prisma.CartsDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartsPayload>
-        }
-        update: {
-          args: Prisma.CartsUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartsPayload>
-        }
-        deleteMany: {
-          args: Prisma.CartsDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.CartsUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.CartsUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartsPayload>[]
-        }
-        upsert: {
-          args: Prisma.CartsUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartsPayload>
-        }
-        aggregate: {
-          args: Prisma.CartsAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateCarts>
-        }
-        groupBy: {
-          args: Prisma.CartsGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CartsGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.CartsCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CartsCountAggregateOutputType> | number
-        }
-      }
-    }
   }
 } & {
   other: {
@@ -1225,18 +1150,6 @@ export const AuthMessageScalarFieldEnum = {
 } as const
 
 export type AuthMessageScalarFieldEnum = (typeof AuthMessageScalarFieldEnum)[keyof typeof AuthMessageScalarFieldEnum]
-
-
-export const CartsScalarFieldEnum = {
-  id: 'id',
-  sessionId: 'sessionId',
-  items: 'items',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type CartsScalarFieldEnum = (typeof CartsScalarFieldEnum)[keyof typeof CartsScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1391,13 +1304,6 @@ export type ListEnumAuthStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
- * Reference to a field of type 'Json[]'
- */
-export type ListJsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json[]'>
-    
-
-
-/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1513,7 +1419,6 @@ export type GlobalOmitConfig = {
   product?: Prisma.ProductOmit
   outboxMessage?: Prisma.OutboxMessageOmit
   authMessage?: Prisma.AuthMessageOmit
-  carts?: Prisma.CartsOmit
 }
 
 /* Types for Logging */
