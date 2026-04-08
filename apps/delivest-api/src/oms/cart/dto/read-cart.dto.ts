@@ -17,7 +17,7 @@ export class ReadCartDto implements CartResponse {
   @Type(() => ReadCartItemDto)
   items!: ReadCartItemDto[];
 
-  @ApiProperty({ example: 1500.5 })
+  @ApiProperty({ example: 1500 })
   @Expose()
   totalPrice!: number;
 

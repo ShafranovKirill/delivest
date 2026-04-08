@@ -2,7 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { CartResponse } from '@delivest/types';
-import { Cart, CartItem } from '../../../generated/prisma/client.js';
+import {
+  Cart,
+  CartItem,
+  PrismaClient,
+} from '../../../generated/prisma/client.js';
 import { NetService } from '../../net/net.service.js';
 import { toDto } from '../../utils/to-dto.js';
 import { ReadCartDto } from './dto/read-cart.dto.js';
@@ -12,6 +16,8 @@ import {
   NotFoundException,
 } from '../../shared/exception/domain_exception/domain-exception.js';
 import { RedisService } from '../../redis/redis.service.js';
+import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 export type InternalCartWithItems = Cart & {
   items: CartItem[];
@@ -26,20 +32,27 @@ export class CartService {
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
     private readonly netService: NetService,
+    private readonly txHost: TransactionHost<
+      TransactionalAdapterPrisma<PrismaClient>
+    >,
   ) {}
-
-  async addItem(sessionId: string, productId: string, quantity: number) {
+  @Transactional()
+  async addItem(
+    sessionId: string,
+    productId: string,
+    quantity: number,
+  ): Promise<ReadCartDto> {
     try {
       const product = await this.netService.getProductById(productId);
       if (!product) {
         throw new NotFoundException(`Product with ID ${productId} not found`);
       }
-      const cart = await this.prisma.cart.upsert({
+      const cart = await this.txHost.tx.cart.upsert({
         where: { sessionId },
         update: {},
         create: { sessionId },
       });
-      await this.prisma.cartItem.upsert({
+      await this.txHost.tx.cartItem.upsert({
         where: {
           cartId_productId: {
             cartId: cart.id,
@@ -56,7 +69,7 @@ export class CartService {
         },
       });
 
-      return await this.refreshCart(sessionId);
+      return toDto(await this.refreshCart(sessionId), ReadCartDto);
     } catch (error) {
       if (error instanceof DomainException) {
         throw error;
@@ -101,7 +114,7 @@ export class CartService {
         });
       }
 
-      return await this.refreshCart(sessionId);
+      return toDto(await this.refreshCart(sessionId), ReadCartDto);
     } catch (error) {
       this.logger.error(
         `Failed to remove item ${productId}`,
@@ -111,13 +124,13 @@ export class CartService {
     }
   }
 
-  async getCart(sessionId: string): Promise<CartResponse> {
+  async getCart(sessionId: string): Promise<ReadCartDto> {
     const cachedCart = await this.getCartFromRedis(sessionId);
     if (cachedCart) {
-      return cachedCart;
+      return toDto(cachedCart, ReadCartDto);
     }
 
-    return await this.refreshCart(sessionId);
+    return toDto(await this.refreshCart(sessionId), ReadCartDto);
   }
 
   async clearCart(sessionId: string) {
@@ -146,28 +159,14 @@ export class CartService {
     }
   }
 
-  async validateCart(sessionId: string) {
-    try {
-      const cart = await this.prisma.cart.findUnique({
-        where: { sessionId },
-        include: { items: true },
-      });
+  async validateCart(sessionId: string): Promise<ReadCartDto> {
+    const response = await this.refreshCart(sessionId);
 
-      if (!cart) {
-        throw new NotFoundException(`Cart for session ${sessionId} not found`);
-      }
-      const response = await this.mapCartToResponse(
-        cart as InternalCartWithItems,
-      );
-      await this.setCartToRedis(response);
-      return response;
-    } catch (error) {
-      throw error as Error;
-    }
+    return toDto(response, ReadCartDto);
   }
 
   private async refreshCart(sessionId: string) {
-    const cart = await this.prisma.cart.findUnique({
+    const cart = await this.txHost.tx.cart.findUnique({
       where: { sessionId },
       include: { items: true },
     });

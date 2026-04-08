@@ -20,6 +20,8 @@ import { COOKIE_NAMES } from '@delivest/common';
 import { CartService } from './cart.service.js';
 import { AddToCartDto } from './dto/add-item.dto.js';
 import type { Request } from 'express';
+import { IdParamDto } from './dto/id-param.dto.js';
+import { ReadCartDto } from './dto/read-cart.dto.js';
 
 @ApiTags('Cart (Корзина)')
 @Controller('cart')
@@ -28,20 +30,28 @@ export class CartController {
 
   @Get()
   @ApiOperation({ summary: 'Получить текущую корзину' })
-  @ApiResponse({ status: 200, description: 'Данные корзины' })
+  @ApiResponse({
+    status: 200,
+    description: 'Данные корзины',
+    type: ReadCartDto,
+  })
   @ApiHeader({
     name: 'Cookie',
     description: 'Должен содержать session_id',
     required: true,
   })
-  async getCart(@Req() req: Request) {
+  async getCart(@Req() req: Request): Promise<ReadCartDto> {
     const sessionId = this.getSessionId(req);
     return await this.cartService.getCart(sessionId);
   }
 
   @Post('add')
   @ApiOperation({ summary: 'Добавить товар в корзину' })
-  @ApiResponse({ status: 201, description: 'Товар успешно добавлен' })
+  @ApiResponse({
+    status: 201,
+    description: 'Товар успешно добавлен',
+    type: ReadCartDto,
+  })
   @ApiHeader({
     name: 'Cookie',
     description: 'Должен содержать session_id',
@@ -58,24 +68,44 @@ export class CartController {
 
   @Patch('remove-one/:productId')
   @ApiOperation({ summary: 'Уменьшить количество товара на 1' })
+  @ApiResponse({
+    status: 200,
+    description: 'Товар успешно удален',
+    type: ReadCartDto,
+  })
   @ApiHeader({
     name: 'Cookie',
     description: 'Должен содержать session_id',
     required: true,
   })
-  async removeOne(@Req() req: Request, @Param('productId') productId: string) {
+  async removeOne(
+    @Req() req: Request,
+    @Param() params: IdParamDto,
+  ): Promise<ReadCartDto> {
     const sessionId = this.getSessionId(req);
-    return await this.cartService.removeItem(sessionId, productId, false);
+    return await this.cartService.removeItem(
+      sessionId,
+      params.productId,
+      false,
+    );
   }
 
   @Delete('item/:productId')
   @ApiOperation({ summary: 'Полностью удалить позицию из корзины' })
+  @ApiResponse({
+    status: 200,
+    description: 'Товар успешно удален',
+    type: ReadCartDto,
+  })
   @ApiHeader({
     name: 'Cookie',
     description: 'Должен содержать session_id',
     required: true,
   })
-  async removeAll(@Req() req: Request, @Param('productId') productId: string) {
+  async removeAll(
+    @Req() req: Request,
+    @Param('productId') productId: string,
+  ): Promise<ReadCartDto> {
     const sessionId = this.getSessionId(req);
     return await this.cartService.removeItem(sessionId, productId, true);
   }
@@ -87,7 +117,12 @@ export class CartController {
     description: 'Должен содержать session_id',
     required: true,
   })
-  async validate(@Req() req: Request) {
+  @ApiResponse({
+    status: 200,
+    description: 'Корзина успешно синхронизирована',
+    type: ReadCartDto,
+  })
+  async validate(@Req() req: Request): Promise<ReadCartDto> {
     const sessionId = this.getSessionId(req);
     return await this.cartService.validateCart(sessionId);
   }
@@ -98,6 +133,10 @@ export class CartController {
     name: 'Cookie',
     description: 'Должен содержать session_id',
     required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Корзина успешно очищена',
   })
   async clear(@Req() req: Request) {
     const sessionId = this.getSessionId(req);
