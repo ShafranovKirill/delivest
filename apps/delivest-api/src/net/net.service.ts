@@ -14,4 +14,8 @@ export class NetService {
   async getProductById(id: string): Promise<AdminReadProductDto> {
     return this.productService.findOne(id, true);
   }
+
+  async getProductsByIds(ids: string[]): Promise<AdminReadProductDto[]> {
+    return this.productService.findManyByIds(ids, true);
+  }
 }
