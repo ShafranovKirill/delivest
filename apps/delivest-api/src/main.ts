@@ -5,6 +5,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { DomainExceptionFilter } from './shared/exception/domain_exception/domain-exception.filter.js';
 import { ApiExceptionFilter } from './shared/exception/api_exception/api-exception.filter.js';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const isProduction = process.env.NODE_ENV === 'production';
@@ -13,6 +14,8 @@ async function bootstrap() {
       ? ['error', 'warn', 'log']
       : ['error', 'warn', 'log', 'debug', 'verbose'],
   });
+  app.use(cookieParser());
+
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 

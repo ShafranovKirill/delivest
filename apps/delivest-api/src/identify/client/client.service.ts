@@ -1,20 +1,28 @@
+import { COOKIE_NAMES, PrismaErrorCode } from '@delivest/common';
 import {
   AccessClientTokenPayload,
   RefreshClientTokenPayload,
 } from '@delivest/types';
+import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
-import { PrismaService } from '../../prisma/prisma.service.js';
-import { toDto } from '../../utils/to-dto.js';
-import { CreateClientDto } from './dto/create.dto.js';
-import { ReadClientDto } from './dto/read.dto.js';
 import {
   CountryCode,
   parsePhoneNumberWithError,
   PhoneNumber,
 } from 'libphonenumber-js';
+import {
+  AuthMessage,
+  AuthStatus,
+  Client,
+  PrismaClient,
+  SendCodeType,
+} from '../../../generated/prisma/client.js';
+import { NotificationService } from '../../notification/notification.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 import {
   BadRequestException,
   DomainException,
@@ -29,23 +37,15 @@ import {
   UserNotFoundException,
 } from '../../shared/exception/domain_exception/domain-exception.js';
 import {
-  AuthMessage,
-  AuthStatus,
-  Client,
-  PrismaClient,
-  SendCodeType,
-} from '../../../generated/prisma/client.js';
-import {
   getInternalErrorCode,
   getPrismaModelName,
   isPrismaError,
 } from '../../shared/helpers/db-errors.js';
-import { PrismaErrorCode } from '@delivest/common';
+import { toDto } from '../../utils/to-dto.js';
 import { AdminReadClientDto } from './dto/admin-read.dto.js';
+import { CreateClientDto } from './dto/create.dto.js';
+import { ReadClientDto } from './dto/read.dto.js';
 import { UpdateClientDto } from './dto/update.dto.js';
-import { NotificationService } from '../../notification/notification.service.js';
-import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
-import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class ClientService {
@@ -309,7 +309,7 @@ export class ClientService {
   setRefreshCookie(res: Response, token: string): void {
     const refreshMaxAge = this.refreshTtl * 1000;
 
-    res.cookie('client_refresh_token', token, {
+    res.cookie(COOKIE_NAMES.CLIENT_REFRESH_TOKEN, token, {
       httpOnly: true,
       secure: this.config.get<string>('NODE_ENV') === 'production',
       sameSite: 'strict',

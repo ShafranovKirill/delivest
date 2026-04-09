@@ -9,8 +9,6 @@ import {
 } from '../../shared/exception/domain_exception/domain-exception.js';
 import { toDto } from '../../utils/to-dto.js';
 import { ReadBranchDto } from './dto/read-branch.dto.js';
-import { ReadBranchDetailsDto } from './dto/read-branch-details.dto.js';
-import { ReadBranchWithDetailsDto } from './dto/read-branch-with-details.js';
 import { CreateBranchDto } from './dto/create.dto.js';
 import { PrismaErrorCode } from '@delivest/common';
 import {
@@ -19,8 +17,6 @@ import {
   isPrismaError,
 } from '../../shared/helpers/db-errors.js';
 import { AdminReadBranchDto } from './dto/admin-read.dto.js';
-import { AdminReadBranchWithDetailsDto } from './dto/admin-read-branch-with-details.dto.js';
-import { UpdateBranchInfoDto } from './dto/update-branch-info.dto.js';
 import { UpdateBranchDto } from './dto/update.dto.js';
 
 @Injectable()
@@ -50,19 +46,15 @@ export class BranchService {
     }
   }
 
-  async findOne(id: string): Promise<ReadBranchWithDetailsDto>;
-  async findOne(
-    id: string,
-    extended: true,
-  ): Promise<AdminReadBranchWithDetailsDto>;
+  async findOne(id: string): Promise<ReadBranchDto>;
+  async findOne(id: string, extended: true): Promise<AdminReadBranchDto>;
   async findOne(
     id: string,
     extended?: boolean,
-  ): Promise<ReadBranchWithDetailsDto | AdminReadBranchWithDetailsDto> {
+  ): Promise<ReadBranchDto | AdminReadBranchDto> {
     try {
       const branch = await this.prisma.branch.findUnique({
-        where: { id },
-        include: { info: true },
+        where: { id, deletedAt: null },
       });
 
       if (!branch) {
@@ -70,8 +62,8 @@ export class BranchService {
       }
 
       return extended
-        ? toDto(branch, AdminReadBranchWithDetailsDto)
-        : toDto(branch, ReadBranchWithDetailsDto);
+        ? toDto(branch, AdminReadBranchDto)
+        : toDto(branch, ReadBranchDto);
     } catch (error) {
       if (error instanceof DomainException) throw error;
       this.logger.error(
@@ -81,40 +73,14 @@ export class BranchService {
     }
   }
 
-  async getBranchDetails(id: string): Promise<ReadBranchDetailsDto> {
-    try {
-      const branchDetails = await this.prisma.branchInfo.findUnique({
-        where: {
-          branchId: id,
-        },
-      });
-      if (!branchDetails) {
-        throw new NotFoundException();
-      }
-      return toDto(branchDetails, ReadBranchDetailsDto);
-    } catch (error) {
-      if (error instanceof DomainException) {
-        throw error;
-      }
-      this.logger.error(
-        `getInfo() | error get branch ${id} info ${(error as Error).stack}`,
-      );
-      throw new BadRequestException();
-    }
-  }
-
-  async update(
-    id: string,
-    dto: UpdateBranchDto,
-  ): Promise<AdminReadBranchWithDetailsDto> {
+  async update(id: string, dto: UpdateBranchDto): Promise<AdminReadBranchDto> {
     try {
       const updated = await this.prisma.branch.update({
         where: { id },
         data: dto,
-        include: { info: true },
       });
 
-      return toDto(updated, AdminReadBranchWithDetailsDto);
+      return toDto(updated, AdminReadBranchDto);
     } catch (error) {
       this.logger.error(
         `update() | id: ${id} | error: ${(error as Error).stack}`,
@@ -123,37 +89,12 @@ export class BranchService {
     }
   }
 
-  async updateInfo(
-    branchId: string,
-    dto: UpdateBranchInfoDto,
-  ): Promise<AdminReadBranchWithDetailsDto> {
-    try {
-      const updated = await this.prisma.branch.update({
-        where: { id: branchId },
-        data: {
-          info: {
-            update: dto,
-          },
-        },
-        include: { info: true },
-      });
-
-      return toDto(updated, AdminReadBranchWithDetailsDto);
-    } catch (error) {
-      this.logger.error(
-        `updateInfo() | branchId: ${branchId} | error: ${(error as Error).stack}`,
-      );
-      this.handleProductConstraintError(error);
-    }
-  }
-
   async create(dto: CreateBranchDto): Promise<AdminReadBranchDto> {
     try {
       const newCategory = await this.prisma.branch.create({
-        data: { ...dto, info: { create: {} } },
-        include: { info: true },
+        data: { ...dto },
       });
-      return toDto(newCategory, AdminReadBranchWithDetailsDto);
+      return toDto(newCategory, AdminReadBranchDto);
     } catch (error) {
       this.logger.error(
         `create() | ${error instanceof Error ? error.message : 'Unknown error'}`,

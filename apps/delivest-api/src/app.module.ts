@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { NetModule } from './net/net.module.js';
@@ -11,6 +11,9 @@ import { PrismaService } from './prisma/prisma.service.js';
 import { OutboxModule } from './outbox/outbox.module.js';
 import { SharedModule } from './shared/shared.module.js';
 import { NotificationModule } from './notification/notification.module.js';
+import { SessionMiddleware } from './shared/middleware/session.middleware.js';
+import { RedisModule } from './redis/redis.module.js';
+import { OmsModule } from './oms/oms.module.js';
 
 @Module({
   imports: [
@@ -18,10 +21,12 @@ import { NotificationModule } from './notification/notification.module.js';
     PrismaModule,
     EventEmitterModule.forRoot(),
     NetModule,
+    OmsModule,
     IdentityModule,
     OutboxModule,
     SharedModule,
     NotificationModule,
+    RedisModule,
     ClsModule.forRoot({
       global: true,
       middleware: { mount: true },
@@ -39,4 +44,8 @@ import { NotificationModule } from './notification/notification.module.js';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(SessionMiddleware).forRoutes('*');
+  }
+}

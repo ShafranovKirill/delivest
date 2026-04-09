@@ -26,6 +26,7 @@ import {
 } from '@nestjs/swagger';
 import { SendCodeDto } from './dto/send-code.dto.js';
 import { SendCodeType } from '../../../generated/prisma/client.js';
+import { COOKIE_NAMES } from '@delivest/common';
 
 @ApiTags('Client (Клиенты)')
 @Controller('client')
@@ -58,12 +59,11 @@ export class ClientController {
   }
 
   @Get('refresh')
-  @ApiCookieAuth('client_refresh_token')
+  @ApiCookieAuth(COOKIE_NAMES.CLIENT_REFRESH_TOKEN)
   @ApiOperation({ summary: 'Рефреш токен' })
   @ApiOkResponse({ type: TokenClientResponseDto })
   async refresh(@Req() req: Request) {
-    const token = req.cookies?.['client_refresh_token'];
-
+    const token = req.cookies?.[COOKIE_NAMES.CLIENT_REFRESH_TOKEN];
     if (!token) {
       throw new MissingTokenException('Missing refresh token');
     }

@@ -31,13 +31,4 @@ export class BranchController {
   async getBranch(@Param() dto: FindBranchDto) {
     return this.branchService.findOne(dto.id);
   }
-
-  @Get(':id/details')
-  @ApiOperation({
-    summary: 'Получить информицию по филиалу',
-  })
-  @ApiOkResponse({ type: ReadBranchDto })
-  async getBranchDetails(@Param() dto: FindBranchDto) {
-    return this.branchService.getBranchDetails(dto.id);
-  }
 }

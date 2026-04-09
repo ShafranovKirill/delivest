@@ -78,6 +78,36 @@ export class ProductService {
     }
   }
 
+  async findManyByIds(ids: string[]): Promise<ReadProductDto[]>;
+  async findManyByIds(
+    ids: string[],
+    extended: boolean,
+  ): Promise<AdminReadProductDto[]>;
+
+  async findManyByIds(
+    ids: string[],
+    extended?: boolean,
+  ): Promise<ReadProductDto[] | AdminReadProductDto[]> {
+    try {
+      const products = await this.prisma.product.findMany({
+        where: {
+          id: { in: ids },
+          deletedAt: null,
+        },
+      });
+
+      if (extended === true) {
+        return products.map((product) => toDto(product, AdminReadProductDto));
+      }
+      return products.map((product) => toDto(product, ReadProductDto));
+    } catch (error) {
+      this.logger.error(
+        `findManyByIds() | error find all product ${(error as Error).stack}`,
+      );
+      throw new BadRequestException();
+    }
+  }
+
   async findOne(productId: string): Promise<ReadProductDto>;
   async findOne(
     productId: string,

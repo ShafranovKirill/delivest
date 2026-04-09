@@ -16,9 +16,35 @@ services:
     networks:
       - delivest-network
 
+  redis:
+    image: redis:alpine
+    container_name: delivest-redis
+    restart: always
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - delivest-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: delivest-redis-commander
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:delivest-redis:6379:0
+    depends_on:
+      - redis
+    networks:
+      - delivest-network
+
 networks:
   delivest-network:
     driver: bridge
 
 volumes:
   postgres_data:
+  redis_data:

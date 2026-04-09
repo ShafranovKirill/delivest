@@ -13,12 +13,10 @@ import { BranchService } from './branch.service.js';
 import { Permission } from '../../../generated/prisma/enums.js';
 import { CreateBranchDto } from './dto/create.dto.js';
 import { AdminReadBranchDto } from './dto/admin-read.dto.js';
-import { AdminReadBranchWithDetailsDto } from './dto/admin-read-branch-with-details.dto.js';
 import { JwtStaffAuthGuard } from '../../identify/index.js';
 import { AclGuard } from '../../identify/acl/guards/acl.guard.js';
 import { RequirePermission } from '../../identify/acl/decorators/require-permission.decorator.js';
 import { UpdateBranchDto } from './dto/update.dto.js';
-import { UpdateBranchInfoDto } from './dto/update-branch-info.dto.js';
 
 @ApiTags('Admin-branch (Филиалы-crm)')
 @Controller('admin/branch')
@@ -35,7 +33,7 @@ export class AdminBranchController {
   }
 
   @Get('all')
-  @ApiOperation({ summary: 'Получить все филиалы (расширенные)' })
+  @ApiOperation({ summary: 'Получить все филиалы' })
   @RequirePermission(Permission.BRANCH_READ)
   async findAll(): Promise<AdminReadBranchDto[]> {
     return await this.service.findAll(true);
@@ -44,30 +42,18 @@ export class AdminBranchController {
   @Get(':id')
   @ApiOperation({ summary: 'Получить филиал по ID с деталями' })
   @RequirePermission(Permission.BRANCH_READ)
-  async findOne(
-    @Param('id') id: string,
-  ): Promise<AdminReadBranchWithDetailsDto> {
+  async findOne(@Param('id') id: string): Promise<AdminReadBranchDto> {
     return await this.service.findOne(id, true);
   }
 
   @Patch('update/:id')
-  @ApiOperation({ summary: 'Обновить основные данные филиала (name, alias)' })
+  @ApiOperation({ summary: 'Обновить данные филиала' })
   @RequirePermission(Permission.BRANCH_UPDATE)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateBranchDto,
-  ): Promise<AdminReadBranchWithDetailsDto> {
+  ): Promise<AdminReadBranchDto> {
     return await this.service.update(id, dto);
-  }
-
-  @Patch('update-info/:id')
-  @ApiOperation({ summary: 'Обновить информацию филиала (адрес, описание)' })
-  @RequirePermission(Permission.BRANCH_UPDATE)
-  async updateInfo(
-    @Param('id') id: string,
-    @Body() dto: UpdateBranchInfoDto,
-  ): Promise<AdminReadBranchWithDetailsDto> {
-    return await this.service.updateInfo(id, dto);
   }
 
   @Delete('delete/:id')
