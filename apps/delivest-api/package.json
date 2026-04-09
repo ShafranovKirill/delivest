@@ -24,6 +24,8 @@
     "test:e2e": "NODE_OPTIONS='--experimental-vm-modules' jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1027.0",
+    "@aws-sdk/lib-storage": "^3.1027.0",
     "@delivest/common": "workspace:*",
     "@delivest/types": "workspace:*",
     "@nestjs-cls/transactional": "^3.2.0",

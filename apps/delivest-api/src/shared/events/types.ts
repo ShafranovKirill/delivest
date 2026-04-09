@@ -8,7 +8,6 @@ export enum PhotoEvent {
 }
 
 export interface PhotoConvertedEvent {
-  userId: string;
   originalFileId: string;
   newFileId: string;
   socketId: string;

@@ -1,15 +1,20 @@
-import { FileAccess } from "generated/prisma/enums";
+export type ImageFormat =
+  | 'jpeg'
+  | 'png'
+  | 'webp'
+  | 'heif'
+  | 'gif'
+  | 'tiff'
+  | 'avif';
 
 export interface PhotoProfile {
-  format?: string;
+  format?: ImageFormat;
   width?: number;
   height?: number;
 }
 
 export interface PhotoJobData {
   fileId: string;
-  userId: string;
-  access: FileAccess;
   profile: PhotoProfile;
   socketId: string;
 }

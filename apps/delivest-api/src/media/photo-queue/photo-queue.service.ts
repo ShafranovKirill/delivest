@@ -16,8 +16,6 @@ export class PhotoQueueService {
   async sendToPhotoEditor(data: PhotoJobData) {
     await this.photoEditorQueue.add('photo-editor', {
       fileId: data.fileId,
-      userId: data.userId,
-      access: data.access,
       profile: data.profile,
       socketId: data.socketId,
     });

@@ -4,12 +4,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from '../../prisma/prisma.module.js';
 import { PhotoEditorProcessor } from './photo-editor.processor.js';
 import { PhotoQueueService } from './photo-queue.service.js';
+import { MediaModule } from '../media.module.js';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
-    FilesModule,
+    MediaModule,
     BullModule.registerQueueAsync({
       name: 'photo-editor',
       useFactory: (config: ConfigService) => ({

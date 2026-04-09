@@ -50,14 +50,14 @@ model Role {
 }
 
 model Branch {
-  id        String    @id @default(uuid())
-  alias     String    @unique
-  name      String
-  address String?
-  description String? @db.Text
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  id          String    @id @default(uuid())
+  alias       String    @unique
+  name        String
+  address     String?
+  description String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
 
   categories Category[]
   products   Product[]
@@ -153,6 +153,21 @@ model CartItem {
 
   @@unique([cartId, productId])
   @@map("cart_items")
+}
+
+model MediaFile {
+  id           String @id @default(uuid())
+  bucket       String
+  key          String
+  originalName String @map("original_name")
+  mimeType     String @map("mime_type")
+  size         Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([mimeType])
+  @@map("media_files")
 }
 
 enum AuthStatus {
