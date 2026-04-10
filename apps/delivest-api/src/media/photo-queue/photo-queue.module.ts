@@ -5,6 +5,7 @@ import { PrismaModule } from '../../prisma/prisma.module.js';
 import { PhotoEditorProcessor } from './photo-editor.processor.js';
 import { MediaModule } from '../media.module.js';
 import { PhotoEditorService } from './photo-editor.service.js';
+import { MediaCleanupJob } from '../workers/media-cleanup.job.js';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { PhotoEditorService } from './photo-editor.service.js';
       inject: [ConfigService],
     }),
   ],
-  providers: [PhotoEditorProcessor, PhotoEditorService],
+  providers: [PhotoEditorProcessor, PhotoEditorService, MediaCleanupJob],
   exports: [BullModule, PhotoEditorService],
 })
 export class PhotoQueueModule {}

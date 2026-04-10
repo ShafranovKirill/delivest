@@ -20,13 +20,15 @@ import { PrismaErrorCode } from '@delivest/common';
 import { UpdateProductDto } from './dto/update.dto.js';
 import { UploadFile } from '../../media/interface/upload-file.interface.js';
 import { PhotoEditorService } from '../../media/photo-queue/photo-editor.service.js';
-import { PHOTO_PROFILES } from '../../shared/helpers/photo-profiles.js';
 import { PhotoEvent } from '../../shared/events/types.js';
 import type {
   PhotoConversionFailedEvent,
   PhotoConvertedEvent,
 } from '../../shared/events/types.js';
 import { OnEvent } from '@nestjs/event-emitter';
+import { PRODUCT_PHOTO_PRESETS } from '../../media/photo-configs/presets.js';
+import { MediaService } from '../../media/media.service.js';
+import { ProductPhotos } from '../../media/photo-configs/profiles.js';
 
 @Injectable()
 export class ProductService {
@@ -34,6 +36,7 @@ export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly photoEditor: PhotoEditorService,
+    private readonly mediaService: MediaService,
   ) {}
 
   async findAllByBranch(branchId: string): Promise<ReadProductDto[]>;
@@ -245,9 +248,10 @@ export class ProductService {
     socketId: string,
   ): Promise<void> {
     try {
-      await this.photoEditor.uploadAndEditPhoto(
+      await this.photoEditor.uploadAndEditMultiple(
+        productId,
         file,
-        PHOTO_PROFILES.PRODUCT_CARD,
+        PRODUCT_PHOTO_PRESETS,
         socketId,
         PhotoEvent.PRODUCT_PHOTO_CONVERTED,
         PhotoEvent.PRODUCT_PHOTO_CONVERSION_FAILED,
@@ -262,18 +266,45 @@ export class ProductService {
   }
 
   @OnEvent(PhotoEvent.PRODUCT_PHOTO_CONVERTED)
-  async handlePhotoConvertedEvent(event: PhotoConvertedEvent): Promise<void> {
-    this.logger.debug(
-      `handlePhotoConvertedEvent() | Received event for file ${event.newFileId}, socket ${event.socketId}`,
-    );
+  async handleProductPhoto(
+    event: PhotoConvertedEvent & { profileKey: string },
+  ) {
+    const { targetId, profileKey, newFileId } = event;
+
+    try {
+      const product = await this.prisma.product.findUnique({
+        where: { id: targetId },
+        select: { photos: true },
+      });
+
+      const currentPhotos = (product?.photos as ProductPhotos) || {};
+      const oldFileId = currentPhotos[profileKey];
+
+      await this.prisma.product.update({
+        where: { id: targetId },
+        data: {
+          photos: { ...currentPhotos, [profileKey]: newFileId },
+        },
+      });
+
+      if (oldFileId && oldFileId !== newFileId) {
+        this.mediaService
+          .deleteFile(oldFileId)
+          .catch((err) =>
+            this.logger.error(`Failed to delete old resize ${oldFileId}`, err),
+          );
+      }
+    } catch (error) {
+      this.logger.error(`Update failed for ${targetId}`, error);
+    }
   }
 
   @OnEvent(PhotoEvent.PRODUCT_PHOTO_CONVERSION_FAILED)
-  async handlePhotoConversionFailedEvent(
-    event: PhotoConversionFailedEvent,
-  ): Promise<void> {
-    this.logger.debug(
-      `handlePhotoConversionFailedEvent() | Received conversion failed event for file ${event.fileId}, socket ${event.socketId}, error: ${event.error}`,
+  handlePhotoConversionFailedEvent(event: PhotoConversionFailedEvent) {
+    const { fileId, error } = event;
+
+    this.logger.error(
+      `Photo conversion failed File: ${fileId}. Error: ${error}`,
     );
   }
   handleProductConstraintError(error: unknown): never {

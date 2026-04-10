@@ -23,6 +23,7 @@ import {
   FileUploadFailedException,
   PayloadTooLargeException,
 } from '../shared/exceptions/domain_exception/domain-exception.js';
+import { UploadFile } from './interface/upload-file.interface.js';
 
 @Injectable()
 export class MediaService implements OnModuleInit {
@@ -55,21 +56,15 @@ export class MediaService implements OnModuleInit {
     await this.ensureBucketExists();
   }
 
-  async uploadFile(file: {
-    buffer: Buffer;
-    originalName: string;
-    mimeType: string;
-    size: number;
-  }): Promise<ReadFileDto> {
-    const fileKey = `${uuid()}`;
-
+  async uploadFile(file: UploadFile, folder?: string): Promise<ReadFileDto> {
+    const fileKey = folder ? `${folder}/${uuid()}` : `${uuid()}`;
     try {
       const upload = new Upload({
         client: this.s3,
         params: {
           Bucket: this.bucket,
           Key: fileKey,
-          Body: file.buffer,
+          Body: file.body,
           ContentType: file.mimeType,
         },
       });
@@ -88,7 +83,8 @@ export class MediaService implements OnModuleInit {
           key: fileKey,
           mimeType: file.mimeType,
           originalName: file.originalName,
-          size: file.size,
+          size:
+            file.body instanceof Buffer ? file.body.length : (file.size ?? 0),
         },
       });
       const dto = toDto(saved, ReadFileDto);
@@ -175,6 +171,32 @@ export class MediaService implements OnModuleInit {
       this.logger.error(`getFileBuffer() | S3 Error for id=${fileId}`, error);
       throw new FileRetrievalFailedException();
     }
+  }
+
+  async deleteFile(fileId: string) {
+    const file = await this.prisma.mediaFile.findUnique({
+      where: { id: fileId },
+    });
+    if (!file) {
+      throw new FileNotFoundException();
+    }
+    try {
+      await this.s3.send(
+        new DeleteObjectCommand({
+          Bucket: file.bucket,
+          Key: file.key,
+        }),
+      );
+    } catch {
+      this.logger.warn(
+        `deleteFile() | Failed to delete from S3 | key=${file.key}`,
+      );
+      throw new BadRequestException();
+    }
+
+    await this.prisma.mediaFile.delete({ where: { id: fileId } });
+
+    this.logger.log(`deleteFile() | Delete file ${fileId}`);
   }
 
   private generatePublicUrl(file: MediaFile): string {

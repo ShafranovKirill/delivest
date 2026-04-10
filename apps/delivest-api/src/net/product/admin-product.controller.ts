@@ -126,7 +126,7 @@ export class AdminProductController {
 
     return this.service.updatePhoto(
       {
-        buffer: file.buffer,
+        body: file.buffer,
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,

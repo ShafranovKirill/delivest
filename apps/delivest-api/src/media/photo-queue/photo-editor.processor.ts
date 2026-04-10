@@ -10,31 +10,12 @@ import {
   PhotoConversionFailedEvent,
   PhotoConvertedEvent,
 } from '../../shared/events/types.js';
+import * as mime from 'mime-types';
 
 @Processor('photo-editor')
 @Injectable()
 export class PhotoEditorProcessor extends WorkerHost {
   private readonly logger = new Logger(PhotoEditorProcessor.name);
-  private readonly EXTENSION_MAP: Record<string, string> = {
-    jpeg: 'jpg',
-    png: 'png',
-    webp: 'webp',
-    heif: 'heif',
-    gif: 'gif',
-    tiff: 'tiff',
-    avif: 'avif',
-  };
-
-  private readonly MIME_MAP: Record<string, string> = {
-    jpeg: 'image/jpeg',
-    png: 'image/png',
-    webp: 'image/webp',
-    heif: 'image/heif',
-    gif: 'image/gif',
-    tiff: 'image/tiff',
-    avif: 'image/avif',
-  };
-
   constructor(
     private eventEmitter: EventEmitter2,
     private readonly mediaService: MediaService,
@@ -43,7 +24,15 @@ export class PhotoEditorProcessor extends WorkerHost {
   }
 
   async process(job: Job<PhotoQueuePayload>): Promise<void> {
-    const { fileId, profile, socketId, eventType, failEventType } = job.data;
+    const {
+      fileId,
+      profile,
+      profileKey,
+      socketId,
+      eventType,
+      failEventType,
+      targetId,
+    } = job.data;
 
     try {
       const fileInfo = await this.mediaService.findOne(fileId);
@@ -57,45 +46,50 @@ export class PhotoEditorProcessor extends WorkerHost {
         });
       }
 
-      if (profile.width && profile.height) {
-        transformer.resize({
-          width: profile.width,
-          height: profile.height,
-          fit: profile.fit ? sharp.fit[profile.fit] : sharp.fit.contain,
-          position: profile.position || 'centre',
-          background: profile.background || {
-            r: 255,
-            g: 255,
-            b: 255,
-            alpha: 1,
-          },
-          withoutEnlargement: true,
-        });
-      }
+      transformer.resize({
+        width: profile.width,
+        height: profile.height,
+        fit: profile.fit ? sharp.fit[profile.fit] : sharp.fit.contain,
+        position: profile.position || 'centre',
+        background: profile.background || {
+          r: 255,
+          g: 255,
+          b: 255,
+          alpha: 1,
+        },
+        withoutEnlargement: true,
+      });
 
-      const processedBuffer = await s3Stream.pipe(transformer).toBuffer();
+      const processedStream = s3Stream.pipe(transformer);
 
       let newOriginalName = fileInfo.originalName;
       let mimeType = fileInfo.mimeType;
       if (profile.format) {
-        const extension = this.EXTENSION_MAP[profile.format];
-        mimeType = this.MIME_MAP[profile.format];
-        newOriginalName = fileInfo.originalName.replace(
-          /\.[^.]+$/,
-          `.${extension}`,
-        );
+        const detectedMime = mime.lookup(profile.format);
+        if (detectedMime) {
+          mimeType = detectedMime;
+          const extension = mime.extension(mimeType) || profile.format;
+          newOriginalName = fileInfo.originalName.replace(
+            /\.[^.]+$/,
+            `.${extension}`,
+          );
+        }
       }
 
-      const convertedFile = await this.mediaService.uploadFile({
-        buffer: processedBuffer,
-        originalName: newOriginalName,
-        mimeType: mimeType,
-        size: processedBuffer.length,
-      });
+      const convertedFile = await this.mediaService.uploadFile(
+        {
+          body: processedStream,
+          originalName: newOriginalName,
+          mimeType: mimeType,
+        },
+        targetId,
+      );
 
       const result: PhotoConvertedEvent = {
+        targetId: job.data.targetId,
         originalFileId: fileId,
         newFileId: convertedFile.id,
+        profileKey: profileKey,
         socketId: socketId,
       };
 

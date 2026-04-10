@@ -1,6 +1,8 @@
+import { Readable } from 'stream';
+
 export interface UploadFile {
-  buffer: Buffer;
+  body: Buffer | Readable;
   originalName: string;
   mimeType: string;
-  size: number;
+  size?: number;
 }

@@ -5,9 +5,10 @@ import { PrismaModule } from '../../prisma/prisma.module.js';
 import { AdminProductController } from './admin-product.controller.js';
 import { JwtModule } from '@nestjs/jwt';
 import { PhotoQueueModule } from '../../media/photo-queue/photo-queue.module.js';
+import { MediaModule } from '../../media/media.module.js';
 
 @Module({
-  imports: [PrismaModule, JwtModule, PhotoQueueModule],
+  imports: [PrismaModule, JwtModule, PhotoQueueModule, MediaModule],
   controllers: [ProductController, AdminProductController],
   providers: [ProductService],
   exports: [ProductService],
