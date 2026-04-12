@@ -25,7 +25,7 @@ import {
 } from '../shared/exceptions/domain_exception/domain-exception.js';
 import { UploadFile } from './interface/upload-file.interface.js';
 import type { EntityModelName, PhotoDelegate } from '@delivest/types';
-
+type PhotosRecord = Record<string, string>;
 @Injectable()
 export class MediaService implements OnModuleInit {
   private readonly logger = new Logger(MediaService.name);
@@ -245,66 +245,134 @@ export class MediaService implements OnModuleInit {
     }
   }
 
+  async getEntityUrlsMap<T extends EntityModelName>(
+    entityName: T,
+    targetIds: string[],
+    photoKey: string,
+  ): Promise<Record<string, string>> {
+    const uniqueTargetIds = [...new Set(targetIds.filter(Boolean))];
+    if (uniqueTargetIds.length === 0) return {};
+
+    const delegate = this.getDelegate(entityName);
+
+    const entities = await delegate.findMany({
+      where: { id: { in: uniqueTargetIds } },
+      select: { id: true, photos: true },
+    });
+
+    const entityToMediaId = new Map<string, string>();
+    const allMediaIds: string[] = [];
+
+    entities.forEach((entity) => {
+      const photos = entity.photos as PhotosRecord;
+      const mediaId = photos?.[photoKey];
+
+      if (mediaId) {
+        entityToMediaId.set(entity.id, mediaId);
+        allMediaIds.push(mediaId);
+      }
+    });
+
+    const photoUrlsMap = await this.getUrlsMap(allMediaIds);
+
+    const result: Record<string, string> = {};
+
+    entityToMediaId.forEach((mediaId, entityId) => {
+      const url = photoUrlsMap[mediaId];
+      if (url) {
+        result[entityId] = url;
+      }
+    });
+
+    return result;
+  }
+
+  async getUrlsMap(fileIds: string[]): Promise<Record<string, string>> {
+    const uniqueIds = [...new Set(fileIds.filter(Boolean))];
+
+    if (uniqueIds.length === 0) return {};
+
+    const files = await this.prisma.mediaFile.findMany({
+      where: {
+        id: { in: uniqueIds },
+      },
+      select: {
+        id: true,
+        key: true,
+        bucket: true,
+      },
+    });
+
+    return files.reduce(
+      (acc, file) => {
+        acc[file.id] = this.generatePublicUrl(file as MediaFile);
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+  }
+
+  private getDelegate<T extends EntityModelName>(entityName: T): PhotoDelegate {
+    const delegate = (this.prisma as unknown as Record<T, PhotoDelegate>)[
+      entityName
+    ];
+    if (!delegate) throw new Error(`Prisma model "${entityName}" not found`);
+    if (!delegate) {
+      throw new Error(`Prisma model "${String(entityName)}" not found`);
+    }
+    return delegate;
+  }
+
+  private async getEntityPhotos<T extends EntityModelName>(
+    entityName: T,
+    targetId: string,
+  ): Promise<PhotosRecord | null> {
+    const entity = await this.getDelegate(entityName).findUnique({
+      where: { id: targetId },
+      select: { photos: true },
+    });
+
+    if (!entity) {
+      this.logger.warn(`${entityName}:${targetId} not found`);
+      return null;
+    }
+
+    return (entity.photos as PhotosRecord) || {};
+  }
+
   async upsertBatch<T extends EntityModelName>(
     entityName: T,
     targetId: string,
-    photos: Record<string, string>,
+    newPhotos: PhotosRecord,
   ) {
-    try {
-      const delegate = (this.prisma as unknown as Record<T, PhotoDelegate>)[
-        entityName
-      ];
-      if (!delegate) throw new Error(`Prisma model "${entityName}" not found`);
+    const currentPhotos = await this.getEntityPhotos(entityName, targetId);
+    if (currentPhotos === null) return;
 
-      const entity = await delegate.findUnique({
-        where: { id: targetId },
-        select: { photos: true },
-      });
-
-      if (!entity) {
-        this.logger.warn(
-          `upsertBatch() | Entity ${entityName}:${targetId} not found`,
-        );
-        return;
-      }
-
-      const currentPhotos = (entity.photos as Record<string, string>) || {};
-      const oldFileIdsToDelete: string[] = [];
-
-      for (const [key, newFileId] of Object.entries(photos)) {
-        const oldId = currentPhotos[key];
-        if (oldId && oldId !== newFileId) {
-          oldFileIdsToDelete.push(oldId);
-        }
-      }
-
-      const updatedEntity = await delegate.update({
-        where: { id: targetId },
-        data: {
-          photos: {
-            ...currentPhotos,
-            ...photos,
-          },
-        },
-        select: { photos: true },
-      });
-
-      if (oldFileIdsToDelete.length > 0) {
-        Promise.all(oldFileIdsToDelete.map((id) => this.deleteFile(id))).catch(
-          (err) => this.logger.error(`upsertBatch() | Cleanup failed`, err),
-        );
-      }
-
-      return {
-        ...updatedEntity,
-        photos: updatedEntity.photos as Record<string, string>,
-      };
-    } catch (error) {
-      this.logger.error(
-        `upsertBatch() | Failed for ${entityName}:${targetId}`,
-        error,
+    const oldFileIdsToDelete = Object.keys(newPhotos)
+      .map((key) => currentPhotos[key])
+      .filter(
+        (oldId): oldId is string =>
+          !!oldId && !Object.values(newPhotos).includes(oldId),
       );
-      throw error;
+
+    const updatedEntity = await this.getDelegate(entityName).update({
+      where: { id: targetId },
+      data: {
+        photos: { ...currentPhotos, ...newPhotos },
+      },
+      select: { photos: true },
+    });
+
+    if (oldFileIdsToDelete.length > 0) {
+      this.cleanupOldFiles(oldFileIdsToDelete);
     }
+
+    return updatedEntity;
+  }
+
+  private cleanupOldFiles(ids: string[]) {
+    Promise.all(ids.map((id) => this.deleteFile(id))).catch((err) =>
+      this.logger.error(`Cleanup failed`, err),
+    );
   }
 }

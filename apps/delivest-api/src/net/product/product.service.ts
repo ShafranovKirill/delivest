@@ -281,7 +281,7 @@ export class ProductService {
         .emit(SocketEvent.PHOTO_EDIT_RESULT, {
           success: true,
           targetId,
-          photos: result.photos,
+          photos: result.photos as Record<string, string>,
         });
     }
   }

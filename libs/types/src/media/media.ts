@@ -8,6 +8,11 @@ export type PhotoDelegate = {
     select: { photos: true };
   }) => Promise<{ photos: Prisma.JsonValue } | null>;
 
+  findMany: (args: {
+    where: { id: { in: string[] } };
+    select: { id: true; photos: true };
+  }) => Promise<Array<{ id: string; photos: Prisma.JsonValue }>>;
+
   update: (args: {
     where: { id: string };
     data: { photos: any };

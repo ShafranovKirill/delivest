@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { CartResponse } from '@delivest/types';
+import { CartItemResponse, CartResponse } from '@delivest/types';
 import {
   Cart,
   CartItem,
@@ -18,6 +18,8 @@ import {
 import { RedisService } from '../../redis/redis.service.js';
 import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { MediaService } from '../../media/media.service.js';
+import { PHOTO_KEYS } from '@delivest/common';
 
 export type InternalCartWithItems = Cart & {
   items: CartItem[];
@@ -35,6 +37,7 @@ export class CartService {
     private readonly txHost: TransactionHost<
       TransactionalAdapterPrisma<PrismaClient>
     >,
+    private readonly mediaService: MediaService,
   ) {}
   @Transactional()
   async addItem(
@@ -235,15 +238,25 @@ export class CartService {
   ): Promise<ReadCartDto> {
     const productIds = cart.items.map((item) => item.productId);
     const products = await this.netService.getProductsByIds(productIds);
-    const items = cart.items.map((item) => {
+
+    const photoUrlsMap = await this.mediaService.getEntityUrlsMap(
+      'product',
+      productIds,
+      PHOTO_KEYS.PRODUCT_CARD,
+    );
+
+    const items: CartItemResponse[] = cart.items.map((item) => {
       const product = products.find((p) => p.id === item.productId);
       const price = product?.price ?? 0;
+
+      const photoUrl = photoUrlsMap[item.productId];
       return {
         productId: item.productId,
         quantity: item.quantity,
         name: product?.name ?? 'Unknown',
         price: price,
         totalPrice: price * item.quantity,
+        photoUrl: photoUrl,
       };
     });
 

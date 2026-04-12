@@ -25,5 +25,9 @@ export class ReadCartItemDto implements CartItemResponse {
 
   @ApiProperty()
   @Expose()
+  photoUrl: string;
+
+  @ApiProperty()
+  @Expose()
   totalPrice: number;
 }

@@ -8,6 +8,7 @@ export interface CartItemResponse {
   quantity: number;
   name: string;
   price: number;
+  photoUrl?: string;
   totalPrice: number;
 }
 

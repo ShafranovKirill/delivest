@@ -26,4 +26,14 @@ export class ReadProductDto implements ProductResponse {
   @ApiProperty({ required: false })
   @Expose()
   description?: string | undefined;
+
+  @ApiProperty({
+    description:
+      'Dictionary of product photos (key: photo type, value: file ID or URL)',
+    example: { product_card: 'uuid-string', product_preview: 'uuid-string' },
+    type: 'object',
+    additionalProperties: { type: 'string' },
+  })
+  @Expose()
+  photos!: Record<string, string>;
 }
