@@ -203,6 +203,35 @@ export class MediaService implements OnModuleInit {
     return `${this.endpointPublic}/${this.bucket}/${file.key}`;
   }
 
+  async deleteFilesByKeys(keys: string[]) {
+    for (const key of keys) {
+      try {
+        await this.s3.send(
+          new DeleteObjectCommand({
+            Bucket: this.bucket,
+            Key: key,
+          }),
+        );
+        this.logger.log(`deleteFilesByKeys() | Deleted from S3 | key=${key}`);
+      } catch (error) {
+        this.logger.warn(
+          `deleteFilesByKeys() | Failed to delete from S3 | key=${key}`,
+          error,
+        );
+      }
+    }
+  }
+
+  async getFilesByKeys(keys: string[]): Promise<ReadFileDto[]> {
+    const files = await this.prisma.mediaFile.findMany({
+      where: {
+        key: { in: keys },
+      },
+    });
+
+    return files.map((file) => toDto(file, ReadFileDto));
+  }
+
   private async ensureBucketExists() {
     try {
       await this.s3.send(new HeadBucketCommand({ Bucket: this.bucket }));
@@ -240,25 +269,6 @@ export class MediaService implements OnModuleInit {
       } else {
         this.logger.error(`Error checking S3 bucket: ${error.message}`);
         throw error;
-      }
-    }
-  }
-
-  async deleteFilesByKeys(keys: string[]) {
-    for (const key of keys) {
-      try {
-        await this.s3.send(
-          new DeleteObjectCommand({
-            Bucket: this.bucket,
-            Key: key,
-          }),
-        );
-        this.logger.log(`deleteFilesByKeys() | Deleted from S3 | key=${key}`);
-      } catch (error) {
-        this.logger.warn(
-          `deleteFilesByKeys() | Failed to delete from S3 | key=${key}`,
-          error,
-        );
       }
     }
   }

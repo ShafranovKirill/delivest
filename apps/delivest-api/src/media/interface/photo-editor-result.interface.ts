@@ -8,8 +8,14 @@ export interface ChildResult {
 
 export type PhotoMap = Partial<Record<PhotoKey, string>>;
 
-export interface PhotoBatchPayload {
+export interface PhotoConversionEvent {
   targetId: string;
   socketId: string;
   photos: PhotoMap;
+}
+
+export interface PhotoConversionFailedEvent {
+  fileId: string;
+  error: string;
+  socketId: string;
 }

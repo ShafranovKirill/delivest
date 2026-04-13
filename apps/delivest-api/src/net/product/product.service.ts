@@ -21,14 +21,14 @@ import { UpdateProductDto } from './dto/update.dto.js';
 import { UploadFile } from '../../media/interface/upload-file.interface.js';
 import { PhotoEditorService } from '../../media/photo-queue/photo-editor.service.js';
 import { PhotoEvent } from '../../shared/events/types.js';
-import type { PhotoConversionFailedEvent } from '../../shared/events/types.js';
 import { OnEvent } from '@nestjs/event-emitter';
 import { PRODUCT_PHOTO_PRESETS } from '../../media/photo-configs/presets.js';
 import { MediaService } from '../../media/media.service.js';
 import { NotificationGateway } from '../../notification/notification.gateway.js';
 import { SocketEvent } from '@delivest/types';
 import type {
-  PhotoBatchPayload,
+  PhotoConversionEvent,
+  PhotoConversionFailedEvent,
   PhotoMap,
 } from '../../media/interface/photo-editor-result.interface.js';
 
@@ -269,7 +269,7 @@ export class ProductService {
   }
 
   @OnEvent(PhotoEvent.PRODUCT_PHOTO_CONVERTED)
-  async handleProductPhotoBatch(payload: PhotoBatchPayload) {
+  async handleProductPhotoBatch(payload: PhotoConversionEvent) {
     const { targetId, socketId, photos } = payload;
 
     try {

@@ -4,7 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ParentPhotoQueuePayload } from '../interface/photo-payload.interface.js';
 import {
   ChildResult,
-  PhotoBatchPayload,
+  PhotoConversionEvent,
   PhotoMap,
 } from '../interface/photo-editor-result.interface.js';
 import { Logger } from '@nestjs/common/services/index.js';
@@ -45,7 +45,7 @@ export class PhotoFinishProcessor extends WorkerHost {
     const isFullySuccessful =
       successfulCount === totalChildren && totalChildren > 0;
 
-    const resultPayload: PhotoBatchPayload = {
+    const resultPayload: PhotoConversionEvent = {
       targetId,
       socketId,
       photos: photosBatch,
