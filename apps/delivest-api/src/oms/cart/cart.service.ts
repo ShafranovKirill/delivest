@@ -22,6 +22,10 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { MediaService } from '../../media/media.service.js';
 import { ConfigService } from '@nestjs/config/dist/index.js';
 import type { CartOwner } from './interfaces/cart-owner.interface.js';
+import { OnEvent } from '@nestjs/event-emitter';
+import type { ClientLoggedInEvent } from '../../shared/events/types.js';
+
+import { DelivestEvent } from '../../shared/events/types.js';
 
 export type InternalCartWithItems = Cart & {
   items: CartItem[];
@@ -177,8 +181,11 @@ export class CartService {
     }
   }
 
+  @OnEvent(DelivestEvent.CLIENT_LOGGED_IN)
   @Transactional()
-  async mergeClientCarts(sessionId: string, clientId: string) {
+  async handlemergeClientCarts(payload: ClientLoggedInEvent) {
+    const { sessionId, clientId } = payload;
+
     try {
       const guestCart = await this.findGuestCart(sessionId);
 
@@ -187,11 +194,11 @@ export class CartService {
         return await this.refreshCart({ clientId });
       }
 
-      const userCart = await this.findClientCart(sessionId);
+      const clientCart = await this.findClientCart(clientId);
 
-      if (userCart) {
+      if (clientCart) {
         await this.txHost.tx.cart.delete({
-          where: { id: userCart.id },
+          where: { id: clientCart.id },
         });
       }
 
@@ -205,6 +212,9 @@ export class CartService {
 
       await this.deleteCartFromRedis(sessionId);
       await this.deleteCartFromRedis(clientId);
+      this.logger.log(
+        `Cart merged: session ${sessionId} -> client ${clientId}. `,
+      );
 
       return await this.refreshCart({ clientId });
     } catch (error) {

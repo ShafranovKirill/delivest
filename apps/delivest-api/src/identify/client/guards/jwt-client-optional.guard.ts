@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { UnauthorizedException } from '../../../shared/exceptions/domain_exception/domain-exception.js';
 
 @Injectable()
 export class OptionalJwtClientAuthGuard implements CanActivate {
@@ -42,8 +43,11 @@ export class OptionalJwtClientAuthGuard implements CanActivate {
         secret: this.accessSecret,
       });
       request.client = payload;
-    } catch (error) {
-      this.logger.error(`[OptionalJwtClientAuthGuard] error ${error}`);
+      return true;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'unknown error';
+      this.logger.warn(`Token verification failed: ${message}`);
+      throw new UnauthorizedException('Session expired. Please login again.');
     }
 
     return true;

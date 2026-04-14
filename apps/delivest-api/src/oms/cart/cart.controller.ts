@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 
 import {
+  ApiBearerAuth,
   ApiHeader,
   ApiOperation,
   ApiResponse,
@@ -25,6 +26,7 @@ import { OptionalJwtClientAuthGuard } from '../../identify/client/guards/jwt-cli
 
 @ApiTags('Cart (Корзина)')
 @UseGuards(OptionalJwtClientAuthGuard)
+@ApiBearerAuth('client-auth')
 @ApiHeader({
   name: 'Cookie',
   description: 'Может содержать session_id для неавторизованных пользователей',

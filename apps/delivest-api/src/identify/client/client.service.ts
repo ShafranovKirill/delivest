@@ -284,7 +284,11 @@ export class ClientService {
     }
   }
 
-  async loginByCode(target: string, code: string): Promise<Client> {
+  async loginByCode(
+    target: string,
+    code: string,
+    sessionId: string,
+  ): Promise<Client> {
     try {
       const client = await this.prisma.client.findUnique({
         where: { phone: target },
@@ -300,6 +304,7 @@ export class ClientService {
       this.logger.log(`loginByCode() | Client logged in | id=${client.id}`);
       const payload: ClientLoggedInEvent = {
         clientId: client.id,
+        sessionId: sessionId,
       };
       this.eventEmitter.emit(DelivestEvent.CLIENT_LOGGED_IN, payload);
       return client;

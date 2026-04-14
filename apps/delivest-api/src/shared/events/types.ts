@@ -10,10 +10,7 @@ export enum DelivestEvent {
 
 export interface ClientLoggedInEvent {
   clientId: string;
-}
-
-export interface StaffLoggedInEvent {
-  staffId: string;
+  sessionId: string;
 }
 
 export type PhotoMap = Partial<Record<PhotoKey, string>>;
