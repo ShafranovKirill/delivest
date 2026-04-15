@@ -1,13 +1,9 @@
-export interface CartItem {
-  productId: string;
-  quantity: number;
-}
-
 export interface CartItemResponse {
   productId: string;
   quantity: number;
   name: string;
   price: number;
+  photoUrl?: string;
   totalPrice: number;
 }
 
@@ -23,7 +19,9 @@ export interface DeleteFromCartRequest {
 
 export interface CartResponse {
   id: string;
-  sessionId: string;
+  sessionId?: string | null;
+  clientId?: string | null;
+  staffId?: string | null;
   items: CartItemResponse[];
   totalPrice: number;
   totalItems: number;

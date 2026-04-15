@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { NetModule } from './net/net.module.js';
 import { IdentityModule } from './identify/identify.module.js';
@@ -14,6 +14,7 @@ import { NotificationModule } from './notification/notification.module.js';
 import { SessionMiddleware } from './shared/middleware/session.middleware.js';
 import { RedisModule } from './redis/redis.module.js';
 import { OmsModule } from './oms/oms.module.js';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -39,6 +40,16 @@ import { OmsModule } from './oms/oms.module.js';
           }),
         }),
       ],
+    }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (conf: ConfigService) => ({
+        connection: {
+          host: conf.getOrThrow('REDIS_HOST'),
+          port: conf.getOrThrow('REDIS_PORT'),
+        },
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [],

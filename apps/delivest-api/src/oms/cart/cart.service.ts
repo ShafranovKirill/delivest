@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { CartResponse } from '@delivest/types';
+import { CartItemResponse, CartResponse } from '@delivest/types';
 import {
   Cart,
   CartItem,
+  Prisma,
   PrismaClient,
 } from '../../../generated/prisma/client.js';
 import { NetService } from '../../net/net.service.js';
@@ -14,10 +15,17 @@ import {
   DomainException,
   InternalErrorException,
   NotFoundException,
-} from '../../shared/exception/domain_exception/domain-exception.js';
+} from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { RedisService } from '../../redis/redis.service.js';
 import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { MediaService } from '../../media/media.service.js';
+import { ConfigService } from '@nestjs/config/dist/index.js';
+import type { CartOwner } from './interfaces/cart-owner.interface.js';
+import { OnEvent } from '@nestjs/event-emitter';
+import type { ClientLoggedInEvent } from '../../shared/events/types.js';
+
+import { DelivestEvent } from '../../shared/events/types.js';
 
 export type InternalCartWithItems = Cart & {
   items: CartItem[];
@@ -26,6 +34,7 @@ export type InternalCartWithItems = Cart & {
 @Injectable()
 export class CartService {
   private readonly logger = new Logger(CartService.name);
+  private readonly bucket: string;
   private readonly CART_TTL = 5 * 24 * 60 * 60;
   private readonly CART_CACHE_PREFIX = 'cart:';
   constructor(
@@ -35,10 +44,14 @@ export class CartService {
     private readonly txHost: TransactionHost<
       TransactionalAdapterPrisma<PrismaClient>
     >,
-  ) {}
+    private readonly config: ConfigService,
+    private readonly mediaService: MediaService,
+  ) {
+    this.bucket = this.config.getOrThrow<string>('STORAGE_BUCKET_NAME');
+  }
   @Transactional()
   async addItem(
-    sessionId: string,
+    ownerId: CartOwner,
     productId: string,
     quantity: number,
   ): Promise<ReadCartDto> {
@@ -47,10 +60,13 @@ export class CartService {
       if (!product) {
         throw new NotFoundException(`Product with ID ${productId} not found`);
       }
+
+      const where = ownerId as Prisma.CartWhereUniqueInput;
+
       const cart = await this.txHost.tx.cart.upsert({
-        where: { sessionId },
+        where,
         update: {},
-        create: { sessionId },
+        create: ownerId,
       });
       await this.txHost.tx.cartItem.upsert({
         where: {
@@ -69,13 +85,15 @@ export class CartService {
         },
       });
 
-      return toDto(await this.refreshCart(sessionId), ReadCartDto);
+      return toDto(await this.refreshCart(ownerId), ReadCartDto);
     } catch (error) {
       if (error instanceof DomainException) {
         throw error;
       }
+      const cacheKey = ownerId.clientId || ownerId.staffId || ownerId.sessionId;
+
       this.logger.error(
-        `Failed to add item ${productId} to cart for session ${sessionId}`,
+        `Failed to add item ${productId} to cart for owner ${cacheKey}`,
         error,
       );
       throw new InternalErrorException(
@@ -85,14 +103,15 @@ export class CartService {
   }
 
   async removeItem(
-    sessionId: string,
+    ownerId: CartOwner,
     productId: string,
     deleteAll: boolean = false,
   ) {
     try {
+      const cartWhere = ownerId as Prisma.CartWhereUniqueInput;
       const cartItem = await this.prisma.cartItem.findFirst({
         where: {
-          cart: { sessionId },
+          cart: cartWhere,
           productId,
         },
       });
@@ -114,7 +133,7 @@ export class CartService {
         });
       }
 
-      return toDto(await this.refreshCart(sessionId), ReadCartDto);
+      return toDto(await this.refreshCart(ownerId), ReadCartDto);
     } catch (error) {
       this.logger.error(
         `Failed to remove item ${productId}`,
@@ -124,55 +143,125 @@ export class CartService {
     }
   }
 
-  async getCart(sessionId: string): Promise<ReadCartDto> {
-    const cachedCart = await this.getCartFromRedis(sessionId);
+  async getCart(ownerId: CartOwner): Promise<ReadCartDto> {
+    const cachedCart = await this.getCartFromRedis(ownerId);
     if (cachedCart) {
       return toDto(cachedCart, ReadCartDto);
     }
 
-    return toDto(await this.refreshCart(sessionId), ReadCartDto);
+    return toDto(await this.refreshCart(ownerId), ReadCartDto);
   }
 
-  async clearCart(sessionId: string) {
+  async clearCart(ownerId: CartOwner) {
     try {
-      const cart = await this.prisma.cart.findUnique({
-        where: { sessionId },
-      });
+      const where = ownerId as Prisma.CartWhereUniqueInput;
+      const cacheKey = ownerId.clientId || ownerId.staffId || ownerId.sessionId;
+
+      const cart = await this.prisma.cart.findUnique({ where });
 
       if (!cart) {
-        throw new NotFoundException(`Cart for session ${sessionId} not found`);
+        throw new NotFoundException(`Cart for ${cacheKey} not found`);
       }
 
       await this.prisma.cartItem.deleteMany({
         where: { cartId: cart.id },
       });
 
-      await this.deleteCartFromRedis(sessionId);
+      await this.deleteCartFromRedis(cacheKey!);
     } catch (error) {
       if (error instanceof DomainException) {
         throw error;
       }
-      this.logger.error(`Failed to clear cart for session ${sessionId}`, error);
+      const cacheKey = ownerId.clientId || ownerId.staffId || ownerId.sessionId;
+
+      this.logger.error(`Failed to clear cart for session ${cacheKey}`, error);
       throw new InternalErrorException(
         'Failed to clear cart. Please try again later.',
       );
     }
   }
 
-  async validateCart(sessionId: string): Promise<ReadCartDto> {
-    const response = await this.refreshCart(sessionId);
+  @OnEvent(DelivestEvent.CLIENT_LOGGED_IN)
+  @Transactional()
+  async handlemergeClientCarts(payload: ClientLoggedInEvent) {
+    const { sessionId, clientId } = payload;
+
+    try {
+      const guestCart = await this.findGuestCart(sessionId);
+
+      if (!guestCart || guestCart.items.length === 0) {
+        await this.deleteCartFromRedis(sessionId);
+        return await this.refreshCart({ clientId });
+      }
+
+      const clientCart = await this.findClientCart(clientId);
+
+      if (clientCart) {
+        await this.txHost.tx.cart.delete({
+          where: { id: clientCart.id },
+        });
+      }
+
+      await this.txHost.tx.cart.update({
+        where: { id: guestCart.id },
+        data: {
+          clientId: clientId,
+          sessionId: null,
+        },
+      });
+
+      await this.deleteCartFromRedis(sessionId);
+      await this.deleteCartFromRedis(clientId);
+      this.logger.log(
+        `Cart merged: session ${sessionId} -> client ${clientId}. `,
+      );
+
+      return await this.refreshCart({ clientId });
+    } catch (error) {
+      this.logger.error(
+        `Failed to merge carts for session ${sessionId} and client ${clientId}`,
+        error,
+      );
+      throw new InternalErrorException('Failed to sync your cart.');
+    }
+  }
+
+  async validateCart(cartId: string): Promise<ReadCartDto> {
+    const cart = await this.prisma.cart.findUnique({
+      where: { id: cartId },
+      select: {
+        clientId: true,
+        sessionId: true,
+        staffId: true,
+      },
+    });
+
+    if (!cart) {
+      throw new NotFoundException(`Cart with ID ${cartId} not found`);
+    }
+
+    const ownerId: CartOwner = {
+      ...(cart.clientId && { clientId: cart.clientId }),
+      ...(cart.sessionId && { sessionId: cart.sessionId }),
+      ...(cart.staffId && { staffId: cart.staffId }),
+    };
+
+    const response = await this.refreshCart(ownerId);
 
     return toDto(response, ReadCartDto);
   }
 
-  private async refreshCart(sessionId: string) {
+  private async refreshCart(ownerId: CartOwner) {
+    const where = ownerId as Prisma.CartWhereUniqueInput;
+    const cacheKey = ownerId.clientId || ownerId.staffId || ownerId.sessionId;
     const cart = await this.txHost.tx.cart.findUnique({
-      where: { sessionId },
+      where,
       include: { items: true },
     });
 
     if (!cart) {
-      throw new NotFoundException(`Cart for session ${sessionId} not found`);
+      if (cacheKey) await this.deleteCartFromRedis(cacheKey);
+      return this.emptyCartResponse(ownerId);
     }
 
     const response = await this.mapCartToResponse(
@@ -180,7 +269,7 @@ export class CartService {
     );
 
     if (response.items.length === 0) {
-      await this.deleteCartFromRedis(sessionId);
+      if (cacheKey) await this.deleteCartFromRedis(cacheKey);
     } else {
       await this.setCartToRedis(response);
     }
@@ -188,10 +277,46 @@ export class CartService {
     return response;
   }
 
-  private async setCartToRedis(cart: CartResponse) {
+  private async findGuestCart(
+    sessionId: string,
+  ): Promise<InternalCartWithItems | null> {
+    return this.txHost.tx.cart.findUnique({
+      where: { sessionId },
+      include: { items: true },
+    });
+  }
+
+  private async findClientCart(
+    clientId: string,
+  ): Promise<InternalCartWithItems | null> {
+    return this.txHost.tx.cart.findUnique({
+      where: { clientId },
+      include: { items: true },
+    });
+  }
+
+  private emptyCartResponse(ownerId: CartOwner): ReadCartDto {
+    return toDto(
+      {
+        id: 'empty',
+        items: [],
+        totalPrice: 0,
+        totalItems: 0,
+        sessionId: ownerId.sessionId ?? null,
+        clientId: ownerId.clientId ?? null,
+        staffId: ownerId.staffId ?? null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      ReadCartDto,
+    );
+  }
+
+  private async setCartToRedis(cart: ReadCartDto) {
     try {
+      const ownerId = cart.clientId || cart.staffId || cart.sessionId;
       await this.redisService.set(
-        `${this.CART_CACHE_PREFIX}${cart.sessionId}`,
+        `${this.CART_CACHE_PREFIX}${ownerId}`,
         cart,
         this.CART_TTL,
       );
@@ -204,15 +329,17 @@ export class CartService {
   }
 
   private async getCartFromRedis(
-    sessionId: string,
+    ownerId: CartOwner,
   ): Promise<CartResponse | null> {
+    const cacheKey = ownerId.clientId || ownerId.staffId || ownerId.sessionId;
+
     try {
       return await this.redisService.get<CartResponse>(
-        `${this.CART_CACHE_PREFIX}${sessionId}`,
+        `${this.CART_CACHE_PREFIX}${cacheKey}`,
       );
     } catch (error) {
       this.logger.error(
-        `Failed to get cart for session ${sessionId} from Redis`,
+        `Failed to get cart for session ${cacheKey} from Redis`,
         error,
       );
       return null;
@@ -235,15 +362,21 @@ export class CartService {
   ): Promise<ReadCartDto> {
     const productIds = cart.items.map((item) => item.productId);
     const products = await this.netService.getProductsByIds(productIds);
-    const items = cart.items.map((item) => {
+
+    const items: CartItemResponse[] = cart.items.map((item) => {
       const product = products.find((p) => p.id === item.productId);
       const price = product?.price ?? 0;
+
+      const photoUrl = this.mediaService.generatePublicUrl(
+        product?.photos.product_card ?? '',
+      );
       return {
         productId: item.productId,
         quantity: item.quantity,
         name: product?.name ?? 'Unknown',
         price: price,
         totalPrice: price * item.quantity,
+        photoUrl: photoUrl,
       };
     });
 
@@ -253,6 +386,8 @@ export class CartService {
     const response: CartResponse = {
       id: cart.id,
       sessionId: cart.sessionId,
+      clientId: cart.clientId,
+      staffId: cart.staffId,
       items,
       totalPrice,
       totalItems,

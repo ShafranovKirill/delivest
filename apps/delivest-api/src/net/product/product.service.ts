@@ -6,7 +6,7 @@ import {
   DomainException,
   DuplicateValueException,
   NotFoundException,
-} from '../../shared/exception/domain_exception/domain-exception.js';
+} from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { toDto } from '../../utils/to-dto.js';
 import { ReadProductDto } from './dto/read.dto.js';
 import { CreateProductDto } from './dto/create.dto.js';
@@ -18,11 +18,28 @@ import {
 } from '../../shared/helpers/db-errors.js';
 import { PrismaErrorCode } from '@delivest/common';
 import { UpdateProductDto } from './dto/update.dto.js';
+import { UploadFile } from '../../media/interface/upload-file.interface.js';
+import { PhotoEditorService } from '../../media/photo-queue/photo-editor.service.js';
+import { DelivestEvent, PhotoMap } from '../../shared/events/types.js';
+import type {
+  PhotoConversionEvent,
+  PhotoConversionFailedEvent,
+} from '../../shared/events/types.js';
+import { OnEvent } from '@nestjs/event-emitter';
+import { PRODUCT_PHOTO_PRESETS } from '../../media/photo-configs/presets.js';
+import { MediaService } from '../../media/media.service.js';
+import { NotificationGateway } from '../../notification/notification.gateway.js';
+import { SocketEvent } from '@delivest/types';
 
 @Injectable()
 export class ProductService {
   private readonly logger = new Logger(ProductService.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly photoEditor: PhotoEditorService,
+    private readonly mediaService: MediaService,
+    private readonly notificationGateway: NotificationGateway,
+  ) {}
 
   async findAllByBranch(branchId: string): Promise<ReadProductDto[]>;
   async findAllByBranch(
@@ -227,7 +244,83 @@ export class ProductService {
     }
   }
 
-  private handleProductConstraintError(error: unknown): never {
+  async updatePhoto(
+    file: UploadFile,
+    productId: string,
+    socketId: string,
+  ): Promise<void> {
+    try {
+      await this.photoEditor.uploadAndEditMultiple(
+        productId,
+        file,
+        PRODUCT_PHOTO_PRESETS,
+        socketId,
+        DelivestEvent.PRODUCT_PHOTO_CONVERTED,
+        DelivestEvent.PRODUCT_PHOTO_CONVERSION_FAILED,
+      );
+    } catch (error) {
+      this.logger.error(
+        `updatePhoto() | Error updating photo for product ${productId}: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
+      throw error;
+    }
+  }
+
+  @OnEvent(DelivestEvent.PRODUCT_PHOTO_CONVERTED)
+  async handleProductPhotoBatch(payload: PhotoConversionEvent) {
+    const { targetId, socketId, photos } = payload;
+
+    try {
+      const existingProduct = await this.prisma.product.findUnique({
+        where: { id: targetId },
+        select: { photos: true },
+      });
+
+      const updatedProduct = await this.prisma.product.update({
+        where: { id: targetId },
+        data: {
+          photos,
+        },
+      });
+
+      if (existingProduct?.photos) {
+        const oldPhotos = existingProduct.photos as PhotoMap;
+        const newKeys = new Set(Object.values(photos));
+
+        const keysToDelete = Object.values(oldPhotos).filter(
+          (oldKey) => oldKey && !newKeys.has(oldKey),
+        );
+
+        if (keysToDelete.length > 0) {
+          await this.mediaService.deleteFilesByKeys(keysToDelete);
+          this.logger.log(
+            `Deleted ${keysToDelete.length} old photos for product ${targetId}`,
+          );
+        }
+      }
+
+      this.notificationGateway.server
+        .to(socketId)
+        .emit(SocketEvent.PHOTO_EDIT_RESULT, {
+          success: true,
+          targetId,
+          photos: updatedProduct.photos,
+        });
+    } catch (error) {
+      this.logger.error(`Failed to handle photo batch for ${targetId}`, error);
+    }
+  }
+
+  @OnEvent(DelivestEvent.PRODUCT_PHOTO_CONVERSION_FAILED)
+  handlePhotoConversionFailedEvent(event: PhotoConversionFailedEvent) {
+    const { fileId, error } = event;
+
+    this.logger.error(
+      `Photo conversion failed File: ${fileId}. Error: ${error}`,
+    );
+  }
+  handleProductConstraintError(error: unknown): never {
     if (error instanceof DomainException) {
       throw error;
     }

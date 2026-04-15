@@ -7,7 +7,7 @@ import {
   NotFoundException,
   DuplicateValueException,
   BadRequestException,
-} from '../../shared/exception/domain_exception/domain-exception.js';
+} from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { Permission } from '../../../generated/prisma/enums.js';
 
 describe('RoleService', () => {

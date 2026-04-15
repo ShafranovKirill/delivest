@@ -8,7 +8,7 @@ import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { PERMISSION_KEY } from '../decorators/require-permission.decorator.js';
 import { Permission } from '../../../../generated/prisma/enums.js';
-import { UnauthorizedException } from '../../../shared/exception/domain_exception/domain-exception.js';
+import { UnauthorizedException } from '../../../shared/exceptions/domain_exception/domain-exception.js';
 
 @Injectable()
 export class AclGuard implements CanActivate {

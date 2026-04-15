@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 import {
   NotFoundException,
   BadRequestException,
-} from '../../shared/exception/domain_exception/domain-exception.js';
+} from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { CategoryService } from './category.service.js';
 
 describe('CategoryService (Comprehensive Tests)', () => {

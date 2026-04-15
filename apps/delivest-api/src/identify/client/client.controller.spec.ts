@@ -3,7 +3,7 @@ import { ClientController } from './client.controller.js';
 import { ClientService } from './client.service.js';
 import { jest } from '@jest/globals';
 import { Response, Request } from 'express';
-import { MissingTokenException } from '../../shared/exception/domain_exception/domain-exception.js';
+import { MissingTokenException } from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { JwtClientAuthGuard } from './guards/jwt-client.guard.js';
 import { SendCodeType } from '../../../generated/prisma/client.js';
 

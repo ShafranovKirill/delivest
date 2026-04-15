@@ -14,7 +14,7 @@ import {
   UserAlreadyExistsException,
   UserNotFoundException,
   UserNotRegisteredException,
-} from '../../shared/exception/domain_exception/domain-exception.js';
+} from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { toDto } from '../../utils/to-dto.js';
 import { CreateStaffDto } from './dto/create.dto.js';
 import { Staff } from '../../../generated/prisma/client.js';

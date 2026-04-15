@@ -3,7 +3,7 @@ import { StaffController } from './staff.controller.js';
 import { StaffService } from './staff.service.js';
 import { jest } from '@jest/globals';
 import { Response, Request } from 'express';
-import { MissingTokenException } from '../../shared/exception/domain_exception/domain-exception.js';
+import { MissingTokenException } from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { JwtStaffAuthGuard } from './guards/jwt-staff.guard.js';
 import { AclGuard } from '../acl/guards/acl.guard.js';
 import { UpdateStaffDto } from './dto/update.dto.js';

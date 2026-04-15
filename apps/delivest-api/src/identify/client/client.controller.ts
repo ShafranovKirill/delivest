@@ -14,12 +14,13 @@ import { ClientService } from './client.service.js';
 import { LoginClientDto } from './dto/login.dto.js';
 import type { Request, Response } from 'express';
 import { TokenClientResponseDto } from './dto/token.dto.js';
-import { MissingTokenException } from '../../shared/exception/domain_exception/domain-exception.js';
+import { MissingTokenException } from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { JwtClientAuthGuard } from './guards/jwt-client.guard.js';
 import { CurrentClient } from '../../shared/decorators/current-client.decorator.js';
 import {
   ApiBearerAuth,
   ApiCookieAuth,
+  ApiHeader,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -27,6 +28,7 @@ import {
 import { SendCodeDto } from './dto/send-code.dto.js';
 import { SendCodeType } from '../../../generated/prisma/client.js';
 import { COOKIE_NAMES } from '@delivest/common';
+import { SessionId } from '../../shared/decorators/session-id.decorator.js';
 
 @ApiTags('Client (Клиенты)')
 @Controller('client')
@@ -37,12 +39,23 @@ export class ClientController {
 
   @Post('login-by-code')
   @ApiOperation({ summary: 'Вход по коду' })
+  @ApiHeader({
+    name: 'Cookie',
+    description:
+      'Может содержать session_id для неавторизованных пользователей',
+    required: false,
+  })
   @ApiOkResponse({ type: TokenClientResponseDto })
   async loginByCode(
     @Body() dto: LoginClientDto,
     @Res({ passthrough: true }) res: Response,
+    @SessionId() sessionId: string,
   ): Promise<TokenClientResponseDto> {
-    const account = await this.service.loginByCode(dto.phone, dto.code);
+    const account = await this.service.loginByCode(
+      dto.phone,
+      dto.code,
+      sessionId,
+    );
     const accessToken = await this.service.generateAccessToken(account);
     const refreshToken = await this.service.generateRefreshToken(account);
 

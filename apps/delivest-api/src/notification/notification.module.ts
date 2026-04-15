@@ -9,6 +9,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { DevelopSmsAdapter } from './adapters/develop.adapter.js';
 import { AuthCleanupJob } from './workers/auth-cleanup.job.js';
+import { NotificationGateway } from './notification.gateway.js';
 
 @Module({
   imports: [OutboxModule, PrismaModule, HttpModule],
@@ -20,6 +21,7 @@ import { AuthCleanupJob } from './workers/auth-cleanup.job.js';
     ZvonokAuthAdapter,
     ConfigModule,
     AuthCleanupJob,
+    NotificationGateway,
     {
       provide: 'IAuthCodeSender',
       inject: [DevelopSmsAdapter, ZvonokAuthAdapter],
@@ -29,6 +31,6 @@ import { AuthCleanupJob } from './workers/auth-cleanup.job.js';
       },
     },
   ],
-  exports: [NotificationService],
+  exports: [NotificationService, NotificationGateway],
 })
 export class NotificationModule {}

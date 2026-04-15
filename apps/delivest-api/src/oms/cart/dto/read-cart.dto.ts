@@ -1,5 +1,5 @@
 import { CartResponse } from '@delivest/types';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { ReadCartItemDto } from './read-item.dto.js';
 
@@ -8,9 +8,26 @@ export class ReadCartDto implements CartResponse {
   @Expose()
   id!: string;
 
-  @ApiProperty({ example: 'session-id-123' })
+  @ApiPropertyOptional({
+    example: 'session-123',
+    description: 'ID анонимной сессии',
+  })
   @Expose()
-  sessionId!: string;
+  sessionId?: string;
+
+  @ApiPropertyOptional({
+    example: 'client-456',
+    description: 'ID зарегистрированного клиента',
+  })
+  @Expose()
+  clientId?: string;
+
+  @ApiPropertyOptional({
+    example: 'staff-789',
+    description: 'ID сотрудника, если корзина его',
+  })
+  @Expose()
+  staffId?: string;
 
   @ApiProperty({ type: [ReadCartItemDto] })
   @Expose()

@@ -28,7 +28,7 @@ import { TokenStaffResponseDto } from './dto/token.dto.js';
 import { LoginStaffDto } from './dto/login.dto.js';
 import type { Request, Response } from 'express';
 import { CreateStaffDto } from './dto/create.dto.js';
-import { MissingTokenException } from '../../shared/exception/domain_exception/domain-exception.js';
+import { MissingTokenException } from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { JwtStaffAuthGuard } from './guards/jwt-staff.guard.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { FindByLoginDto } from './dto/find-by-login.dto.js';

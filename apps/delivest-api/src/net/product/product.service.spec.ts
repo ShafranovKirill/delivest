@@ -5,7 +5,7 @@ import {
   NotFoundException,
   BadRequestException,
   DuplicateValueException,
-} from '../../shared/exception/domain_exception/domain-exception.js';
+} from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { ProductService } from './product.service.js';
 import { CreateProductDto } from './dto/create.dto.js';
 import { UpdateProductDto } from './dto/update.dto.js';

@@ -50,14 +50,14 @@ model Role {
 }
 
 model Branch {
-  id        String    @id @default(uuid())
-  alias     String    @unique
-  name      String
-  address String?
-  description String? @db.Text
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  id          String    @id @default(uuid())
+  alias       String    @unique
+  name        String
+  address     String?
+  description String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
 
   categories Category[]
   products   Product[]
@@ -87,6 +87,7 @@ model Product {
   price       Int
   isActive    Boolean @default(true)
   description String?
+  photos      Json?   @map("photos")
 
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
   branchId String @map("branch_id")
@@ -136,7 +137,9 @@ model AuthMessage {
 
 model Cart {
   id        String     @id @default(uuid())
-  sessionId String     @unique @map("session_id")
+  sessionId String?    @unique @map("session_id")
+  clientId  String?    @unique @map("client_id")
+  staffId   String?    @unique @map("staff_id")
   items     CartItem[]
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
@@ -153,6 +156,74 @@ model CartItem {
 
   @@unique([cartId, productId])
   @@map("cart_items")
+}
+
+model MediaFile {
+  id           String @id @default(uuid())
+  bucket       String
+  key          String
+  originalName String @map("original_name")
+  mimeType     String @map("mime_type")
+  size         Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([mimeType])
+  @@map("media_files")
+}
+
+model Order {
+  id          String @id @default(uuid())
+  orderNumber Int    @unique @default(autoincrement())
+
+  customerId String
+  employeeId String?
+
+  status       OrderStatus  @default(PENDING)
+  deliveryType DeliveryType
+
+  totalPrice    Decimal
+  deliveryPrice Decimal @default(0)
+
+  address String?
+  comment String?
+  phone   String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  items OrderItem[]
+}
+
+model OrderItem {
+  id      String @id @default(uuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  productId String
+
+  title    String
+  price    Decimal
+  quantity Int
+
+  modifiers Json?
+}
+
+enum DeliveryType {
+  DELIVERY
+  PICKUP
+  DINE_IN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  READY
+  PICKED_UP
+  COMPLETED
+  CANCELLED
 }
 
 enum AuthStatus {
