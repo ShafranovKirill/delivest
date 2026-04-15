@@ -177,8 +177,8 @@ model Order {
   id          String @id @default(uuid())
   orderNumber Int    @unique @default(autoincrement())
 
-  customerId String
-  employeeId String?
+  clientId String?
+  staffId  String?
 
   status       OrderStatus  @default(PENDING)
   deliveryType DeliveryType

@@ -28,3 +28,9 @@ export interface CartResponse {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface OrderValidationPayload {
+  cartId: string;
+  totalPrice: number;
+  fingerprint: string;
+}
