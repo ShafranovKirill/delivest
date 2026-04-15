@@ -14,6 +14,9 @@ import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { PrismaClient } from '../../../generated/prisma/client.js';
 import { type ICreateOrderInternal } from './interfaces/create.interface.js';
+import { toDto } from '../../utils/to-dto.js';
+import { ReadOrderDto } from './dto/read.dto.js';
+import { ReadValidateOrderDto } from './dto/read-validate.dto.js';
 
 @Injectable()
 export class OrderService {
@@ -80,7 +83,7 @@ export class OrderService {
 
         this.logger.log(`Order #${order.orderNumber} created successfully`);
 
-        return order;
+        return toDto(order, ReadOrderDto);
       });
     } catch (error) {
       this.logger.error('Failed to create order in database', error);
@@ -97,10 +100,12 @@ export class OrderService {
 
     const validationToken = await this.generateOrderToken(cart);
 
-    return {
+    const result = {
       ...cart,
       validationToken,
     };
+
+    return toDto(result, ReadValidateOrderDto);
   }
 
   private async generateOrderToken(cart: ReadCartDto) {
@@ -150,7 +155,7 @@ export class OrderService {
     } catch (error: unknown) {
       if (error instanceof TokenExpiredError) {
         throw new BadRequestException(
-          `Время подтверждения заказа истекло (${this.validationTtl} сек). Повторите проверку.`,
+          `Время подтверждения заказа истекло. Повторите проверку.`,
         );
       }
 

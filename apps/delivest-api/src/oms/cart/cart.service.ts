@@ -220,7 +220,8 @@ export class CartService {
         `Cart merged: session ${sessionId} -> client ${clientId}. `,
       );
 
-      return await this.refreshCart({ clientId });
+      const newCart = await this.refreshCart({ clientId });
+      return toDto(newCart, ReadCartDto);
     } catch (error) {
       this.logger.error(
         `Failed to merge carts for session ${sessionId} and client ${clientId}`,
