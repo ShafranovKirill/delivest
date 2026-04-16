@@ -72,13 +72,6 @@ export class ValidateOrderDto implements ValidateOrderRequest {
   @IsOptional()
   address?: string;
 
-  @ApiPropertyOptional({
-    description: 'ID клиента (если заказ создает сотрудник)',
-  })
-  @IsUUID()
-  @IsOptional()
-  clientId?: string;
-
   @ApiPropertyOptional({ description: 'ID сотрудника, принявшего заказ' })
   @IsUUID()
   @IsOptional()

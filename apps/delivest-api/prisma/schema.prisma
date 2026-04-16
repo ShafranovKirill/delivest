@@ -183,8 +183,8 @@ model Order {
   status       OrderStatus  @default(PENDING)
   deliveryType DeliveryType
 
-  totalPrice    Decimal
-  deliveryPrice Decimal @default(0)
+  totalPrice    Int
+  deliveryPrice Int @default(0)
 
   address String?
   comment String?
