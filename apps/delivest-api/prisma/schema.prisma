@@ -188,7 +188,7 @@ model Order {
 
   address String?
   comment String?
-  phone   String
+  phone   String?
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -269,6 +269,11 @@ enum Permission {
   BRANCH_READ
   BRANCH_UPDATE
   BRANCH_DELETE
+  //Заказ
+  ORDER_CREATE
+  ORDER_READ
+  ORDER_UPDATE
+  ORDER_DELETE
 }
 
 enum SendCodeType {

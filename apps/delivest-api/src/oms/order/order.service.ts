@@ -5,20 +5,26 @@ import { NetService } from '../../net/net.service.js';
 import {
   BadRequestException,
   InternalErrorException,
+  InvalidTokenException,
   NotFoundException,
+  TokenExpiredException,
 } from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { ReadCartDto } from '../cart/dto/read-cart.dto.js';
 import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { OrderValidationPayload, ValidateOrderRequest } from '@delivest/types';
+import {
+  OrderItem,
+  OrderValidationPayload,
+  ValidateOrderRequest,
+} from '@delivest/types';
 import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { OrderStatus, PrismaClient } from '../../../generated/prisma/client.js';
-import { type ICreateOrderInternal } from './interfaces/create.interface.js';
 import { toDto } from '../../utils/to-dto.js';
 import { ReadOrderDto } from './dto/read.dto.js';
 import { ReadValidateOrderDto } from './dto/read-validate.dto.js';
 import { OrderStatusContext } from './order-status.context.js';
+import { CreateOrderDto } from './dto/create.dto.js';
 
 @Injectable()
 export class OrderService {
@@ -44,34 +50,31 @@ export class OrderService {
   }
 
   @Transactional()
-  async createOrder(dto: ICreateOrderInternal) {
-    const cart = await this.cartService.validateCart(dto.cartId);
-
-    if (cart.items.length === 0) {
-      throw new BadRequestException('Корзина пуста');
-    }
-
-    if (dto.validationToken) {
-      await this.verifyOrderToken(dto.validationToken, cart);
-    }
+  async createOrder(
+    dto: CreateOrderDto,
+    clientId?: string,
+    staffId?: string,
+    status: OrderStatus = 'PENDING',
+  ): Promise<ReadOrderDto> {
+    const tokenPayload = await this.decodeAndVerifyToken(dto.validationToken);
 
     try {
       return await this.txHost.tx.$transaction(async (tx) => {
         const order = await tx.order.create({
           data: {
-            clientId: dto.clientId,
-            staffId: dto.staffId,
-            status: dto.status,
-            deliveryType: dto.deliveryType || 'PICKUP',
-            totalPrice: cart.totalPrice,
-            address: dto.address,
-            comment: dto.comment,
-            phone: dto.phone,
+            clientId: clientId,
+            staffId: staffId,
+            status: status,
+            deliveryType: tokenPayload.deliveryType,
+            totalPrice: this.calculateTotalPrice(tokenPayload.items),
+            address: tokenPayload.address,
+            comment: tokenPayload.comment,
+            phone: tokenPayload.phone,
 
             items: {
-              create: cart.items.map((item) => ({
+              create: tokenPayload.items.map((item) => ({
                 productId: item.productId,
-                title: item.name,
+                title: item.title,
                 price: item.price,
                 quantity: item.quantity,
               })),
@@ -82,7 +85,7 @@ export class OrderService {
           },
         });
 
-        await this.cartService.deleteCart(cart.id);
+        await this.cartService.deleteCart(tokenPayload.cartId);
 
         await this.statusContext.execute(order);
 
@@ -147,7 +150,7 @@ export class OrderService {
       throw new BadRequestException('Нельзя создать заказ из пустой корзины');
     }
 
-    const validationToken = await this.generateOrderToken(cart);
+    const validationToken = await this.generateOrderToken(cart, dto);
 
     const result = {
       ...cart,
@@ -157,13 +160,23 @@ export class OrderService {
     return toDto(result, ReadValidateOrderDto);
   }
 
-  private async generateOrderToken(cart: ReadCartDto) {
-    const fingerprint = this.generateFingerprint(cart);
-
+  private async generateOrderToken(
+    cart: ReadCartDto,
+    dto: ValidateOrderRequest,
+  ) {
     const payload: OrderValidationPayload = {
       cartId: cart.id,
-      totalPrice: cart.totalPrice,
-      fingerprint,
+      branchId: dto.branchId,
+      phone: dto.phone,
+      address: dto.address,
+      comment: dto.comment,
+      deliveryType: dto.deliveryType,
+      items: cart.items.map((item) => ({
+        productId: item.productId,
+        title: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
     };
 
     return this.jwtService.signAsync(payload, {
@@ -172,61 +185,35 @@ export class OrderService {
     });
   }
 
-  private async verifyOrderToken(
+  private calculateTotalPrice(items: OrderItem[]): number {
+    return items.reduce((total, item) => total + item.price * item.quantity, 0);
+  }
+
+  private async decodeAndVerifyToken(
     token: string,
-    currentCart: ReadCartDto,
-  ): Promise<void> {
+  ): Promise<OrderValidationPayload> {
     try {
-      const payload = await this.jwtService.verifyAsync<OrderValidationPayload>(
-        token,
-        {
-          secret: this.validationSecret,
-        },
+      return await this.jwtService.verifyAsync<OrderValidationPayload>(token, {
+        secret: this.validationSecret,
+      });
+    } catch (error: unknown) {
+      this.logger.warn(
+        `Token verification failed: ${(error as Error).message}`,
       );
 
-      const currentFingerprint = this.generateFingerprint(currentCart);
-
-      if (payload.fingerprint !== currentFingerprint) {
-        throw new BadRequestException(
-          'Состав корзины изменился с момента подтверждения. Проверьте заказ еще раз.',
-        );
-      }
-
-      if (payload.totalPrice !== currentCart.totalPrice) {
-        throw new BadRequestException(
-          'Итоговая сумма изменилась. Пожалуйста, получите актуальное подтверждение.',
-        );
-      }
-
-      if (payload.cartId !== currentCart.id) {
-        throw new BadRequestException('Токен предоставлен для другой корзины.');
-      }
-    } catch (error: unknown) {
       if (error instanceof TokenExpiredError) {
-        throw new BadRequestException(
-          `Время подтверждения заказа истекло. Повторите проверку.`,
+        throw new TokenExpiredException(
+          'Время подтверждения заказа истекло. Пожалуйста, проверьте корзину еще раз.',
         );
       }
 
       if (error instanceof JsonWebTokenError) {
-        throw new BadRequestException('Невалидный токен подтверждения заказа.');
+        throw new InvalidTokenException(
+          'Невалидный токен подтверждения. Попробуйте оформить заказ заново.',
+        );
       }
 
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-
-      this.logger.error('Unexpected error during token verification', error);
-      throw new InternalErrorException('Ошибка при проверке заказа');
+      throw new InternalErrorException('Ошибка при проверке данных заказа');
     }
-  }
-
-  private generateFingerprint(cart: ReadCartDto) {
-    const fingerprint = cart.items
-      .map((item) => `${item.productId}:${item.quantity}`)
-      .sort()
-      .join('|');
-
-    return fingerprint;
   }
 }

@@ -1,8 +1,8 @@
-import { OrderItemResponse } from '@delivest/types';
+import { OrderItem } from '@delivest/types';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 
-export class ReadOrderItemDto implements OrderItemResponse {
+export class ReadOrderItemDto implements OrderItem {
   @ApiProperty({ example: 'prod-123' })
   @Expose()
   productId!: string;

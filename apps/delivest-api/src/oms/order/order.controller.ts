@@ -8,7 +8,6 @@ import {
 import { OrderService } from './order.service.js';
 import { ReadOrderDto } from './dto/read.dto.js';
 import { ReadValidateOrderDto } from './dto/read-validate.dto.js';
-import { OrderStatus } from '../../../generated/prisma/client.js';
 import { CurrentClient } from '../../shared/decorators/current-client.decorator.js'; // Пример декоратора для получения ID клиента
 import { OptionalJwtClientAuthGuard } from '../../identify/client/guards/jwt-client-optional.guard.js';
 import { CreateOrderDto } from './dto/create.dto.js';
@@ -48,11 +47,12 @@ export class OrderController {
     @CurrentClient('sub') authClientId: string,
     @Body() dto: CreateOrderDto,
   ): Promise<ReadOrderDto> {
-    return await this.orderService.createOrder({
-      ...dto,
-      clientId: authClientId,
-      status: OrderStatus.PENDING,
-    });
+    return await this.orderService.createOrder(
+      dto,
+      authClientId,
+      undefined,
+      'PENDING',
+    );
   }
 
   @Patch('status')

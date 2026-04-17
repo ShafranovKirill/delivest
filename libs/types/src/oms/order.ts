@@ -1,24 +1,35 @@
 import { DeliveryType, OrderStatus } from "../../../../apps/delivest-api/generated/prisma/enums.js";
 import { CartResponse } from "./cart.js";
 
-export interface BaseOrderRequest {
+export interface OrderValidationPayload {
+  cartId: string;
+  branchId: string;
+  phone?: string;
+  address?: string;
+  comment?: string;
+  deliveryType: DeliveryType;
+  items: OrderItem[];
+}
+
+export interface ValidateOrderRequest {
   cartId: string;
   phone: string;
   branchId: string;
   deliveryType: DeliveryType;
   comment?: string;
   address?: string;
-  clientId?: string;
-  staffId?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ValidateOrderRequest extends BaseOrderRequest {}
-
-export interface CreateOrderRequest extends BaseOrderRequest {
+export interface CreateOrderRequest {
   validationToken: string;
 }
-export interface OrderItemResponse {
+
+export interface AdminCreateOrderRequest extends CreateOrderRequest {
+  clientId: string;
+  status: OrderStatus;
+}
+
+export interface OrderItem {
   productId: string;
   title: string;
   price: number;
@@ -40,7 +51,7 @@ export interface OrderResponse {
   address?: string;
   comment?: string;
   phone: string;
-  items: OrderItemResponse[];
+  items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;
 }
