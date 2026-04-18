@@ -212,6 +212,7 @@ model OrderItem {
 
   modifiers Json?
 
+  @@unique([orderId, productId])
   @@map("order_items")
 }
 

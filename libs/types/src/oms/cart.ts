@@ -12,9 +12,9 @@ export interface AddToCartRequest {
   quantity: number;
 }
 
-export interface DeleteFromCartRequest {
+export interface RemoveFromCartRequest {
   productId: string;
-  quantity: number;
+  deleteAll: boolean;
 }
 
 export interface CartResponse {

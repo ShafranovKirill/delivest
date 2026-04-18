@@ -40,6 +40,18 @@ export interface ValidateOrderResponse extends CartResponse {
   validationToken: string;
 }
 
+export interface AddToOrderRequest {
+  orderId: string;
+  productId: string;
+  quantity: number;
+}
+
+export interface RemoveFromOrderRequest {
+  orderId: string;
+  productId: string;
+  deleteAll: boolean;
+}
+
 export interface OrderResponse {
   id: string;
   orderNumber: number;

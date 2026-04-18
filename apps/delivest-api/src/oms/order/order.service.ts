@@ -4,6 +4,7 @@ import { CartService } from '../cart/cart.service.js';
 import { NetService } from '../../net/net.service.js';
 import {
   BadRequestException,
+  DomainException,
   InternalErrorException,
   InvalidTokenException,
   NotFoundException,
@@ -158,6 +159,140 @@ export class OrderService {
     };
 
     return toDto(result, ReadValidateOrderDto);
+  }
+
+  async getOrder(id: string): Promise<ReadOrderDto> {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        items: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Заказ с ID ${id} не найден`);
+    }
+
+    return toDto(order, ReadOrderDto);
+  }
+
+  async getOrdersForClient(clientId: string): Promise<ReadOrderDto[]> {
+    const orders = await this.prisma.order.findMany({
+      where: { clientId },
+      include: {
+        items: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return orders.map((order) => toDto(order, ReadOrderDto));
+  }
+
+  async getOrdersForBranch(branchId: string): Promise<ReadOrderDto[]> {
+    const orders = await this.prisma.order.findMany({
+      where: { id: branchId },
+      include: {
+        items: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return orders.map((order) => toDto(order, ReadOrderDto));
+  }
+
+  @Transactional()
+  async addItem(
+    orderId: string,
+    productId: string,
+    quantity: number,
+  ): Promise<ReadOrderDto> {
+    try {
+      const product = await this.netService.getProductById(productId);
+      if (!product) {
+        throw new NotFoundException(`Product with ID ${productId} not found`);
+      }
+
+      await this.txHost.tx.orderItem.upsert({
+        where: {
+          orderId_productId: {
+            orderId,
+            productId,
+          },
+        },
+        update: {
+          quantity: { increment: quantity },
+        },
+        create: {
+          orderId,
+          productId: productId,
+          quantity: quantity,
+          price: product.price,
+          title: product.name,
+        },
+      });
+      const updatedOrder = await this.txHost.tx.order.findUniqueOrThrow({
+        where: { id: orderId },
+        include: { items: true },
+      });
+
+      return toDto(updatedOrder, ReadOrderDto);
+    } catch (error) {
+      if (error instanceof DomainException) {
+        throw error;
+      }
+      this.logger.error(
+        `Failed to add item ${productId} to order ${orderId}`,
+        error,
+      );
+      throw new InternalErrorException(
+        'Failed to add item to cart. Please try again later.',
+      );
+    }
+  }
+
+  async removeItem(orderId: string, productId: string, deleteAll: boolean) {
+    try {
+      const orderItem = await this.prisma.orderItem.findFirst({
+        where: {
+          orderId,
+          productId,
+        },
+      });
+
+      if (!orderItem) {
+        throw new NotFoundException('Товар не найден в заказе');
+      }
+
+      if (deleteAll || orderItem.quantity <= 1) {
+        await this.prisma.orderItem.delete({
+          where: { id: orderItem.id },
+        });
+      } else {
+        await this.prisma.orderItem.update({
+          where: { id: orderItem.id },
+          data: {
+            quantity: { decrement: 1 },
+          },
+        });
+      }
+
+      const updatedOrder = await this.txHost.tx.order.findUniqueOrThrow({
+        where: { id: orderId },
+        include: { items: true },
+      });
+
+      return toDto(updatedOrder, ReadCartDto);
+    } catch (error) {
+      this.logger.error(
+        `Failed to remove item ${productId}`,
+        (error as Error).stack,
+      );
+      throw error;
+    }
   }
 
   private async generateOrderToken(

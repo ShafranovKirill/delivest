@@ -18,11 +18,11 @@ import {
 } from '@nestjs/swagger/dist/decorators/index.js';
 import { CartService } from './cart.service.js';
 import { AddToCartDto } from './dto/add-item.dto.js';
-import { IdParamDto } from './dto/id-param.dto.js';
 import { ReadCartDto } from './dto/read-cart.dto.js';
 import { CurrentCartOwner } from '../../shared/decorators/current-cart-owner.decorator.js'; // Путь к новому декоратору
 import type { CartOwner } from './interfaces/cart-owner.interface.js';
 import { OptionalJwtClientAuthGuard } from '../../identify/client/guards/jwt-client-optional.guard.js';
+import { RemoveFromCartDto } from './dto/remove-item.dto.js';
 
 @ApiTags('Cart (Корзина)')
 @UseGuards(OptionalJwtClientAuthGuard)
@@ -61,8 +61,8 @@ export class CartController {
     return await this.cartService.addItem(owner, dto.productId, dto.quantity);
   }
 
-  @Patch('remove-one/:productId')
-  @ApiOperation({ summary: 'Уменьшить количество товара на 1' })
+  @Patch('remove')
+  @ApiOperation({ summary: 'Удалить товар из корзины (один или весь)' })
   @ApiResponse({
     status: 200,
     description: 'Товар успешно удален',
@@ -70,9 +70,13 @@ export class CartController {
   })
   async removeOne(
     @CurrentCartOwner() owner: CartOwner,
-    @Param() params: IdParamDto,
+    @Body() dto: RemoveFromCartDto,
   ): Promise<ReadCartDto> {
-    return await this.cartService.removeItem(owner, params.productId, false);
+    return await this.cartService.removeItem(
+      owner,
+      dto.productId,
+      dto.deleteAll,
+    );
   }
 
   @Delete('item/:productId')
