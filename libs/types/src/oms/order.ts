@@ -1,4 +1,4 @@
-import { DeliveryType, OrderStatus } from "../../../../apps/delivest-api/generated/prisma/enums.js";
+import { DeliveryType, OrderStatus } from "@prisma-generated/prisma/enums.js";
 import { CartResponse } from "./cart.js";
 
 export interface OrderValidationPayload {
