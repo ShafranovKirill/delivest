@@ -73,16 +73,13 @@ export class StaffController {
     return await this.service.create(dto);
   }
 
-  @Patch('update/:id')
+  @Patch('update')
   @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Обновить данные работника' })
   @UseGuards(JwtStaffAuthGuard, AclGuard)
   @RequirePermission(Permission.STAFF_UPDATE)
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateStaffDto,
-  ): Promise<ReadStaffDto> {
-    return await this.service.update(id, dto);
+  async update(@Body() dto: UpdateStaffDto): Promise<ReadStaffDto> {
+    return await this.service.update(dto);
   }
 
   @Delete('delete/:id')

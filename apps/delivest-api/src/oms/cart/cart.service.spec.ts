@@ -226,7 +226,10 @@ describe('CartService', () => {
       mockPrismaService.cart.upsert.mockResolvedValue(mockCart as any);
       mockRedisService.get.mockResolvedValue(JSON.stringify(cachedCart));
 
-      const result = await service.getCart({ sessionId: 'session-1' });
+      const result = await service.getCart(
+        { sessionId: 'session-1' },
+        'branch-1',
+      );
 
       const parsedResult =
         typeof result === 'string' ? JSON.parse(result) : result;
@@ -242,7 +245,7 @@ describe('CartService', () => {
         items: [],
       } as any);
 
-      await service.getCart({ sessionId: 'session-1' });
+      await service.getCart({ sessionId: 'session-1' }, 'branch-1');
 
       expect(mockTxHost.tx.cart.findUnique).toHaveBeenCalled();
     });

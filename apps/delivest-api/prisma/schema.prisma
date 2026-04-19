@@ -21,11 +21,11 @@ model Client {
 
 model Staff {
   id           String  @id @default(uuid())
-  branchId     String  @map("branch_id")
   login        String  @unique
   passwordHash String  @map("password_hash")
   name         String?
 
+  branches StaffBranch[]
   roleId String @map("role_id")
   role   Role   @relation(fields: [roleId], references: [id])
 
@@ -34,6 +34,16 @@ model Staff {
   deletedAt DateTime? @map("deleted_at")
 
   @@map("staffs")
+}
+
+model StaffBranch {
+  staffId  String @map("staff_id")
+  branchId String @map("branch_id")
+
+  staff  Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@id([staffId, branchId])
+  @@map("staff_branches")
 }
 
 model Role {
@@ -141,10 +151,14 @@ model Cart {
   sessionId String?    @unique @map("session_id")
   clientId  String?    @unique @map("client_id")
   staffId   String?    @unique @map("staff_id")
+  branchId  String     @map("branch_id")
   items     CartItem[]
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
 
+  @@unique([clientId, branchId])
+  @@unique([sessionId, branchId])
+  @@unique([staffId, branchId])
   @@map("carts")
 }
 
@@ -177,6 +191,8 @@ model MediaFile {
 model Order {
   id          String @id @default(uuid())
   orderNumber Int    @unique @default(autoincrement()) @map("order_number")
+
+  branchId    String @map("branch_id")
 
   clientId String? @map("client_id")
   staffId  String? @map("staff_id")

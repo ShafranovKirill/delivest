@@ -53,12 +53,13 @@ describe('AdminCartController', () => {
     it('should return staff cart', async () => {
       mockCartService.getCart.mockResolvedValue(mockCartDto);
 
-      const result = await controller.getStaffCart('staff-1');
+      const result = await controller.getStaffCart('staff-1', 'branch-1');
 
       expect(result).toEqual(mockCartDto);
-      expect(mockCartService.getCart).toHaveBeenCalledWith({
-        staffId: 'staff-1',
-      });
+      expect(mockCartService.getCart).toHaveBeenCalledWith(
+        { staffId: 'staff-1' },
+        'branch-1',
+      );
     });
   });
 

@@ -50,12 +50,16 @@ describe('CartController', () => {
     it('should return cart', async () => {
       mockCartService.getCart.mockResolvedValue(mockCartDto);
 
-      const result = await controller.getCart({ sessionId: 'session-1' });
+      const result = await controller.getCart(
+        { sessionId: 'session-1' },
+        'branch-1',
+      );
 
       expect(result).toEqual(mockCartDto);
-      expect(mockCartService.getCart).toHaveBeenCalledWith({
-        sessionId: 'session-1',
-      });
+      expect(mockCartService.getCart).toHaveBeenCalledWith(
+        { sessionId: 'session-1' },
+        'branch-1',
+      );
     });
   });
 
@@ -68,7 +72,7 @@ describe('CartController', () => {
       };
       mockCartService.addItem.mockResolvedValue(mockCartDto);
 
-      const result = await controller.addItem({ sessionId: 'session-1' }, dto);
+      const result = await controller.addItem(dto);
 
       expect(result).toEqual(mockCartDto);
       expect(mockCartService.addItem).toHaveBeenCalledWith(

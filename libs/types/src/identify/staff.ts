@@ -10,10 +10,11 @@ export interface RefreshStaffTokenPayload {
 export interface AccessStaffTokenPayload extends RefreshStaffTokenPayload {
   roleId: string;
   permissions: Permission[];
+  branchIds?: string[];
 }
 
 export interface CreateStaffRequest {
-  branchId: string;
+  branchIds: string[];
   login: string;
   password: string;
   roleId: string;
@@ -21,9 +22,11 @@ export interface CreateStaffRequest {
 }
 
 export interface UpdateStaffRequest {
+  id: string;
   login: string;
   roleId: string;
   name: string;
+  branchIds?: string[];
 }
 
 export interface GetStaffRequest {

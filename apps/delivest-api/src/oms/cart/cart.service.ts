@@ -5,13 +5,13 @@ import { CartItemResponse, CartResponse } from '@delivest/types';
 import {
   Cart,
   CartItem,
-  Prisma,
   PrismaClient,
 } from '../../../generated/prisma/client.js';
 import { NetService } from '../../net/net.service.js';
 import { toDto } from '../../utils/to-dto.js';
 import { ReadCartDto } from './dto/read-cart.dto.js';
 import {
+  BadRequestException,
   DomainException,
   InternalErrorException,
   NotFoundException,
@@ -133,12 +133,29 @@ export class CartService {
     }
   }
 
-  async getCart(ownerId: CartOwner): Promise<ReadCartDto> {
-    const where = ownerId as Prisma.CartWhereUniqueInput;
+  async getCart(ownerId: CartOwner, branchId: string): Promise<ReadCartDto> {
+    const { clientId, sessionId, staffId } = ownerId;
+
+    const uniqueKey = clientId
+      ? { clientId_branchId: { clientId, branchId } }
+      : sessionId
+        ? { sessionId_branchId: { sessionId, branchId } }
+        : staffId
+          ? { staffId_branchId: { staffId, branchId } }
+          : null;
+
+    if (!uniqueKey) {
+      throw new BadRequestException('Owner identifier is missing');
+    }
 
     const cart = await this.prisma.cart.upsert({
-      where,
-      create: ownerId,
+      where: uniqueKey,
+      create: {
+        branchId,
+        clientId,
+        sessionId,
+        staffId,
+      },
       update: {},
     });
 
@@ -177,40 +194,49 @@ export class CartService {
     const { sessionId, clientId } = payload;
 
     try {
-      const guestCart = await this.findGuestCart(sessionId);
-
-      if (!guestCart || guestCart.items.length === 0) {
-        const cart = await this.txHost.tx.cart.upsert({
-          where: { clientId },
-          create: { clientId },
-          update: {},
-        });
-
-        return await this.refreshCart(cart.id);
-      }
-
-      const clientCart = await this.findClientCart(clientId);
-
-      if (clientCart) {
-        await this.txHost.tx.cart.delete({ where: { id: clientCart.id } });
-        await this.deleteCartFromRedis(clientCart.id);
-      }
-
-      const updatedCart = await this.txHost.tx.cart.update({
-        where: { id: guestCart.id },
-        data: {
-          clientId: clientId,
-          sessionId: null,
-        },
+      const guestCarts = await this.txHost.tx.cart.findMany({
+        where: { sessionId },
+        include: { items: true },
       });
 
-      await this.deleteCartFromRedis(guestCart.id);
+      for (const guestCart of guestCarts) {
+        if (guestCart.items.length === 0) {
+          await this.txHost.tx.cart.delete({ where: { id: guestCart.id } });
+          await this.deleteCartFromRedis(guestCart.id);
+          continue;
+        }
 
-      this.logger.log(
-        `Cart merged: session ${sessionId} -> client ${clientId}`,
-      );
+        const existingClientCart = await this.txHost.tx.cart.findUnique({
+          where: {
+            clientId_branchId: {
+              clientId,
+              branchId: guestCart.branchId,
+            },
+          },
+        });
 
-      return await this.refreshCart(updatedCart.id);
+        if (existingClientCart) {
+          await this.txHost.tx.cart.delete({
+            where: { id: existingClientCart.id },
+          });
+          await this.deleteCartFromRedis(existingClientCart.id);
+        }
+
+        const updatedCart = await this.txHost.tx.cart.update({
+          where: { id: guestCart.id },
+          data: {
+            clientId: clientId,
+            sessionId: null,
+          },
+        });
+
+        await this.deleteCartFromRedis(guestCart.id);
+        await this.refreshCart(updatedCart.id);
+
+        this.logger.log(
+          `Client cart in branch ${guestCart.branchId} replaced by guest cart`,
+        );
+      }
     } catch (error) {
       this.logger.error(
         `Failed to merge carts for session ${sessionId} and client ${clientId}`,
@@ -345,7 +371,7 @@ export class CartService {
       const price = product?.price ?? 0;
 
       const photoUrl = this.mediaService.generatePublicUrl(
-        product?.photos.product_card ?? '',
+        product?.photos?.product_card,
       );
       return {
         productId: item.productId,

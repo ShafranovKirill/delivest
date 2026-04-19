@@ -36,15 +36,18 @@ import { RemoveFromCartDto } from './dto/remove-item.dto.js';
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
-  @Get()
+  @Get('/:branchId')
   @ApiOperation({ summary: 'Получить текущую корзину' })
   @ApiResponse({
     status: 200,
     description: 'Данные корзины',
     type: ReadCartDto,
   })
-  async getCart(@CurrentCartOwner() owner: CartOwner): Promise<ReadCartDto> {
-    return await this.cartService.getCart(owner);
+  async getCart(
+    @CurrentCartOwner() owner: CartOwner,
+    @Param('branchId') branchId: string,
+  ): Promise<ReadCartDto> {
+    return await this.cartService.getCart(owner, branchId);
   }
 
   @Post('add')
@@ -54,10 +57,7 @@ export class CartController {
     description: 'Товар успешно добавлен',
     type: ReadCartDto,
   })
-  async addItem(
-    @CurrentCartOwner() owner: CartOwner,
-    @Body() dto: AddToCartDto,
-  ): Promise<ReadCartDto> {
+  async addItem(@Body() dto: AddToCartDto): Promise<ReadCartDto> {
     return await this.cartService.addItem(
       dto.cartId,
       dto.productId,

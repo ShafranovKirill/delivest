@@ -63,6 +63,7 @@ export class OrderService {
       return await this.txHost.tx.$transaction(async (tx) => {
         const order = await tx.order.create({
           data: {
+            branchId: tokenPayload.branchId,
             clientId: clientId,
             staffId: staffId,
             status: status,

@@ -18,6 +18,9 @@ export class ReadStaffDto implements StaffResponse {
   branchId: string;
 
   @Expose()
+  branchIds: string[];
+
+  @Expose()
   createdAt: Date;
 
   @Expose()

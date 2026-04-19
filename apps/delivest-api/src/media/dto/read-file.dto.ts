@@ -5,7 +5,7 @@ export class ReadFileDto {
   id!: string;
 
   @Expose()
-  url!: string;
+  url!: string | null;
 
   @Expose()
   originalName!: string;

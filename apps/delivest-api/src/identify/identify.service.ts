@@ -42,15 +42,12 @@ export class IdentityService implements OnApplicationBootstrap {
 
       if (!adminExists) {
         this.logger.log('No admin user found. Creating default admin...');
-
-        const branchId = 'abc123';
         const defaultLogin = 'staff';
         const defaultPass = 'SecurePass123!';
         const passwordHash = await argon2.hash(defaultPass);
 
         await this.prisma.staff.create({
           data: {
-            branchId,
             login: defaultLogin,
             passwordHash: passwordHash,
             roleId: adminRole.id,

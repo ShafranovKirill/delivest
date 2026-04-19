@@ -165,14 +165,14 @@ describe('StaffController', () => {
   describe('update', () => {
     it('should update staff data and return ReadStaffDto', async () => {
       const id = 'staff-1';
-      const dto = { name: 'Обновленное Имя' } as UpdateStaffDto;
+      const dto = { id, name: 'Обновленное Имя' } as UpdateStaffDto;
       const mockResult = { id, name: 'Обновленное Имя', login: 'admin' };
 
       service.update.mockResolvedValue(mockResult as any);
 
-      const result = await controller.update(id, dto);
+      const result = await controller.update(dto);
 
-      expect(service.update).toHaveBeenCalledWith(id, dto);
+      expect(service.update).toHaveBeenCalledWith(dto);
       expect(result).toEqual(mockResult);
     });
   });

@@ -27,13 +27,14 @@ import { RemoveFromCartDto } from './dto/remove-item.dto.js';
 export class AdminCartController {
   constructor(private readonly cartService: CartService) {}
 
-  @Get()
+  @Get('/:branchId')
   @ApiOperation({ summary: 'Получить корзину текущего сотрудника' })
   @RequirePermission(Permission.ORDER_CREATE)
   async getStaffCart(
     @CurrentStaff('sub') staffId: string,
+    @Param('branchId') branchId: string,
   ): Promise<ReadCartDto> {
-    return this.cartService.getCart({ staffId });
+    return this.cartService.getCart({ staffId }, branchId);
   }
 
   @Post('add')
