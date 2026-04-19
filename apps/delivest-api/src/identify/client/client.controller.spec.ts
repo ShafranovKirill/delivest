@@ -60,9 +60,13 @@ describe('ClientController', () => {
       service.generateAccessToken.mockResolvedValue(accessToken);
       service.generateRefreshToken.mockResolvedValue(refreshToken);
 
-      const result = await controller.loginByCode(dto, mockResponse);
+      const result = await controller.loginByCode(dto, mockResponse, '123asd');
 
-      expect(service.loginByCode).toHaveBeenCalledWith(dto.phone, dto.code);
+      expect(service.loginByCode).toHaveBeenCalledWith(
+        dto.phone,
+        dto.code,
+        '123asd',
+      );
       expect(service.generateAccessToken).toHaveBeenCalledWith(mockAccount);
       expect(service.setRefreshCookie).toHaveBeenCalledWith(
         mockResponse,

@@ -1,15 +1,14 @@
-import { AddToCartRequest } from '@delivest/types';
+import { AddToOrderRequest } from '@delivest/types';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsUUID, IsInt, Min } from 'class-validator';
 
-export class AddToCartDto implements AddToCartRequest {
+export class AddToOrderDto implements AddToOrderRequest {
   @ApiProperty({
     example: '550e8400-e29b-4114-a432-446655440000',
-    description: 'ID корзины из базы данных',
+    description: 'ID заказа из базы данных',
   })
   @IsUUID()
-  cartId: string;
-
+  orderId: string;
   @ApiProperty({
     example: '550e8400-e29b-4114-a432-446655440000',
     description: 'ID товара из базы данных',

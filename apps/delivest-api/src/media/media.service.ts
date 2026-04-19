@@ -198,7 +198,10 @@ export class MediaService implements OnModuleInit {
     this.logger.log(`deleteFile() | Delete file ${fileId}`);
   }
 
-  generatePublicUrl(fileKey: string): string {
+  generatePublicUrl(fileKey: string | null | undefined): string | null {
+    if (!fileKey) {
+      return null;
+    }
     return `${this.endpointPublic}/${this.bucket}/${fileKey}`;
   }
 

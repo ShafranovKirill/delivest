@@ -10,6 +10,9 @@ import { ProductService } from './product.service.js';
 import { CreateProductDto } from './dto/create.dto.js';
 import { UpdateProductDto } from './dto/update.dto.js';
 import { PrismaErrorCode } from '@delivest/common';
+import { PhotoEditorService } from '../../media/photo-queue/photo-editor.service.js';
+import { MediaService } from '../../media/media.service.js';
+import { NotificationGateway } from '../../notification/notification.gateway.js';
 import * as DbErrors from '../../shared/helpers/db-errors.js';
 
 jest.mock('../../shared/helpers/db-errors.js', () => ({
@@ -27,6 +30,9 @@ import {
 describe('ProductService (Extended Tests)', () => {
   let service: ProductService;
   let mockPrisma: any;
+  let mockPhotoEditor: any;
+  let mockMediaService: any;
+  let mockNotificationGateway: any;
 
   const mockProduct = {
     id: 'prod-123',
@@ -38,6 +44,21 @@ describe('ProductService (Extended Tests)', () => {
   };
 
   beforeEach(async () => {
+    mockPhotoEditor = {
+      uploadAndEditMultiple: jest.fn(),
+    };
+
+    mockMediaService = {
+      deleteFilesByKeys: jest.fn(),
+    };
+
+    mockNotificationGateway = {
+      server: {
+        to: jest.fn().mockReturnThis(),
+        emit: jest.fn(),
+      },
+    };
+
     const prismaMock = {
       product: {
         findMany: jest.fn(),
@@ -51,6 +72,9 @@ describe('ProductService (Extended Tests)', () => {
       providers: [
         ProductService,
         { provide: PrismaService, useValue: prismaMock },
+        { provide: PhotoEditorService, useValue: mockPhotoEditor },
+        { provide: MediaService, useValue: mockMediaService },
+        { provide: NotificationGateway, useValue: mockNotificationGateway },
       ],
     }).compile();
 

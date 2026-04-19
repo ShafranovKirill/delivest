@@ -31,6 +31,7 @@ import { toDto } from '../../utils/to-dto.js';
 import { ReadClientDto } from './dto/read.dto.js';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
   BadRequestException,
@@ -88,6 +89,9 @@ describe('ClientService', () => {
   };
 
   const mockTx = {
+    client: {
+      upsert: jest.fn() as jest.MockedFunction<any>,
+    },
     authMessage: {
       findFirst: jest.fn() as jest.MockedFunction<any>,
       update: jest.fn() as jest.MockedFunction<any>,
@@ -141,6 +145,10 @@ describe('ClientService', () => {
           provide: JwtService,
           useValue: { signAsync: jest.fn(), verifyAsync: jest.fn() },
         },
+        {
+          provide: EventEmitter2,
+          useValue: { emit: jest.fn(), on: jest.fn() },
+        },
         { provide: TransactionHost, useValue: mockTxHost },
       ],
     }).compile();
@@ -153,6 +161,10 @@ describe('ClientService', () => {
     mockTx.authMessage.findFirst.mockResolvedValue(null);
     mockTx.authMessage.create.mockResolvedValue(mockAuthMessageRecord);
     mockTx.authMessage.update.mockResolvedValue(mockAuthMessageRecord);
+    mockTx.client.upsert.mockResolvedValue({
+      ...mockClient,
+      phone: '+79161234567',
+    });
 
     jest.spyOn((service as any).logger, 'error').mockImplementation(() => {});
     jest.spyOn((service as any).logger, 'warn').mockImplementation(() => {});
@@ -191,9 +203,10 @@ describe('ClientService', () => {
         .mockReturnValue(normalizedPhone);
 
       mockPrisma.client.findUnique.mockResolvedValue(null);
-      mockPrisma.client.create.mockResolvedValue({
+      mockTx.client.upsert.mockResolvedValue({
         id: 'new-id',
         phone: normalizedPhone,
+        name: '',
       });
 
       // Важно: requestAuthCode тоже полезет в БД искать старые коды
@@ -202,8 +215,10 @@ describe('ClientService', () => {
 
       await service.sendCode(rawPhone, SendCodeType.ZVONOK);
 
-      expect(mockPrisma.client.create).toHaveBeenCalledWith({
-        data: { phone: normalizedPhone, name: '' },
+      expect(mockTx.client.upsert).toHaveBeenCalledWith({
+        where: { phone: normalizedPhone },
+        update: {},
+        create: { phone: normalizedPhone, name: '' },
       });
 
       // Проверяем вызов нового метода уведомлений
@@ -280,7 +295,7 @@ describe('ClientService', () => {
         phone: '+79991112233',
       };
 
-      mockPrisma.client.create.mockResolvedValue({
+      mockTx.client.upsert.mockResolvedValue({
         ...mockClient,
         phone: dto.phone,
       });
@@ -288,8 +303,10 @@ describe('ClientService', () => {
       const result = await service.create(dto);
 
       expect(result.phone).toBe(dto.phone);
-      expect(mockPrisma.client.create).toHaveBeenCalledWith({
-        data: {
+      expect(mockTx.client.upsert).toHaveBeenCalledWith({
+        where: { phone: dto.phone },
+        update: {},
+        create: {
           phone: dto.phone,
         },
       });
@@ -307,7 +324,7 @@ describe('ClientService', () => {
         },
       );
 
-      mockPrisma.client.create.mockRejectedValue(prismaError);
+      mockTx.client.upsert.mockRejectedValue(prismaError);
 
       await expect(service.create(dto)).rejects.toThrow(
         PhoneAlreadyExistsException,
@@ -317,7 +334,7 @@ describe('ClientService', () => {
     it('should throw original error on any other DB error', async () => {
       const dto: CreateClientDto = { phone: '+70000000000' };
       const dbError = new Error('DB connection lost');
-      mockPrisma.client.create.mockRejectedValue(dbError);
+      mockTx.client.upsert.mockRejectedValue(dbError);
 
       await expect(service.create(dto)).rejects.toThrow('DB connection lost');
     });
@@ -575,7 +592,7 @@ describe('ClientService', () => {
         },
       );
 
-      mockPrisma.client.create.mockRejectedValue(prismaError);
+      mockTx.client.upsert.mockRejectedValue(prismaError);
 
       await expect(service.create(dto)).rejects.toThrow(
         PhoneAlreadyExistsException,
@@ -589,7 +606,7 @@ describe('ClientService', () => {
         { code: 'P9999', clientVersion: '5.x.x' },
       );
 
-      mockPrisma.client.create.mockRejectedValue(unknownPrismaError);
+      mockTx.client.upsert.mockRejectedValue(unknownPrismaError);
 
       await expect(service.create(dto)).rejects.toThrow(BadRequestException);
 

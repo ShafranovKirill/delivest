@@ -1,9 +1,19 @@
 import { PASSWORD_REGEX } from '@delivest/common';
 import { CreateStaffRequest } from '@delivest/types';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Matches } from 'class-validator';
+import { IsArray, IsString, Matches } from 'class-validator';
 
 export class CreateStaffDto implements CreateStaffRequest {
+  @ApiProperty({
+    description: 'Список айди филиалов',
+    example: ['rest-1', 'rest-2'],
+    required: true,
+    type: [String],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  branchIds: string[];
+
   @ApiProperty({
     description: 'Логин работника',
     example: 'staff',

@@ -49,6 +49,7 @@ describe('StaffService', () => {
     login: 'admin_user',
     passwordHash: 'hashed_password',
     roleId: 'role-uuid',
+    name: 'Admin User',
     createdAt: new Date(),
     updatedAt: new Date(),
     deletedAt: null,
@@ -64,6 +65,9 @@ describe('StaffService', () => {
         findUnique: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
+      },
+      staffBranch: {
+        findMany: jest.fn(),
       },
     };
 
@@ -143,6 +147,8 @@ describe('StaffService', () => {
       login: 'new_staff',
       password: 'password123',
       roleId: 'role-id',
+      name: 'New Staff Member',
+      branchIds: ['branch-1', 'branch-2'],
     };
 
     it('should hash password and create staff', async () => {
@@ -161,7 +167,14 @@ describe('StaffService', () => {
           login: createDto.login,
           passwordHash: 'new_hash',
           roleId: createDto.roleId,
+          name: createDto.name,
+          branches: {
+            createMany: {
+              data: createDto.branchIds.map((branchId) => ({ branchId })),
+            },
+          },
         },
+        include: { branches: true },
       });
       expect(result.login).toBe(createDto.login);
     });
@@ -205,15 +218,23 @@ describe('StaffService', () => {
     it('should generate access token with role permissions', async () => {
       const mockRole = { id: 'role-uuid', permissions: ['READ_ALL'] };
       mockRoleService.findById.mockResolvedValue(mockRole);
+      mockPrisma.staffBranch.findMany.mockResolvedValue([
+        { branchId: 'branch-1' },
+      ]);
       (service as any).jwt.signAsync.mockResolvedValue('access_token');
 
       const token = await service.generateAccessToken(mockStaff);
 
       expect(mockRoleService.findById).toHaveBeenCalledWith(mockStaff.roleId);
+      expect(mockPrisma.staffBranch.findMany).toHaveBeenCalledWith({
+        where: { staffId: mockStaff.id },
+        select: { branchId: true },
+      });
       expect((service as any).jwt.signAsync).toHaveBeenCalledWith(
         expect.objectContaining({
           permissions: mockRole.permissions,
           sub: mockStaff.id,
+          branchIds: ['branch-1'],
         }),
         expect.objectContaining({ secret: 'ACCESS_SECRET_STAFF' }),
       );

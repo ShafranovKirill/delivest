@@ -25,6 +25,7 @@ model Staff {
   passwordHash String  @map("password_hash")
   name         String?
 
+  branches StaffBranch[]
   roleId String @map("role_id")
   role   Role   @relation(fields: [roleId], references: [id])
 
@@ -33,6 +34,16 @@ model Staff {
   deletedAt DateTime? @map("deleted_at")
 
   @@map("staffs")
+}
+
+model StaffBranch {
+  staffId  String @map("staff_id")
+  branchId String @map("branch_id")
+
+  staff  Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@id([staffId, branchId])
+  @@map("staff_branches")
 }
 
 model Role {
@@ -140,10 +151,14 @@ model Cart {
   sessionId String?    @unique @map("session_id")
   clientId  String?    @unique @map("client_id")
   staffId   String?    @unique @map("staff_id")
+  branchId  String     @map("branch_id")
   items     CartItem[]
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
 
+  @@unique([clientId, branchId])
+  @@unique([sessionId, branchId])
+  @@unique([staffId, branchId])
   @@map("carts")
 }
 
@@ -175,40 +190,47 @@ model MediaFile {
 
 model Order {
   id          String @id @default(uuid())
-  orderNumber Int    @unique @default(autoincrement())
+  orderNumber Int    @unique @default(autoincrement()) @map("order_number")
 
-  customerId String
-  employeeId String?
+  branchId    String @map("branch_id")
+
+  clientId String? @map("client_id")
+  staffId  String? @map("staff_id")
 
   status       OrderStatus  @default(PENDING)
-  deliveryType DeliveryType
+  deliveryType DeliveryType @map("delivery_type")
 
-  totalPrice    Decimal
-  deliveryPrice Decimal @default(0)
+  totalPrice    Int @map("total_price")
+  deliveryPrice Int @default(0) @map("delivery_price")
 
   address String?
   comment String?
-  phone   String
+  phone   String?
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   items OrderItem[]
+
+  @@map("orders")
 }
 
 model OrderItem {
   id      String @id @default(uuid())
-  orderId String
+  orderId String @map("order_id")
   order   Order  @relation(fields: [orderId], references: [id])
 
-  productId String
+  productId String @map("product_id")
 
   title    String
-  price    Decimal
+  price    Int
   quantity Int
 
   modifiers Json?
+
+  @@unique([orderId, productId])
+  @@map("order_items")
 }
 
 enum DeliveryType {
@@ -265,6 +287,11 @@ enum Permission {
   BRANCH_READ
   BRANCH_UPDATE
   BRANCH_DELETE
+  //Заказ
+  ORDER_CREATE
+  ORDER_READ
+  ORDER_UPDATE
+  ORDER_DELETE
 }
 
 enum SendCodeType {

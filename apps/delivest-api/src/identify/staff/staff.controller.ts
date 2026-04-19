@@ -69,29 +69,17 @@ export class StaffController {
   @ApiOperation({ summary: 'Создать работника' })
   @UseGuards(JwtStaffAuthGuard, AclGuard)
   @RequirePermission(Permission.STAFF_CREATE)
-  async register(
-    @Res({ passthrough: true }) res: Response,
-    @Body() dto: CreateStaffDto,
-  ) {
-    const client = await this.service.create(dto);
-    const accessToken = await this.service.generateAccessToken(client);
-    const refreshToken = await this.service.generateRefreshToken(client);
-
-    this.service.setRefreshCookie(res, refreshToken);
-
-    return { accessToken };
+  async register(@Body() dto: CreateStaffDto): Promise<ReadStaffDto> {
+    return await this.service.create(dto);
   }
 
-  @Patch('update/:id')
+  @Patch('update')
   @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Обновить данные работника' })
   @UseGuards(JwtStaffAuthGuard, AclGuard)
   @RequirePermission(Permission.STAFF_UPDATE)
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateStaffDto,
-  ): Promise<ReadStaffDto> {
-    return await this.service.update(id, dto);
+  async update(@Body() dto: UpdateStaffDto): Promise<ReadStaffDto> {
+    return await this.service.update(dto);
   }
 
   @Delete('delete/:id')

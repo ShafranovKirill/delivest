@@ -2,11 +2,20 @@ import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import * as argon2 from 'argon2';
 import { Permission } from '../../generated/prisma/enums.js';
+import { CreateClientDto } from './client/dto/create.dto.js';
+import { ClientService } from './client/client.service.js';
 
 @Injectable()
 export class IdentityService implements OnApplicationBootstrap {
   private readonly logger = new Logger(IdentityService.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clientService: ClientService,
+  ) {}
+
+  async createProfileIfNotExist(dto: CreateClientDto) {
+    return await this.clientService.create(dto);
+  }
   async onApplicationBootstrap() {
     await this.seedAdmin();
   }
@@ -33,7 +42,6 @@ export class IdentityService implements OnApplicationBootstrap {
 
       if (!adminExists) {
         this.logger.log('No admin user found. Creating default admin...');
-
         const defaultLogin = 'staff';
         const defaultPass = 'SecurePass123!';
         const passwordHash = await argon2.hash(defaultPass);
