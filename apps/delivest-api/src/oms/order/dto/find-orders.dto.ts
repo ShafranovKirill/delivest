@@ -1,8 +1,18 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsUUID, IsInt, Min, IsDate, Max } from 'class-validator';
+import {
+  IsOptional,
+  IsUUID,
+  IsInt,
+  Min,
+  IsDate,
+  Max,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
+import { OrderStatus } from '../../../../generated/prisma/enums.js';
+import { FindOrdersRequest } from '@delivest/types';
 
-export class FindOrdersDto {
+export class FindOrdersDto implements FindOrdersRequest {
   @ApiPropertyOptional({
     example: '550e8400-e29b-4114-a432-446655440000',
     description: 'ID филиала',
@@ -10,6 +20,14 @@ export class FindOrdersDto {
   @IsOptional()
   @IsUUID()
   branchId?: string;
+
+  @ApiPropertyOptional({
+    example: 'PENDING',
+    description: 'Статус заказа',
+  })
+  @IsOptional()
+  @IsEnum(OrderStatus)
+  orderStatus?: OrderStatus;
 
   @ApiPropertyOptional({
     example: '2024-01-01T00:00:00.000Z',

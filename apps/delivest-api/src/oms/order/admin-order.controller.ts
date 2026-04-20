@@ -10,6 +10,8 @@ import { OrderService } from './order.service.js';
 import { ReadOrderDto } from './dto/read.dto.js';
 import { ReadValidateOrderDto } from './dto/read-validate.dto.js';
 import { ValidateOrderDto } from './dto/validate.dto.js';
+import { AddToOrderDto } from './dto/add-item.dto.js';
+import { RemoveFromOrderDto } from './dto/remove-item.dto.js';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto.js';
 import { AdminCreateOrderDto } from './dto/admin-create.dto.js';
 import { CurrentStaff } from '../../shared/decorators/current-staff.decorator.js';
@@ -44,6 +46,7 @@ export class AdminOrderController {
   async findAll(@Body() dto: FindOrdersDto): Promise<ReadOrderDto[]> {
     return await this.orderService.findAllByBranch(
       dto.branchId!,
+      dto.orderStatus,
       dto.startDate,
       dto.endDate,
       dto.page,
@@ -84,6 +87,40 @@ export class AdminOrderController {
       dto.clientId,
       staffId,
       dto.status,
+    );
+  }
+
+  @Post('item')
+  @ApiOperation({ summary: 'Добавить товар в заказ' })
+  @ApiResponse({
+    status: 200,
+    description: 'Заказ с обновлённым товаром',
+    type: ReadOrderDto,
+  })
+  @RequirePermission(Permission.ORDER_UPDATE)
+  async addItem(@Body() dto: AddToOrderDto): Promise<ReadOrderDto> {
+    return await this.orderService.addItem(
+      dto.orderId,
+      dto.productId,
+      dto.quantity,
+    );
+  }
+
+  @Patch('item')
+  @ApiOperation({
+    summary: 'Уменьшить количество товара или удалить товар из заказа',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Заказ с обновлёнными позициями',
+    type: ReadOrderDto,
+  })
+  @RequirePermission(Permission.ORDER_UPDATE)
+  async removeItem(@Body() dto: RemoveFromOrderDto): Promise<ReadOrderDto> {
+    return await this.orderService.removeItem(
+      dto.orderId,
+      dto.productId,
+      dto.deleteAll,
     );
   }
 

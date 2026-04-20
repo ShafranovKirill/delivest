@@ -72,3 +72,12 @@ export interface UpdateOrderStatusRequest {
   orderId: string;
   status: OrderStatus;
 }
+
+export interface FindOrdersRequest {
+  branchId?: string;
+  orderStatus?: OrderStatus;
+  startDate?: Date;
+  endDate?: Date;
+  page?: number;
+  limit?: number;
+}

@@ -179,6 +179,7 @@ export class OrderService {
 
   async findAllByBranch(
     branchId: string,
+    orderStatus?: OrderStatus,
     startDate?: Date,
     endDate?: Date,
     page: number = 1,
@@ -191,6 +192,7 @@ export class OrderService {
           ...(startDate && { gte: startDate }),
           ...(endDate && { lte: endDate }),
         },
+        status: orderStatus,
       },
       include: { items: true },
       orderBy: { createdAt: 'desc' },
@@ -204,20 +206,6 @@ export class OrderService {
   async findByClient(clientId: string): Promise<ReadOrderDto[]> {
     const orders = await this.prisma.order.findMany({
       where: { clientId },
-      include: {
-        items: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    return orders.map((order) => toDto(order, ReadOrderDto));
-  }
-
-  async getOrdersForBranch(branchId: string): Promise<ReadOrderDto[]> {
-    const orders = await this.prisma.order.findMany({
-      where: { id: branchId },
       include: {
         items: true,
       },
@@ -310,7 +298,7 @@ export class OrderService {
         include: { items: true },
       });
 
-      return toDto(updatedOrder, ReadCartDto);
+      return toDto(updatedOrder, ReadOrderDto);
     } catch (error) {
       this.logger.error(
         `Failed to remove item ${productId}`,
