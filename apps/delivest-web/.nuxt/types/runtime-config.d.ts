@@ -32,8 +32,6 @@ import { RuntimeConfig as UserRuntimeConfig, PublicRuntimeConfig as UserPublicRu
 
       options: {
          ripple: boolean,
-
-         inputVariant: string,
       },
 
       components: Array<{

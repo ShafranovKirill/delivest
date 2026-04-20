@@ -1,4 +1,7 @@
 export default defineNuxtConfig({
+  devServer: {
+    port: 4200,
+  },
   compatibilityDate: "2024-11-01",
   devtools: { enabled: true },
   modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", "@primevue/nuxt-module"],

@@ -35,3 +35,4 @@ export { useStyle } from 'primevue/usestyle';
 export { useConfirm } from 'primevue/useconfirm';
 export { useToast } from 'primevue/usetoast';
 export { useDialog } from 'primevue/usedialog';
+export { useNuxtDevTools } from '../../../node_modules/.pnpm/@nuxt+devtools@3.2.4_vite@7.3.1_@types+node@24.12.0_jiti@1.21.7_terser@5.46.1_yaml@2.8.2__vue@3.5.30_typescript@5.9.3_/node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools';

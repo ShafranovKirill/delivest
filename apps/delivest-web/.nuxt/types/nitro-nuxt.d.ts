@@ -2,7 +2,7 @@
 /// <reference path="nitro-layouts.d.ts" />
 /// <reference path="app.config.d.ts" />
 /// <reference path="runtime-config.d.ts" />
-/// <reference path="../../../../node_modules/.pnpm/@nuxt+nitro-server@4.4.2_@babel+core@7.29.0_@babel+plugin-proposal-decorators@7.29.0_@b_1cc059437b8eeffa6e843f415924ab86/node_modules/@nuxt/nitro-server/dist/index.d.mts" />
+/// <reference path="../../../../node_modules/.pnpm/@nuxt+nitro-server@4.4.2_@babel+core@7.29.0_@babel+plugin-proposal-decorators@7.29.0_@b_1e3b382a80a614dd292be3193e755163/node_modules/@nuxt/nitro-server/dist/index.d.mts" />
 /// <reference path="middleware.d.ts" />
 
 import type { RuntimeConfig } from 'nuxt/schema'

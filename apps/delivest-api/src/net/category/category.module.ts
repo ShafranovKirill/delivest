@@ -4,9 +4,10 @@ import { CategoryController } from './category.controller.js';
 import { PrismaModule } from '../../prisma/prisma.module.js';
 import { AdminCategoryController } from './admin-category.controller.js';
 import { JwtModule } from '@nestjs/jwt';
+import { IdentityModule } from '../../identify/identify.module.js';
 
 @Module({
-  imports: [PrismaModule, JwtModule],
+  imports: [PrismaModule, JwtModule, IdentityModule],
   controllers: [CategoryController, AdminCategoryController],
   providers: [CategoryService],
   exports: [CategoryService],

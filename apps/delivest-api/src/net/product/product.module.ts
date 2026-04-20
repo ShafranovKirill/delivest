@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PhotoQueueModule } from '../../media/photo-queue/photo-queue.module.js';
 import { MediaModule } from '../../media/media.module.js';
 import { NotificationModule } from '../../notification/notification.module.js';
+import { IdentityModule } from '../../identify/identify.module.js';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { NotificationModule } from '../../notification/notification.module.js';
     PhotoQueueModule,
     MediaModule,
     NotificationModule,
+    IdentityModule,
   ],
   controllers: [ProductController, AdminProductController],
   providers: [ProductService],
