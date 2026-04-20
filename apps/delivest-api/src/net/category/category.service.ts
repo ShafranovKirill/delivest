@@ -18,11 +18,23 @@ import {
   isPrismaError,
 } from '../../shared/helpers/db-errors.js';
 import { UpdateCategoryDto } from './dto/update.dto.js';
+import { IdentityService } from '../../identify/identify.service.js';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma/dist/src/lib/transactional-adapter-prisma.js';
+import { PrismaClient } from '../../../generated/prisma/client.js';
+import { TransactionHost } from '@nestjs-cls/transactional/dist/src/lib/transaction-host.js';
+import { type AccessStaffTokenPayload } from '@delivest/types';
+import { Transactional } from '@nestjs-cls/transactional';
 
 @Injectable()
 export class CategoryService {
   private readonly logger = new Logger(CategoryService.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly identityService: IdentityService,
+    private readonly txHost: TransactionHost<
+      TransactionalAdapterPrisma<PrismaClient>
+    >,
+  ) {}
 
   async findAllByBranch(branchId: string): Promise<ReadCategoryDto[]>;
   async findAllByBranch(
@@ -87,23 +99,33 @@ export class CategoryService {
       throw new BadRequestException();
     }
   }
-
+  @Transactional()
   async update(
-    categoryId: string,
     dto: UpdateCategoryDto,
+    staffToken?: AccessStaffTokenPayload,
   ): Promise<AdminReadCategoryDto> {
     try {
-      const updatedCategory = await this.prisma.category.update({
-        where: { id: categoryId },
+      const updatedCategory = await this.txHost.tx.category.update({
+        where: { id: dto.categoryId },
         data: {
           ...dto,
         },
       });
 
+      if (staffToken) {
+        this.identityService.checkBranchAbility(
+          staffToken,
+          updatedCategory.branchId,
+        );
+      }
+
       return toDto(updatedCategory, AdminReadCategoryDto);
     } catch (error) {
+      if (error instanceof DomainException) {
+        throw error;
+      }
       this.logger.error(
-        `update(${categoryId}) | error: ${(error as Error).message}`,
+        `update(${dto.categoryId}) | error: ${(error as Error).message}`,
         (error as Error).stack,
       );
 
@@ -111,13 +133,22 @@ export class CategoryService {
     }
   }
 
-  async create(dto: CreateCategoryDto): Promise<AdminReadCategoryDto> {
+  async create(
+    dto: CreateCategoryDto,
+    staffToken?: AccessStaffTokenPayload,
+  ): Promise<AdminReadCategoryDto> {
     try {
-      const newCategory = await this.prisma.category.create({
+      if (staffToken) {
+        this.identityService.checkBranchAbility(staffToken, dto.branchId);
+      }
+      const newCategory = await this.txHost.tx.category.create({
         data: { ...dto },
       });
       return toDto(newCategory, AdminReadCategoryDto);
     } catch (error) {
+      if (error instanceof DomainException) {
+        throw error;
+      }
       this.logger.error(
         `create() | ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
@@ -125,14 +156,29 @@ export class CategoryService {
     }
   }
 
-  async softDelete(id: string): Promise<void> {
+  @Transactional()
+  async softDelete(
+    id: string,
+    staffToken?: AccessStaffTokenPayload,
+  ): Promise<void> {
     try {
-      await this.prisma.category.update({
+      const category = await this.txHost.tx.category.findUnique({
+        where: { id: id },
+      });
+      if (staffToken && category) {
+        this.identityService.checkBranchAbility(staffToken, category?.branchId);
+      }
+
+      await this.txHost.tx.category.update({
         where: { id: id },
         data: { deletedAt: new Date() },
       });
+
       this.logger.log(`softDelete() | Category soft-deleted | id=${id}`);
     } catch (error) {
+      if (error instanceof DomainException) {
+        throw error;
+      }
       this.logger.error(
         `softDelete() | Error | id=${id}`,
         (error as Error).stack,

@@ -64,9 +64,9 @@ describe('AdminCategoryController', () => {
       };
       service.create.mockResolvedValue(mockCategory as any);
 
-      const result = await controller.create(dto);
+      const result = await controller.create(dto, 'staff-token' as any);
 
-      expect(service.create).toHaveBeenCalledWith(dto);
+      expect(service.create).toHaveBeenCalledWith(dto, 'staff-token' as any);
       expect(result).toEqual(mockCategory);
     });
   });
@@ -88,14 +88,24 @@ describe('AdminCategoryController', () => {
   describe('update', () => {
     it('should update category information', async () => {
       const id = 'cat-123';
-      const updateDto: UpdateCategoryDto = { name: 'Обновленная Пицца' };
+      const updateDto: UpdateCategoryDto = {
+        categoryId: id,
+        name: 'Обновленная Пицца',
+      };
       const updatedCategory = { ...mockCategory, name: 'Обновленная Пицца' };
 
       service.update.mockResolvedValue(updatedCategory as any);
 
-      const result = await controller.update(id, updateDto);
+      const result = await controller.update(
+        id,
+        updateDto,
+        'staff-token' as any,
+      );
 
-      expect(service.update).toHaveBeenCalledWith(id, updateDto);
+      expect(service.update).toHaveBeenCalledWith(
+        { ...updateDto, categoryId: id },
+        'staff-token' as any,
+      );
       expect(result).toEqual(updatedCategory);
     });
   });
@@ -117,9 +127,9 @@ describe('AdminCategoryController', () => {
       const id = 'cat-123';
       service.softDelete.mockResolvedValue(undefined);
 
-      await controller.softDelete(id);
+      await controller.softDelete(id, '123' as any);
 
-      expect(service.softDelete).toHaveBeenCalledWith(id);
+      expect(service.softDelete).toHaveBeenCalledWith(id, '123' as any);
     });
   });
 });
