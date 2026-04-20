@@ -17,6 +17,8 @@ import { JwtStaffAuthGuard } from '../../identify/index.js';
 import { AclGuard } from '../../identify/acl/guards/acl.guard.js';
 import { RequirePermission } from '../../identify/acl/decorators/require-permission.decorator.js';
 import { UpdateCategoryDto } from './dto/update.dto.js';
+import { CurrentStaff } from '../../shared/decorators/current-staff.decorator.js';
+import { type AccessStaffTokenPayload } from '@delivest/types';
 
 @ApiTags('Admin-category (Категории-crm)')
 @Controller('admin/category')
@@ -28,8 +30,11 @@ export class AdminCategoryController {
   @Post('create')
   @ApiOperation({ summary: 'Создать категорию' })
   @RequirePermission(Permission.CATEGORY_CREATE)
-  async create(@Body() dto: CreateCategoryDto): Promise<AdminReadCategoryDto> {
-    return await this.service.create(dto);
+  async create(
+    @Body() dto: CreateCategoryDto,
+    @CurrentStaff() staff: AccessStaffTokenPayload,
+  ): Promise<AdminReadCategoryDto> {
+    return await this.service.create(dto, staff);
   }
 
   @Get('by-branch/:branchId')
@@ -47,8 +52,9 @@ export class AdminCategoryController {
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateCategoryDto,
+    @CurrentStaff() staff?: AccessStaffTokenPayload,
   ): Promise<AdminReadCategoryDto> {
-    return await this.service.update(id, dto);
+    return await this.service.update({ ...dto, categoryId: id }, staff);
   }
 
   @Get(':id')
@@ -61,7 +67,10 @@ export class AdminCategoryController {
   @Delete('delete/:id')
   @ApiOperation({ summary: 'Мягкое удаление категории' })
   @RequirePermission(Permission.CATEGORY_DELETE)
-  async softDelete(@Param('id') id: string): Promise<void> {
-    return await this.service.softDelete(id);
+  async softDelete(
+    @Param('id') id: string,
+    @CurrentStaff() staff: AccessStaffTokenPayload,
+  ): Promise<void> {
+    return await this.service.softDelete(id, staff);
   }
 }

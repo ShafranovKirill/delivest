@@ -27,6 +27,12 @@ describe('ProductController', () => {
     price: 500,
     branchId: 'branch-999',
     categoryId: 'cat-001',
+    photo: null,
+    photos: {
+      product_card: 'card-key',
+      product_preview: 'preview-key',
+      product_original: 'original-key',
+    },
     isActive: true,
     createdAt: new Date(),
     updatedAt: new Date(),

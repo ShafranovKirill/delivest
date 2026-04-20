@@ -28,6 +28,8 @@ import { JwtStaffAuthGuard } from '../../identify/index.js';
 import { AclGuard } from '../../identify/acl/guards/acl.guard.js';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RequirePermission } from '../../identify/acl/decorators/require-permission.decorator.js';
+import { CurrentStaff } from '../../shared/decorators/current-staff.decorator.js';
+import { type AccessStaffTokenPayload } from '@delivest/types';
 
 @ApiTags('Admin-product (Продукты-crm)')
 @Controller('admin/product')
@@ -39,8 +41,11 @@ export class AdminProductController {
   @Post('create')
   @ApiOperation({ summary: 'Создать продукт' })
   @RequirePermission(Permission.PRODUCT_CREATE)
-  async create(@Body() dto: CreateProductDto): Promise<AdminReadProductDto> {
-    return await this.service.create(dto);
+  async create(
+    @Body() dto: CreateProductDto,
+    @CurrentStaff() staff?: AccessStaffTokenPayload,
+  ): Promise<AdminReadProductDto> {
+    return await this.service.create(dto, staff);
   }
 
   @Get('by-branch/:branchId')
@@ -78,21 +83,24 @@ export class AdminProductController {
     return await this.service.findOne(id, true);
   }
 
-  @Patch('update/:id')
+  @Patch('update')
   @ApiOperation({ summary: 'Обновить продукт' })
   @RequirePermission(Permission.PRODUCT_UPDATE)
   async update(
-    @Param('id') id: string,
     @Body() dto: UpdateProductDto,
+    @CurrentStaff() staff?: AccessStaffTokenPayload,
   ): Promise<AdminReadProductDto> {
-    return await this.service.update(id, dto);
+    return await this.service.update(dto, staff);
   }
 
   @Delete('delete/:id')
   @ApiOperation({ summary: 'Мягкое удаление продукта' })
   @RequirePermission(Permission.PRODUCT_DELETE)
-  async softDelete(@Param('id') id: string): Promise<void> {
-    return await this.service.softDelete(id);
+  async softDelete(
+    @Param('id') id: string,
+    @CurrentStaff() staff?: AccessStaffTokenPayload,
+  ): Promise<void> {
+    return await this.service.softDelete(id, staff);
   }
 
   @Post(':id/photo')
@@ -119,6 +127,7 @@ export class AdminProductController {
     @Param('id') productId: string,
     @UploadedFile() file: Express.Multer.File,
     @Query('socketId') socketId: string,
+    @CurrentStaff() staff?: AccessStaffTokenPayload,
   ) {
     if (!file) {
       throw new BadRequestException('Файл не был загружен');
@@ -133,6 +142,7 @@ export class AdminProductController {
       },
       productId,
       socketId,
+      staff,
     );
   }
 }

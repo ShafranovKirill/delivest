@@ -3,18 +3,20 @@ export interface CartItemResponse {
   quantity: number;
   name: string;
   price: number;
-  photoUrl?: string;
+  photoUrl?: string | null;
   totalPrice: number;
 }
 
 export interface AddToCartRequest {
+  cartId: string;
   productId: string;
   quantity: number;
 }
 
-export interface DeleteFromCartRequest {
+export interface RemoveFromCartRequest {
+  cartId: string;
   productId: string;
-  quantity: number;
+  deleteAll: boolean;
 }
 
 export interface CartResponse {

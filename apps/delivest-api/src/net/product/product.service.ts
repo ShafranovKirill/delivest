@@ -29,7 +29,11 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { PRODUCT_PHOTO_PRESETS } from '../../media/photo-configs/presets.js';
 import { MediaService } from '../../media/media.service.js';
 import { NotificationGateway } from '../../notification/notification.gateway.js';
-import { SocketEvent } from '@delivest/types';
+import { type AccessStaffTokenPayload, SocketEvent } from '@delivest/types';
+import { IdentityService } from '../../identify/identify.service.js';
+import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma/dist/src/lib/transactional-adapter-prisma.js';
+import { PrismaClient } from '../../../generated/prisma/client.js';
 
 @Injectable()
 export class ProductService {
@@ -39,6 +43,10 @@ export class ProductService {
     private readonly photoEditor: PhotoEditorService,
     private readonly mediaService: MediaService,
     private readonly notificationGateway: NotificationGateway,
+    private readonly identityService: IdentityService,
+    private readonly txHost: TransactionHost<
+      TransactionalAdapterPrisma<PrismaClient>
+    >,
   ) {}
 
   async findAllByBranch(branchId: string): Promise<ReadProductDto[]>;
@@ -154,8 +162,15 @@ export class ProductService {
     }
   }
 
-  async create(dto: CreateProductDto): Promise<AdminReadProductDto> {
+  async create(
+    dto: CreateProductDto,
+    staffPayload?: AccessStaffTokenPayload,
+  ): Promise<AdminReadProductDto> {
     try {
+      if (staffPayload) {
+        this.identityService.checkBranchAbility(staffPayload, dto.branchId);
+      }
+
       const newProduct = await this.prisma.product.create({ data: { ...dto } });
       return toDto(newProduct, AdminReadProductDto);
     } catch (error) {
@@ -204,12 +219,23 @@ export class ProductService {
     }
   }
 
-  async softDelete(id: string): Promise<void> {
+  @Transactional()
+  async softDelete(
+    id: string,
+    staffPayload?: AccessStaffTokenPayload,
+  ): Promise<void> {
     try {
-      await this.prisma.product.update({
+      const deletedProduct = await this.txHost.tx.product.update({
         where: { id: id },
         data: { deletedAt: new Date() },
       });
+      if (staffPayload) {
+        this.identityService.checkBranchAbility(
+          staffPayload,
+          deletedProduct.branchId,
+        );
+      }
+
       this.logger.log(`softDelete() | Product soft-deleted | id=${id}`);
     } catch (error) {
       this.logger.error(
@@ -220,23 +246,32 @@ export class ProductService {
       this.handleProductConstraintError(error);
     }
   }
-
+  @Transactional()
   async update(
-    productId: string,
     dto: UpdateProductDto,
+    staffPayload?: AccessStaffTokenPayload,
   ): Promise<AdminReadProductDto> {
     try {
-      const updatedProduct = await this.prisma.product.update({
-        where: { id: productId },
+      const updatedProduct = await this.txHost.tx.product.update({
+        where: { id: dto.productId },
         data: {
           ...dto,
         },
       });
+      if (staffPayload) {
+        this.identityService.checkBranchAbility(
+          staffPayload,
+          updatedProduct.branchId,
+        );
+      }
 
       return toDto(updatedProduct, AdminReadProductDto);
     } catch (error) {
+      if (error instanceof DomainException) {
+        throw error;
+      }
       this.logger.error(
-        `update(${productId}) | error: ${(error as Error).message}`,
+        `update(${dto.productId}) | error: ${(error as Error).message}`,
         (error as Error).stack,
       );
 
@@ -248,8 +283,20 @@ export class ProductService {
     file: UploadFile,
     productId: string,
     socketId: string,
+    staffPayload?: AccessStaffTokenPayload,
   ): Promise<void> {
     try {
+      const product = await this.prisma.product.findUnique({
+        where: { id: productId },
+      });
+
+      if (!product) {
+        throw new NotFoundException(`Product with ID ${productId} not found`);
+      }
+
+      if (staffPayload) {
+        this.identityService.checkBranchAbility(staffPayload, product.branchId);
+      }
       await this.photoEditor.uploadAndEditMultiple(
         productId,
         file,

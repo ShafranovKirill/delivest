@@ -2,13 +2,39 @@ import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import * as argon2 from 'argon2';
 import { Permission } from '../../generated/prisma/enums.js';
+import { CreateClientDto } from './client/dto/create.dto.js';
+import { ClientService } from './client/client.service.js';
+import { AccessStaffTokenPayload } from '@delivest/types';
+import { BranchAbilityService } from './staff/branch-ability.service.js';
 
 @Injectable()
 export class IdentityService implements OnApplicationBootstrap {
   private readonly logger = new Logger(IdentityService.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clientService: ClientService,
+    private readonly branchAbilityService: BranchAbilityService,
+  ) {}
+
+  async createProfileIfNotExist(dto: CreateClientDto) {
+    return await this.clientService.create(dto);
+  }
   async onApplicationBootstrap() {
     await this.seedAdmin();
+  }
+
+  checkBranchAbility(staffToken: AccessStaffTokenPayload, branchId: string) {
+    return this.branchAbilityService.hasAccess(staffToken, branchId);
+  }
+
+  applyBranchAbility<T>(
+    staffToken: AccessStaffTokenPayload,
+    requestedBranchId?: string | string[],
+  ): T {
+    return this.branchAbilityService.applyBranchPolicy<T>(
+      staffToken,
+      requestedBranchId,
+    );
   }
 
   private async seedAdmin() {
@@ -33,7 +59,6 @@ export class IdentityService implements OnApplicationBootstrap {
 
       if (!adminExists) {
         this.logger.log('No admin user found. Creating default admin...');
-
         const defaultLogin = 'staff';
         const defaultPass = 'SecurePass123!';
         const passwordHash = await argon2.hash(defaultPass);

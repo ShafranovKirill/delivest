@@ -70,7 +70,7 @@ describe('AdminProductController', () => {
 
       const result = await controller.create(dto);
 
-      expect(service.create).toHaveBeenCalledWith(dto);
+      expect(service.create).toHaveBeenCalledWith(dto, undefined);
       expect(result).toEqual(mockProduct);
     });
   });
@@ -126,15 +126,14 @@ describe('AdminProductController', () => {
 
   describe('update', () => {
     it('should update product information', async () => {
-      const id = 'prod-123';
-      const updateDto: UpdateProductDto = { price: 700 };
+      const updateDto: UpdateProductDto = { productId: 'prod-123', price: 700 };
       const updatedProduct = { ...mockProduct, price: 700 };
 
       service.update.mockResolvedValue(updatedProduct as any);
 
-      const result = await controller.update(id, updateDto);
+      const result = await controller.update(updateDto);
 
-      expect(service.update).toHaveBeenCalledWith(id, updateDto);
+      expect(service.update).toHaveBeenCalledWith(updateDto, undefined);
       expect(result).toEqual(updatedProduct);
     });
   });
@@ -146,7 +145,7 @@ describe('AdminProductController', () => {
 
       await controller.softDelete(id);
 
-      expect(service.softDelete).toHaveBeenCalledWith(id);
+      expect(service.softDelete).toHaveBeenCalledWith(id, undefined);
     });
   });
 });

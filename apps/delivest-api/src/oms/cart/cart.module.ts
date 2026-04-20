@@ -19,6 +19,6 @@ import { JwtModule } from '@nestjs/jwt';
   ],
   providers: [CartService],
   controllers: [CartController, AdminCartController],
-  exports: [],
+  exports: [CartService],
 })
 export class CartModule {}

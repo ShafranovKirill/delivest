@@ -22,4 +22,6 @@ export interface CategoryResponse {
   deletedAt?: Date | null;
 }
 
-export type UpdateCategoryRequest = Partial<CreateCategoryRequest>;
+export type UpdateCategoryRequest = Partial<CreateCategoryRequest> & {
+  categoryId: string;
+};
