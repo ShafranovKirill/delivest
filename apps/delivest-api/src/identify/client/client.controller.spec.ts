@@ -3,7 +3,7 @@ import { ClientController } from './client.controller.js';
 import { ClientService } from './client.service.js';
 import { jest } from '@jest/globals';
 import { Response, Request } from 'express';
-import { MissingTokenException } from '../../shared/exception/domain_exception/domain-exception.js';
+import { MissingTokenException } from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { JwtClientAuthGuard } from './guards/jwt-client.guard.js';
 import { SendCodeType } from '../../../generated/prisma/client.js';
 
@@ -60,9 +60,13 @@ describe('ClientController', () => {
       service.generateAccessToken.mockResolvedValue(accessToken);
       service.generateRefreshToken.mockResolvedValue(refreshToken);
 
-      const result = await controller.loginByCode(dto, mockResponse);
+      const result = await controller.loginByCode(dto, mockResponse, '123asd');
 
-      expect(service.loginByCode).toHaveBeenCalledWith(dto.phone, dto.code);
+      expect(service.loginByCode).toHaveBeenCalledWith(
+        dto.phone,
+        dto.code,
+        '123asd',
+      );
       expect(service.generateAccessToken).toHaveBeenCalledWith(mockAccount);
       expect(service.setRefreshCookie).toHaveBeenCalledWith(
         mockResponse,

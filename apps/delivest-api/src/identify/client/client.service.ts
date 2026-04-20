@@ -1,20 +1,28 @@
+import { COOKIE_NAMES, PrismaErrorCode } from '@delivest/common';
 import {
   AccessClientTokenPayload,
   RefreshClientTokenPayload,
 } from '@delivest/types';
+import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
-import { PrismaService } from '../../prisma/prisma.service.js';
-import { toDto } from '../../utils/to-dto.js';
-import { CreateClientDto } from './dto/create.dto.js';
-import { ReadClientDto } from './dto/read.dto.js';
 import {
   CountryCode,
   parsePhoneNumberWithError,
   PhoneNumber,
 } from 'libphonenumber-js';
+import {
+  AuthMessage,
+  AuthStatus,
+  Client,
+  PrismaClient,
+  SendCodeType,
+} from '../../../generated/prisma/client.js';
+import { NotificationService } from '../../notification/notification.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 import {
   BadRequestException,
   DomainException,
@@ -27,25 +35,22 @@ import {
   ResendLimitExceededException,
   ResendTooFastException,
   UserNotFoundException,
-} from '../../shared/exception/domain_exception/domain-exception.js';
-import {
-  AuthMessage,
-  AuthStatus,
-  Client,
-  PrismaClient,
-  SendCodeType,
-} from '../../../generated/prisma/client.js';
+} from '../../shared/exceptions/domain_exception/domain-exception.js';
 import {
   getInternalErrorCode,
   getPrismaModelName,
   isPrismaError,
 } from '../../shared/helpers/db-errors.js';
-import { PrismaErrorCode } from '@delivest/common';
+import { toDto } from '../../utils/to-dto.js';
 import { AdminReadClientDto } from './dto/admin-read.dto.js';
+import { CreateClientDto } from './dto/create.dto.js';
+import { ReadClientDto } from './dto/read.dto.js';
 import { UpdateClientDto } from './dto/update.dto.js';
-import { NotificationService } from '../../notification/notification.service.js';
-import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
-import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  ClientLoggedInEvent,
+  DelivestEvent,
+} from '../../shared/events/types.js';
 
 @Injectable()
 export class ClientService {
@@ -71,6 +76,7 @@ export class ClientService {
     private readonly jwt: JwtService,
     private readonly prisma: PrismaService,
     private readonly notificationService: NotificationService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     this.accessTtl = +this.config.get<number>(
       'JWT_ACCESS_TTL_SECONDS_CLIENT',
@@ -183,8 +189,10 @@ export class ClientService {
 
   async create(dto: CreateClientDto): Promise<Client> {
     try {
-      const client = await this.prisma.client.create({
-        data: {
+      const client = await this.txHost.tx.client.upsert({
+        where: { phone: dto.phone },
+        update: {},
+        create: {
           phone: dto.phone,
           name: dto.name,
         },
@@ -278,7 +286,11 @@ export class ClientService {
     }
   }
 
-  async loginByCode(target: string, code: string): Promise<Client> {
+  async loginByCode(
+    target: string,
+    code: string,
+    sessionId: string,
+  ): Promise<Client> {
     try {
       const client = await this.prisma.client.findUnique({
         where: { phone: target },
@@ -292,6 +304,11 @@ export class ClientService {
       await this.checkAuthCode(target, code);
 
       this.logger.log(`loginByCode() | Client logged in | id=${client.id}`);
+      const payload: ClientLoggedInEvent = {
+        clientId: client.id,
+        sessionId: sessionId,
+      };
+      this.eventEmitter.emit(DelivestEvent.CLIENT_LOGGED_IN, payload);
       return client;
     } catch (error: unknown) {
       if (error instanceof DomainException) {
@@ -309,7 +326,7 @@ export class ClientService {
   setRefreshCookie(res: Response, token: string): void {
     const refreshMaxAge = this.refreshTtl * 1000;
 
-    res.cookie('client_refresh_token', token, {
+    res.cookie(COOKIE_NAMES.CLIENT_REFRESH_TOKEN, token, {
       httpOnly: true,
       secure: this.config.get<string>('NODE_ENV') === 'production',
       sameSite: 'strict',

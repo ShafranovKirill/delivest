@@ -4,12 +4,25 @@ import { jest } from '@jest/globals';
 import {
   NotFoundException,
   BadRequestException,
-} from '../../shared/exception/domain_exception/domain-exception.js';
+} from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { CategoryService } from './category.service.js';
+import { IdentityService } from '../../identify/identify.service.js';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { PrismaClient } from '../../../generated/prisma/client.js';
+
+jest.mock('@nestjs-cls/transactional', () => ({
+  ...(jest.requireActual('@nestjs-cls/transactional') as any),
+  Transactional:
+    () => (target: any, propertyKey: string, descriptor: PropertyDescriptor) =>
+      descriptor,
+}));
 
 describe('CategoryService (Comprehensive Tests)', () => {
   let service: CategoryService;
   let mockPrisma: any;
+  let mockIdentityService: any;
+  let mockTxHost: any;
 
   const mockCategory = {
     id: 'cat-123',
@@ -22,6 +35,24 @@ describe('CategoryService (Comprehensive Tests)', () => {
   };
 
   beforeEach(async () => {
+    mockIdentityService = {
+      checkBranchAbility: jest.fn(),
+    };
+
+    mockTxHost = {
+      tx: {
+        category: {
+          findUnique: jest.fn(),
+          create: jest.fn(),
+          update: jest.fn(),
+        },
+      },
+      withTransaction: jest.fn().mockImplementation(async (...args: any[]) => {
+        const callback = args.find((arg) => typeof arg === 'function');
+        if (callback) return await callback();
+      }),
+    };
+
     const prismaMock = {
       category: {
         findMany: jest.fn(),
@@ -35,11 +66,16 @@ describe('CategoryService (Comprehensive Tests)', () => {
       providers: [
         CategoryService,
         { provide: PrismaService, useValue: prismaMock },
+        { provide: IdentityService, useValue: mockIdentityService },
+        { provide: TransactionHost, useValue: mockTxHost },
       ],
     }).compile();
 
     service = module.get<CategoryService>(CategoryService);
     mockPrisma = module.get(PrismaService);
+
+    // Mock TransactionHost.getInstance to return our mock
+    jest.spyOn(TransactionHost, 'getInstance').mockReturnValue(mockTxHost);
 
     jest.clearAllMocks();
   });
@@ -121,7 +157,7 @@ describe('CategoryService (Comprehensive Tests)', () => {
     };
 
     it('should successfully create a category and return Admin DTO', async () => {
-      mockPrisma.category.create.mockResolvedValue({
+      mockTxHost.tx.category.create.mockResolvedValue({
         ...mockCategory,
         ...createDto,
         id: 'new-id',
@@ -131,13 +167,13 @@ describe('CategoryService (Comprehensive Tests)', () => {
 
       expect(result.id).toBe('new-id');
       expect(result.name).toBe('Десерты');
-      expect(mockPrisma.category.create).toHaveBeenCalledWith({
+      expect(mockTxHost.tx.category.create).toHaveBeenCalledWith({
         data: createDto,
       });
     });
 
     it('should fail if prisma.create fails', async () => {
-      mockPrisma.category.create.mockRejectedValue(
+      mockTxHost.tx.category.create.mockRejectedValue(
         new Error('Unique name error'),
       );
       await expect(service.create(createDto)).rejects.toThrow();
@@ -146,27 +182,31 @@ describe('CategoryService (Comprehensive Tests)', () => {
 
   describe('update', () => {
     const catId = 'cat-123';
-    const updateDto = { name: 'Обновленная Пицца', order: 10 };
+    const updateDto = {
+      categoryId: catId,
+      name: 'Обновленная Пицца',
+      order: 10,
+    };
 
     it('should update specific fields and return updated category', async () => {
-      mockPrisma.category.update.mockResolvedValue({
+      mockTxHost.tx.category.update.mockResolvedValue({
         ...mockCategory,
         ...updateDto,
       });
 
-      const result = await service.update(catId, updateDto);
+      const result = await service.update(updateDto);
 
       expect(result.name).toBe(updateDto.name);
       expect(result.order).toBe(updateDto.order);
-      expect(mockPrisma.category.update).toHaveBeenCalledWith({
+      expect(mockTxHost.tx.category.update).toHaveBeenCalledWith({
         where: { id: catId },
         data: updateDto,
       });
     });
 
     it('should throw exception if update fails (e.g. record not found)', async () => {
-      mockPrisma.category.update.mockRejectedValue(new Error('P2025'));
-      await expect(service.update(catId, updateDto)).rejects.toThrow();
+      mockTxHost.tx.category.update.mockRejectedValue(new Error('P2025'));
+      await expect(service.update(updateDto)).rejects.toThrow();
     });
   });
 
@@ -174,21 +214,23 @@ describe('CategoryService (Comprehensive Tests)', () => {
     const catId = 'cat-123';
 
     it('should set deletedAt field to current date', async () => {
-      mockPrisma.category.update.mockResolvedValue({
+      mockTxHost.tx.category.update.mockResolvedValue({
         ...mockCategory,
         deletedAt: new Date(),
       });
 
       await service.softDelete(catId);
 
-      expect(mockPrisma.category.update).toHaveBeenCalledWith({
+      expect(mockTxHost.tx.category.update).toHaveBeenCalledWith({
         where: { id: catId },
         data: { deletedAt: expect.any(Date) },
       });
     });
 
     it('should log an error and throw if delete fails', async () => {
-      mockPrisma.category.update.mockRejectedValue(new Error('Delete error'));
+      mockTxHost.tx.category.update.mockRejectedValue(
+        new Error('Delete error'),
+      );
       await expect(service.softDelete(catId)).rejects.toThrow();
     });
   });

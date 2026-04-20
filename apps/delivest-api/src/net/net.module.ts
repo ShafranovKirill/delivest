@@ -7,6 +7,6 @@ import { ProductModule } from './product/product.module.js';
 @Module({
   imports: [BranchModule, CategoryModule, ProductModule],
   providers: [NetService],
-  exports: [],
+  exports: [NetService],
 })
 export class NetModule {}

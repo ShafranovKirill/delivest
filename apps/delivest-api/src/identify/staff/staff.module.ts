@@ -6,11 +6,12 @@ import { StaffController } from './staff.controller.js';
 import { StaffService } from './staff.service.js';
 import { AclModule } from '../acl/acl.module.js';
 import { PrismaModule } from '../../prisma/prisma.module.js';
+import { BranchAbilityService } from './branch-ability.service.js';
 
 @Module({
   imports: [AclModule, JwtModule, ConfigModule, PrismaModule],
   controllers: [StaffController],
-  providers: [StaffService],
-  exports: [StaffService, JwtModule],
+  providers: [StaffService, BranchAbilityService],
+  exports: [StaffService, BranchAbilityService],
 })
 export class StaffModule {}

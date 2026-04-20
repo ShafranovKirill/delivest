@@ -1,3 +1,4 @@
+import { PhotoKey } from '@delivest/common';
 import { ProductResponse } from '@delivest/types';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
@@ -26,6 +27,15 @@ export class AdminReadProductDto implements ProductResponse {
   @ApiProperty({ required: false })
   @Expose()
   description?: string | undefined;
+
+  @ApiProperty({
+    description:
+      'объект фото продукта (ключ: photo type, значение: ключ для s3)',
+    type: 'object',
+    additionalProperties: { type: 'string' },
+  })
+  @Expose()
+  photos!: Record<PhotoKey, string>;
 
   @Expose()
   createdAt: Date | undefined;

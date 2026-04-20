@@ -23,6 +23,7 @@ import { Client } from '../../../generated/prisma/client.js';
 import { UpdateClientDto } from './dto/update.dto.js';
 
 @ApiTags('Admin-client (Клиенты-crm)')
+@ApiBearerAuth('staff-auth')
 @Controller('admin/client')
 export class AdminClientController {
   private readonly logger = new Logger(AdminClientController.name);
@@ -30,7 +31,6 @@ export class AdminClientController {
   constructor(private readonly service: ClientService) {}
 
   @Get('all')
-  @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Найти всех клиентов' })
   @UseGuards(JwtStaffAuthGuard, AclGuard)
   @RequirePermission(Permission.CLIENT_READ)
@@ -39,7 +39,6 @@ export class AdminClientController {
   }
 
   @Get('find-by-phone/:phone')
-  @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Найти клиента по номеру телефона' })
   @UseGuards(JwtStaffAuthGuard, AclGuard)
   @RequirePermission(Permission.CLIENT_READ)
@@ -48,7 +47,6 @@ export class AdminClientController {
   }
 
   @Get(':id')
-  @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Найти клиента по айди' })
   @UseGuards(JwtStaffAuthGuard, AclGuard)
   @RequirePermission(Permission.CLIENT_READ)
@@ -57,7 +55,6 @@ export class AdminClientController {
   }
 
   @Post('create')
-  @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Создать клиента' })
   @UseGuards(JwtStaffAuthGuard, AclGuard)
   @RequirePermission(Permission.CLIENT_CREATE)
@@ -66,7 +63,6 @@ export class AdminClientController {
   }
 
   @Patch('update/:id')
-  @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Обновить информацию о клиенте' })
   @UseGuards(JwtStaffAuthGuard, AclGuard)
   @RequirePermission(Permission.CLIENT_UPDATE)
@@ -75,7 +71,6 @@ export class AdminClientController {
   }
 
   @Delete('delete/:id')
-  @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Удалить клиента' })
   @UseGuards(JwtStaffAuthGuard, AclGuard)
   @RequirePermission(Permission.CLIENT_DELETE)

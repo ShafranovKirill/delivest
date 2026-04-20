@@ -25,6 +25,7 @@ model Staff {
   passwordHash String  @map("password_hash")
   name         String?
 
+  branches StaffBranch[]
   roleId String @map("role_id")
   role   Role   @relation(fields: [roleId], references: [id])
 
@@ -33,6 +34,16 @@ model Staff {
   deletedAt DateTime? @map("deleted_at")
 
   @@map("staffs")
+}
+
+model StaffBranch {
+  staffId  String @map("staff_id")
+  branchId String @map("branch_id")
+
+  staff  Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@id([staffId, branchId])
+  @@map("staff_branches")
 }
 
 model Role {
@@ -50,32 +61,19 @@ model Role {
 }
 
 model Branch {
-  id        String    @id @default(uuid())
-  alias     String    @unique
-  name      String
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  info       BranchInfo?
-  categories Category[]
-  products   Product[]
-
-  @@map("branches")
-}
-
-model BranchInfo {
   id          String    @id @default(uuid())
-  description String?   @db.Text
+  alias       String    @unique
+  name        String
   address     String?
+  description String?   @db.Text
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
-  branch   Branch @relation(fields: [branchId], references: [id])
-  branchId String @unique @map("branch_id")
+  categories Category[]
+  products   Product[]
 
-  @@map("branch_info")
+  @@map("branches")
 }
 
 model Category {
@@ -100,6 +98,7 @@ model Product {
   price       Int
   isActive    Boolean @default(true)
   description String?
+  photos      Json?   @map("photos")
 
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
   branchId String @map("branch_id")
@@ -147,6 +146,108 @@ model AuthMessage {
   @@map("auth_message")
 }
 
+model Cart {
+  id        String     @id @default(uuid())
+  sessionId String?    @unique @map("session_id")
+  clientId  String?    @unique @map("client_id")
+  staffId   String?    @unique @map("staff_id")
+  branchId  String     @map("branch_id")
+  items     CartItem[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@unique([clientId, branchId])
+  @@unique([sessionId, branchId])
+  @@unique([staffId, branchId])
+  @@map("carts")
+}
+
+model CartItem {
+  id        String @id @default(uuid())
+  cartId    String @map("cart_id")
+  productId String @map("product_id")
+  quantity  Int
+  cart      Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+  @@map("cart_items")
+}
+
+model MediaFile {
+  id           String @id @default(uuid())
+  bucket       String
+  key          String
+  originalName String @map("original_name")
+  mimeType     String @map("mime_type")
+  size         Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([mimeType])
+  @@map("media_files")
+}
+
+model Order {
+  id          String @id @default(uuid())
+  orderNumber Int    @unique @default(autoincrement()) @map("order_number")
+
+  branchId    String @map("branch_id")
+
+  clientId String? @map("client_id")
+  staffId  String? @map("staff_id")
+
+  status       OrderStatus  @default(PENDING)
+  deliveryType DeliveryType @map("delivery_type")
+
+  totalPrice    Int @map("total_price")
+  deliveryPrice Int @default(0) @map("delivery_price")
+
+  address String?
+  comment String?
+  phone   String?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  items OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id      String @id @default(uuid())
+  orderId String @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  productId String @map("product_id")
+
+  title    String
+  price    Int
+  quantity Int
+
+  modifiers Json?
+
+  @@unique([orderId, productId])
+  @@map("order_items")
+}
+
+enum DeliveryType {
+  DELIVERY
+  PICKUP
+  DINE_IN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  READY
+  PICKED_UP
+  COMPLETED
+  CANCELLED
+}
+
 enum AuthStatus {
   PENDING
   VERIFIED
@@ -186,6 +287,11 @@ enum Permission {
   BRANCH_READ
   BRANCH_UPDATE
   BRANCH_DELETE
+  //Заказ
+  ORDER_CREATE
+  ORDER_READ
+  ORDER_UPDATE
+  ORDER_DELETE
 }
 
 enum SendCodeType {

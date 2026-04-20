@@ -28,7 +28,7 @@ import { TokenStaffResponseDto } from './dto/token.dto.js';
 import { LoginStaffDto } from './dto/login.dto.js';
 import type { Request, Response } from 'express';
 import { CreateStaffDto } from './dto/create.dto.js';
-import { MissingTokenException } from '../../shared/exception/domain_exception/domain-exception.js';
+import { MissingTokenException } from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { JwtStaffAuthGuard } from './guards/jwt-staff.guard.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { FindByLoginDto } from './dto/find-by-login.dto.js';
@@ -39,6 +39,7 @@ import { Permission } from '../../../generated/prisma/enums.js';
 import { GetStaffDto } from './dto/get-staff.dto.js';
 import { ReadStaffDto } from './dto/read.dto.js';
 import { UpdateStaffDto } from './dto/update.dto.js';
+import { COOKIE_NAMES } from '@delivest/common';
 
 @ApiTags('Staff (Работники)')
 @Controller('staff')
@@ -68,29 +69,17 @@ export class StaffController {
   @ApiOperation({ summary: 'Создать работника' })
   @UseGuards(JwtStaffAuthGuard, AclGuard)
   @RequirePermission(Permission.STAFF_CREATE)
-  async register(
-    @Res({ passthrough: true }) res: Response,
-    @Body() dto: CreateStaffDto,
-  ) {
-    const client = await this.service.create(dto);
-    const accessToken = await this.service.generateAccessToken(client);
-    const refreshToken = await this.service.generateRefreshToken(client);
-
-    this.service.setRefreshCookie(res, refreshToken);
-
-    return { accessToken };
+  async register(@Body() dto: CreateStaffDto): Promise<ReadStaffDto> {
+    return await this.service.create(dto);
   }
 
-  @Patch('update/:id')
+  @Patch('update')
   @ApiBearerAuth('staff-auth')
   @ApiOperation({ summary: 'Обновить данные работника' })
   @UseGuards(JwtStaffAuthGuard, AclGuard)
   @RequirePermission(Permission.STAFF_UPDATE)
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateStaffDto,
-  ): Promise<ReadStaffDto> {
-    return await this.service.update(id, dto);
+  async update(@Body() dto: UpdateStaffDto): Promise<ReadStaffDto> {
+    return await this.service.update(dto);
   }
 
   @Delete('delete/:id')
@@ -103,12 +92,11 @@ export class StaffController {
   }
 
   @Get('refresh')
-  @ApiCookieAuth('staff_refresh_token')
+  @ApiCookieAuth(COOKIE_NAMES.STAFF_REFRESH_TOKEN)
   @ApiOperation({ summary: 'Рефреш токен' })
   @ApiOkResponse({ type: TokenStaffResponseDto })
   async refresh(@Req() req: Request) {
-    const token = req.cookies?.['staff_refresh_token'];
-
+    const token = req.cookies?.[COOKIE_NAMES.STAFF_REFRESH_TOKEN];
     if (!token) {
       throw new MissingTokenException('Missing refresh token');
     }

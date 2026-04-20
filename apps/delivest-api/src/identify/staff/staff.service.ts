@@ -14,7 +14,7 @@ import {
   UserAlreadyExistsException,
   UserNotFoundException,
   UserNotRegisteredException,
-} from '../../shared/exception/domain_exception/domain-exception.js';
+} from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { toDto } from '../../utils/to-dto.js';
 import { CreateStaffDto } from './dto/create.dto.js';
 import { Staff } from '../../../generated/prisma/client.js';
@@ -23,7 +23,7 @@ import {
   getPrismaModelName,
   isPrismaError,
 } from '../../shared/helpers/db-errors.js';
-import { PrismaErrorCode } from '@delivest/common';
+import { COOKIE_NAMES, PrismaErrorCode } from '@delivest/common';
 import {
   AccessStaffTokenPayload,
   RefreshStaffTokenPayload,
@@ -130,7 +130,7 @@ export class StaffService {
     }
   }
 
-  async create(dto: CreateStaffDto): Promise<Staff> {
+  async create(dto: CreateStaffDto): Promise<ReadStaffDto> {
     try {
       const passwordHash = await argon2.hash(dto.password);
       const staff = await this.prisma.staff.create({
@@ -138,11 +138,18 @@ export class StaffService {
           login: dto.login,
           passwordHash: passwordHash,
           roleId: dto.roleId,
+          name: dto.name,
+          branches: {
+            createMany: {
+              data: dto.branchIds.map((id) => ({ branchId: id })),
+            },
+          },
         },
+        include: { branches: true },
       });
 
       this.logger.log(`create() | Staff id=${staff.id} is created`);
-      return staff;
+      return toDto(staff, ReadStaffDto);
     } catch (error: unknown) {
       this.logger.error(
         `create() | ${(error as Error).message}`,
@@ -152,20 +159,31 @@ export class StaffService {
     }
   }
 
-  async update(id: string, dto: UpdateStaffDto): Promise<ReadStaffDto> {
+  async update(dto: UpdateStaffDto): Promise<ReadStaffDto> {
     try {
+      const { branchIds, ...updateData } = dto;
+
       const updatedStaff = await this.prisma.staff.update({
-        where: { id: id },
+        where: { id: dto.id },
         data: {
-          ...dto,
+          ...updateData,
+          ...(branchIds && {
+            branches: {
+              deleteMany: {},
+              createMany: {
+                data: branchIds.map((branchId) => ({ branchId })),
+              },
+            },
+          }),
+        },
+        include: {
+          branches: true,
         },
       });
 
       return toDto(updatedStaff, ReadStaffDto);
     } catch (error: unknown) {
-      if (error instanceof DomainException) {
-        throw error;
-      }
+      if (error instanceof DomainException) throw error;
       this.logger.error(
         `update() | ${(error as Error).message}`,
         (error as Error).stack,
@@ -268,11 +286,13 @@ export class StaffService {
 
   async generateAccessToken(staff: Staff): Promise<string> {
     const role = await this.roleService.findById(staff.roleId);
+    const branchIds = await this.getStaffsBranches(staff.id);
     const payload: AccessStaffTokenPayload = {
       login: staff.login,
       sub: staff.id,
       roleId: staff.roleId,
       permissions: role.permissions,
+      branchIds,
     };
 
     return this.jwt.signAsync(payload, {
@@ -295,13 +315,21 @@ export class StaffService {
   setRefreshCookie(res: Response, token: string): void {
     const refreshMaxAge = this.refreshTtl * 1000;
 
-    res.cookie('staff_refresh_token', token, {
+    res.cookie(COOKIE_NAMES.STAFF_REFRESH_TOKEN, token, {
       httpOnly: true,
       secure: this.config.get<string>('NODE_ENV') === 'production',
       sameSite: 'strict',
       path: '/',
       maxAge: refreshMaxAge,
     });
+  }
+
+  private async getStaffsBranches(staffId: string): Promise<string[]> {
+    const staffBranches = await this.prisma.staffBranch.findMany({
+      where: { staffId: staffId },
+      select: { branchId: true },
+    });
+    return staffBranches.map((sb) => sb.branchId);
   }
 
   private handleAccountConstraintError(error: unknown): never {

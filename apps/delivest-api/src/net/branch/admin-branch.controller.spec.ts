@@ -5,7 +5,6 @@ import { BranchService } from './branch.service.js';
 import { jest } from '@jest/globals';
 import { CreateBranchDto } from './dto/create.dto.js';
 import { UpdateBranchDto } from './dto/update.dto.js';
-import { UpdateBranchInfoDto } from './dto/update-branch-info.dto.js';
 import { JwtStaffAuthGuard } from '../../identify/index.js';
 import { AclGuard } from '../../identify/acl/guards/acl.guard.js';
 
@@ -81,16 +80,6 @@ describe('AdminBranchController', () => {
       const result = await controller.update(branchId, dto);
       expect(service.update).toHaveBeenCalledWith(branchId, dto);
       expect(result.name).toBe('Updated Name');
-    });
-  });
-
-  describe('updateInfo', () => {
-    it('should call service.updateInfo with id and info dto', async () => {
-      const dto: UpdateBranchInfoDto = { address: 'New Address' };
-      service.updateInfo.mockResolvedValue({ id: branchId, info: dto } as any);
-      const result = await controller.updateInfo(branchId, dto);
-      expect(service.updateInfo).toHaveBeenCalledWith(branchId, dto);
-      expect(result.info?.address).toBe('New Address');
     });
   });
 

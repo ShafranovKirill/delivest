@@ -34,4 +34,6 @@ export interface CreateProductRequest {
   description?: string;
 }
 
-export type UpdateProductRequest = Partial<CreateProductRequest>;
+export type UpdateProductRequest = Partial<CreateProductRequest> & {
+  productId: string;
+};

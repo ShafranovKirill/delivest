@@ -1,4 +1,4 @@
-import { Permission } from "../../../../apps/delivest-api/generated/prisma/enums.js";
+import { Permission } from "@prisma-generated/prisma/enums.js";
 
 export interface RefreshStaffTokenPayload {
   sub: string;
@@ -10,9 +10,11 @@ export interface RefreshStaffTokenPayload {
 export interface AccessStaffTokenPayload extends RefreshStaffTokenPayload {
   roleId: string;
   permissions: Permission[];
+  branchIds?: string[];
 }
 
 export interface CreateStaffRequest {
+  branchIds: string[];
   login: string;
   password: string;
   roleId: string;
@@ -20,9 +22,11 @@ export interface CreateStaffRequest {
 }
 
 export interface UpdateStaffRequest {
+  id: string;
   login: string;
   roleId: string;
   name: string;
+  branchIds?: string[];
 }
 
 export interface GetStaffRequest {
@@ -36,6 +40,7 @@ export interface LoginStaffRequest {
 
 export interface StaffResponse {
   id: string;
+  branchId: string;
   login: string;
   roleId: string;
   name?: string;

@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BranchService } from './branch.service.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { jest } from '@jest/globals';
-import { Branch, BranchInfo } from '../../../generated/prisma/client.js';
 
 describe('BranchService', () => {
   let service: BranchService;
@@ -80,79 +79,55 @@ describe('BranchService', () => {
 
   describe('findOne', () => {
     it('should return a single branch with info', async () => {
-      mockPrisma.branch.findUnique.mockResolvedValue(mockBranchWithInfo);
+      const branchId = '123';
+      const expectedBranch = {
+        id: branchId,
+        name: 'Test Branch',
+        alias: 'test',
+      };
+
+      mockPrisma.branch.findUnique.mockResolvedValue(expectedBranch);
 
       const result = await service.findOne(branchId);
 
       expect(mockPrisma.branch.findUnique).toHaveBeenCalledWith({
-        where: { id: branchId },
-        include: { info: true },
+        where: { id: branchId, deletedAt: null },
       });
-      expect(result.id).toBe(branchId);
-    });
-  });
-
-  describe('getBranchDetails', () => {
-    it('should return only info record', async () => {
-      mockPrisma.branchInfo.findUnique.mockResolvedValue(mockInfo);
-
-      const result = await service.getBranchDetails(branchId);
-
-      expect(mockPrisma.branchInfo.findUnique).toHaveBeenCalledWith({
-        where: { branchId: branchId },
-      });
-      expect(result.address).toBe(mockInfo.address);
+      expect(result).toEqual(expectedBranch);
     });
   });
 
   describe('create', () => {
     it('should create branch and empty info record', async () => {
       const createDto = { name: 'New', alias: 'new' };
-      mockPrisma.branch.create.mockResolvedValue(mockBranchWithInfo);
+      const expectedBranch = { id: '456', ...createDto };
+
+      mockPrisma.branch.create.mockResolvedValue(expectedBranch);
 
       const result = await service.create(createDto);
 
       expect(mockPrisma.branch.create).toHaveBeenCalledWith({
-        data: { ...createDto, info: { create: {} } },
-        include: { info: true },
+        data: { ...createDto },
       });
-      expect(result).toBeDefined();
+      expect(result).toEqual(expectedBranch);
     });
   });
 
   describe('update', () => {
     it('should update branch main fields', async () => {
+      const branchId = '123';
       const updateDto = { name: 'Updated Name' };
-      mockPrisma.branch.update.mockResolvedValue({
-        ...mockBranchWithInfo,
-        ...updateDto,
-      });
+      const expectedBranch = { id: branchId, ...updateDto, alias: 'test' };
+
+      mockPrisma.branch.update.mockResolvedValue(expectedBranch);
 
       const result = await service.update(branchId, updateDto);
 
       expect(mockPrisma.branch.update).toHaveBeenCalledWith({
         where: { id: branchId },
         data: updateDto,
-        include: { info: true },
       });
-      expect(result.name).toBe('Updated Name');
-    });
-  });
-
-  describe('updateInfo', () => {
-    it('should update nested branch info', async () => {
-      const infoDto = { address: 'New Address' };
-      mockPrisma.branch.update.mockResolvedValue(mockBranchWithInfo);
-
-      await service.updateInfo(branchId, infoDto);
-
-      expect(mockPrisma.branch.update).toHaveBeenCalledWith({
-        where: { id: branchId },
-        data: {
-          info: { update: infoDto },
-        },
-        include: { info: true },
-      });
+      expect(result).toEqual(expectedBranch);
     });
   });
 

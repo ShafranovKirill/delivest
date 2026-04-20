@@ -14,4 +14,12 @@ export class ReadBranchDto implements BranchResponce {
   @ApiProperty()
   @Expose()
   name!: string;
+
+  @ApiProperty()
+  @Expose()
+  description?: string;
+
+  @ApiProperty()
+  @Expose()
+  address?: string;
 }

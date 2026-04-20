@@ -6,7 +6,7 @@ import {
   DomainException,
   DuplicateValueException,
   NotFoundException,
-} from '../../shared/exception/domain_exception/domain-exception.js';
+} from '../../shared/exceptions/domain_exception/domain-exception.js';
 import { toDto } from '../../utils/to-dto.js';
 import { ReadProductDto } from './dto/read.dto.js';
 import { CreateProductDto } from './dto/create.dto.js';
@@ -18,11 +18,36 @@ import {
 } from '../../shared/helpers/db-errors.js';
 import { PrismaErrorCode } from '@delivest/common';
 import { UpdateProductDto } from './dto/update.dto.js';
+import { UploadFile } from '../../media/interface/upload-file.interface.js';
+import { PhotoEditorService } from '../../media/photo-queue/photo-editor.service.js';
+import { DelivestEvent, PhotoMap } from '../../shared/events/types.js';
+import type {
+  PhotoConversionEvent,
+  PhotoConversionFailedEvent,
+} from '../../shared/events/types.js';
+import { OnEvent } from '@nestjs/event-emitter';
+import { PRODUCT_PHOTO_PRESETS } from '../../media/photo-configs/presets.js';
+import { MediaService } from '../../media/media.service.js';
+import { NotificationGateway } from '../../notification/notification.gateway.js';
+import { type AccessStaffTokenPayload, SocketEvent } from '@delivest/types';
+import { IdentityService } from '../../identify/identify.service.js';
+import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma/dist/src/lib/transactional-adapter-prisma.js';
+import { PrismaClient } from '../../../generated/prisma/client.js';
 
 @Injectable()
 export class ProductService {
   private readonly logger = new Logger(ProductService.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly photoEditor: PhotoEditorService,
+    private readonly mediaService: MediaService,
+    private readonly notificationGateway: NotificationGateway,
+    private readonly identityService: IdentityService,
+    private readonly txHost: TransactionHost<
+      TransactionalAdapterPrisma<PrismaClient>
+    >,
+  ) {}
 
   async findAllByBranch(branchId: string): Promise<ReadProductDto[]>;
   async findAllByBranch(
@@ -78,6 +103,36 @@ export class ProductService {
     }
   }
 
+  async findManyByIds(ids: string[]): Promise<ReadProductDto[]>;
+  async findManyByIds(
+    ids: string[],
+    extended: boolean,
+  ): Promise<AdminReadProductDto[]>;
+
+  async findManyByIds(
+    ids: string[],
+    extended?: boolean,
+  ): Promise<ReadProductDto[] | AdminReadProductDto[]> {
+    try {
+      const products = await this.prisma.product.findMany({
+        where: {
+          id: { in: ids },
+          deletedAt: null,
+        },
+      });
+
+      if (extended === true) {
+        return products.map((product) => toDto(product, AdminReadProductDto));
+      }
+      return products.map((product) => toDto(product, ReadProductDto));
+    } catch (error) {
+      this.logger.error(
+        `findManyByIds() | error find all product ${(error as Error).stack}`,
+      );
+      throw new BadRequestException();
+    }
+  }
+
   async findOne(productId: string): Promise<ReadProductDto>;
   async findOne(
     productId: string,
@@ -107,8 +162,15 @@ export class ProductService {
     }
   }
 
-  async create(dto: CreateProductDto): Promise<AdminReadProductDto> {
+  async create(
+    dto: CreateProductDto,
+    staffPayload?: AccessStaffTokenPayload,
+  ): Promise<AdminReadProductDto> {
     try {
+      if (staffPayload) {
+        this.identityService.checkBranchAbility(staffPayload, dto.branchId);
+      }
+
       const newProduct = await this.prisma.product.create({ data: { ...dto } });
       return toDto(newProduct, AdminReadProductDto);
     } catch (error) {
@@ -157,12 +219,23 @@ export class ProductService {
     }
   }
 
-  async softDelete(id: string): Promise<void> {
+  @Transactional()
+  async softDelete(
+    id: string,
+    staffPayload?: AccessStaffTokenPayload,
+  ): Promise<void> {
     try {
-      await this.prisma.product.update({
+      const deletedProduct = await this.txHost.tx.product.update({
         where: { id: id },
         data: { deletedAt: new Date() },
       });
+      if (staffPayload) {
+        this.identityService.checkBranchAbility(
+          staffPayload,
+          deletedProduct.branchId,
+        );
+      }
+
       this.logger.log(`softDelete() | Product soft-deleted | id=${id}`);
     } catch (error) {
       this.logger.error(
@@ -173,23 +246,32 @@ export class ProductService {
       this.handleProductConstraintError(error);
     }
   }
-
+  @Transactional()
   async update(
-    productId: string,
     dto: UpdateProductDto,
+    staffPayload?: AccessStaffTokenPayload,
   ): Promise<AdminReadProductDto> {
     try {
-      const updatedProduct = await this.prisma.product.update({
-        where: { id: productId },
+      const updatedProduct = await this.txHost.tx.product.update({
+        where: { id: dto.productId },
         data: {
           ...dto,
         },
       });
+      if (staffPayload) {
+        this.identityService.checkBranchAbility(
+          staffPayload,
+          updatedProduct.branchId,
+        );
+      }
 
       return toDto(updatedProduct, AdminReadProductDto);
     } catch (error) {
+      if (error instanceof DomainException) {
+        throw error;
+      }
       this.logger.error(
-        `update(${productId}) | error: ${(error as Error).message}`,
+        `update(${dto.productId}) | error: ${(error as Error).message}`,
         (error as Error).stack,
       );
 
@@ -197,7 +279,95 @@ export class ProductService {
     }
   }
 
-  private handleProductConstraintError(error: unknown): never {
+  async updatePhoto(
+    file: UploadFile,
+    productId: string,
+    socketId: string,
+    staffPayload?: AccessStaffTokenPayload,
+  ): Promise<void> {
+    try {
+      const product = await this.prisma.product.findUnique({
+        where: { id: productId },
+      });
+
+      if (!product) {
+        throw new NotFoundException(`Product with ID ${productId} not found`);
+      }
+
+      if (staffPayload) {
+        this.identityService.checkBranchAbility(staffPayload, product.branchId);
+      }
+      await this.photoEditor.uploadAndEditMultiple(
+        productId,
+        file,
+        PRODUCT_PHOTO_PRESETS,
+        socketId,
+        DelivestEvent.PRODUCT_PHOTO_CONVERTED,
+        DelivestEvent.PRODUCT_PHOTO_CONVERSION_FAILED,
+      );
+    } catch (error) {
+      this.logger.error(
+        `updatePhoto() | Error updating photo for product ${productId}: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
+      throw error;
+    }
+  }
+
+  @OnEvent(DelivestEvent.PRODUCT_PHOTO_CONVERTED)
+  async handleProductPhotoBatch(payload: PhotoConversionEvent) {
+    const { targetId, socketId, photos } = payload;
+
+    try {
+      const existingProduct = await this.prisma.product.findUnique({
+        where: { id: targetId },
+        select: { photos: true },
+      });
+
+      const updatedProduct = await this.prisma.product.update({
+        where: { id: targetId },
+        data: {
+          photos,
+        },
+      });
+
+      if (existingProduct?.photos) {
+        const oldPhotos = existingProduct.photos as PhotoMap;
+        const newKeys = new Set(Object.values(photos));
+
+        const keysToDelete = Object.values(oldPhotos).filter(
+          (oldKey) => oldKey && !newKeys.has(oldKey),
+        );
+
+        if (keysToDelete.length > 0) {
+          await this.mediaService.deleteFilesByKeys(keysToDelete);
+          this.logger.log(
+            `Deleted ${keysToDelete.length} old photos for product ${targetId}`,
+          );
+        }
+      }
+
+      this.notificationGateway.server
+        .to(socketId)
+        .emit(SocketEvent.PHOTO_EDIT_RESULT, {
+          success: true,
+          targetId,
+          photos: updatedProduct.photos,
+        });
+    } catch (error) {
+      this.logger.error(`Failed to handle photo batch for ${targetId}`, error);
+    }
+  }
+
+  @OnEvent(DelivestEvent.PRODUCT_PHOTO_CONVERSION_FAILED)
+  handlePhotoConversionFailedEvent(event: PhotoConversionFailedEvent) {
+    const { fileId, error } = event;
+
+    this.logger.error(
+      `Photo conversion failed File: ${fileId}. Error: ${error}`,
+    );
+  }
+  handleProductConstraintError(error: unknown): never {
     if (error instanceof DomainException) {
       throw error;
     }

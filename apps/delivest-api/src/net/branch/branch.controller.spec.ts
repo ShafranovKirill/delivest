@@ -65,20 +65,4 @@ describe('BranchController', () => {
       expect(result).toEqual(mockResult);
     });
   });
-
-  describe('getBranchDetails', () => {
-    it('should call service.getBranchDetails with id string and return details', async () => {
-      const mockResult = {
-        id: 'info_1',
-        branchId: branchId,
-        address: 'street',
-      };
-      service.getBranchDetails.mockResolvedValue(mockResult as any);
-
-      const result = await controller.getBranchDetails(findBranchDto);
-
-      expect(service.getBranchDetails).toHaveBeenCalledWith(branchId);
-      expect(result).toEqual(mockResult);
-    });
-  });
 });
