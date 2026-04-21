@@ -13,11 +13,13 @@ import dayjs from "dayjs";
 import "dayjs/locale/ru";
 import relativeTime from "dayjs/plugin/relativeTime";
 import i18n from "./i18n";
+import ToastService from "primevue/toastservice";
 
 dayjs.locale("ru");
 dayjs.extend(relativeTime);
 
 const app = createApp(App);
+app.use(ToastService);
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 

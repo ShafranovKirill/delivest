@@ -11,13 +11,13 @@ const { t } = useI18n();
         404
       </h1>
       <p class="absolute inset-0 flex items-center justify-center text-2xl font-bold text-slate-800 mt-8">
-        {{ t('error.title')}}
+        {{ t('error-view.404.title')}}
       </p>
     </div>
 
     <div class="max-w-md mt-4">
       <p class="text-slate-500 mb-8">
-        {{ t('error.description')}}
+        {{ t('error-view.404.description')}}
       </p>
 
       <router-link
@@ -27,7 +27,7 @@ const { t } = useI18n();
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        {{ t('error.backToHome')}}
+        {{ t('error-view.404.back_button')}}
       </router-link>
     </div>
 

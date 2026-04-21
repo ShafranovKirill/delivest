@@ -1,11 +1,24 @@
 {
   "auth": {
-    "login": "Вход",
-    "email": "Email",
-    "password": "Пароль",
-    "submit": "Отправить"
+    "login_title": "Авторизация",
+    "login_label": "Логин",
+    "login_placeholder": "Введите ваш логин",
+    "password_label": "Пароль",
+    "password_placeholder": "Введите пароль",
+    "login_button": "Войти",
+    "success_title": "Вход выполнен",
+    "error_title": "Ошибка",
+    "login_error": "Неверные данные",
+    "logout_button": "Выйти из системы"
   },
-  "error": {
+
+  "dashboard": {
+    "title": "Панель управления",
+    "user_info": "Данные профиля",
+    "status_active": "Сессия активна. Все системы работают штатно.",
+    "logout_button": "Выйти"
+  },
+  "error-view": {
     "404": {
       "title": "Упс! Страница потерялась",
       "description": "Похоже, этот адрес ведет в никуда. Возможно, страница была удалена или вы просто ошиблись дверью.",
