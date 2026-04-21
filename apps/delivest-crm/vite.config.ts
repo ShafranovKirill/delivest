@@ -20,5 +20,10 @@ export default defineConfig(({ mode }) => {
         resolvers: [PrimeVueResolver()],
       }),
     ],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
   };
 });

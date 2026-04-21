@@ -11,7 +11,7 @@ import "primeicons/primeicons.css";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
 import relativeTime from "dayjs/plugin/relativeTime";
-import i18n from "./locales";
+import i18n from "./i18n";
 
 dayjs.locale("ru");
 dayjs.extend(relativeTime);
