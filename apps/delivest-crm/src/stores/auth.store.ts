@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import api from "../api/axios";
 import type { LoginStaffRequest, StaffResponse, TokenStaffResponse } from "@delivest/types";
+import router from "@/router";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -37,7 +38,7 @@ export const useAuthStore = defineStore("auth", {
     logout() {
       this.accessToken = "";
       this.user = null;
-      window.location.href = "/login";
+      router.push({ name: "login" });
     },
 
     async init() {
@@ -49,5 +50,10 @@ export const useAuthStore = defineStore("auth", {
         this.isInitialized = true;
       }
     },
+  },
+  persist: {
+    key: "auth-storage",
+    storage: localStorage,
+    pick: ["accessToken", "user"],
   },
 });

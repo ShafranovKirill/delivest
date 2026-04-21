@@ -40,7 +40,7 @@ export interface LoginStaffRequest {
 
 export interface StaffResponse {
   id: string;
-  branchId: string;
+  branchIds: string[];
   login: string;
   roleId: string;
   name?: string;

@@ -67,14 +67,19 @@ export class StaffService {
     try {
       const staff = await this.prisma.staff.findUnique({
         where: { id: id },
+        include: { branches: true },
       });
 
       if (!staff) {
         this.logger.warn(`findOne() | <staff> not found | id=${id}`);
         throw new UserNotFoundException('Staff not found');
       }
+      const staffWithIds = {
+        ...staff,
+        branchIds: staff.branches.map((b) => b.branchId),
+      };
 
-      return toDto(staff, ReadStaffDto);
+      return toDto(staffWithIds, ReadStaffDto);
     } catch (error: unknown) {
       if (error instanceof DomainException) {
         throw error;
@@ -91,6 +96,7 @@ export class StaffService {
     try {
       const staff = await this.prisma.staff.findUnique({
         where: { login: login },
+        include: { branches: true },
       });
 
       if (!staff) {
@@ -98,7 +104,12 @@ export class StaffService {
         throw new UserNotFoundException('Staff not found');
       }
 
-      return toDto(staff, ReadStaffDto);
+      const staffWithIds = {
+        ...staff,
+        branchIds: staff.branches.map((b) => b.branchId),
+      };
+
+      return toDto(staffWithIds, ReadStaffDto);
     } catch (error: unknown) {
       if (error instanceof DomainException) {
         throw error;
@@ -115,9 +126,16 @@ export class StaffService {
     try {
       const staff = await this.prisma.staff.findMany({
         where: { deletedAt: null },
+        include: { branches: true },
       });
 
-      return staff.map((s) => toDto(s, ReadStaffDto));
+      return staff.map((s) => {
+        const staffWithIds = {
+          ...s,
+          branchIds: s.branches.map((b) => b.branchId),
+        };
+        return toDto(staffWithIds, ReadStaffDto);
+      });
     } catch (error: unknown) {
       if (error instanceof DomainException) {
         throw error;
