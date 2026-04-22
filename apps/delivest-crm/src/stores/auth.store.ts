@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import router from "@/router";
 import type { TokenStaffResponse } from "@delivest/types";
-import axios from "@/api/axios";
+import axios from "axios";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -23,9 +23,9 @@ export const useAuthStore = defineStore("auth", {
       this.isInitialized = status;
     },
 
-    async logout() {
+    logout() {
       this.accessToken = "";
-      await router.push({ name: "login" });
+      router.push({ name: "login" });
     },
 
     async refresh(): Promise<string | null> {
@@ -40,8 +40,8 @@ export const useAuthStore = defineStore("auth", {
           const token = data.accessToken;
           this.setToken(token);
           return token;
-        } catch {
-          await this.logout();
+        } catch (e) {
+          this.logout();
           return null;
         } finally {
           this.refreshPromise = null;

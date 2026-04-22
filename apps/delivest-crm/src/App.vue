@@ -1,30 +1,20 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useAuthStore } from './stores/auth.store';
-import { useAuth } from './hooks/auth/useAuth';
+import { onMounted } from "vue";
+import { useAuthStore } from "./stores/auth.store";
 
 const authStore = useAuthStore();
-const { refreshTokens } = useAuth();
 
 onMounted(async () => {
-  if (authStore.accessToken) {
-    try {
-      await refreshTokens();
-    } catch {
-      // Ошибка обработается внутри refreshTokens (вызов logout)
-    }
-  }
-  
+  await authStore.refresh();
+
   authStore.setInitialized(true);
 });
 </script>
 
 <template>
-  <div v-if="!authStore.isInitialized">
-    Loading...
-  </div>
+  <div v-if="!authStore.isInitialized">Loading...</div>
   <template v-else>
-    <Toast /> 
+    <Toast />
     <router-view />
   </template>
 </template>

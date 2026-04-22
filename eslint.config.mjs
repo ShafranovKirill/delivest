@@ -5,18 +5,12 @@ import vueParser from "vue-eslint-parser";
 
 export default tseslint.config(
   {
-    ignores: [
-      "**/dist/**",
-      "**/node_modules/**",
-      "apps/delivest-api/**",
-      "apps/delivest-web/**",
-      "**/*.config.mjs",
-      "**/*.config.js",
-    ],
+    ignores: ["**/dist/**", "**/node_modules/**", "**/*.config.mjs", "**/*.config.js"],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   ...pluginVue.configs["flat/recommended"],
+
   {
     files: ["**/*.vue", "**/*.ts", "**/*.tsx"],
     languageOptions: {
@@ -28,16 +22,29 @@ export default tseslint.config(
         extraFileExtensions: [".vue"],
       },
     },
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "vue/multi-word-component-names": "off",
+    },
   },
+
   {
-    files: ["**/*.config.js", "**/*.config.mjs"],
-    ...tseslint.configs.disableTypeChecked,
+    files: ["apps/delivest-api/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
   },
+
   {
-    files: ["apps/delivest-crm/src/main.ts"],
+    files: ["apps/delivest-web/**/*.vue", "apps/delivest-web/**/*.ts", "apps/delivest-crm/**/*.ts"],
     rules: {
       "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
     },
+  },
+
+  {
+    files: ["**/*.config.js", "**/*.config.mjs"],
+    ...tseslint.configs.disableTypeChecked,
   },
 );
