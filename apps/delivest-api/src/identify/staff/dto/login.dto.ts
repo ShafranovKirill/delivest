@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PASSWORD_REGEX } from '@delivest/common';
-import { IsString, Matches } from 'class-validator';
+import { IsString } from 'class-validator';
 import { LoginStaffRequest } from '@delivest/types';
 
 export class LoginStaffDto implements LoginStaffRequest {
@@ -16,9 +15,7 @@ export class LoginStaffDto implements LoginStaffRequest {
     description: 'Пароль работника',
     example: 'SecurePass123!',
     required: true,
-    pattern: PASSWORD_REGEX.source,
   })
   @IsString()
-  @Matches(PASSWORD_REGEX)
   password!: string;
 }

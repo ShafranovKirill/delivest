@@ -9,7 +9,7 @@
       "@delivest/prisma": ["../../apps/delivest-api/generated/prisma"],
       "@/*": ["./src/*"]
     },
-    
+
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,

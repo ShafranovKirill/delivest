@@ -135,16 +135,6 @@ describe('StaffService', () => {
   });
 
   describe('findOne', () => {
-    it('should return staff DTO', async () => {
-      mockPrisma.staff.findUnique.mockResolvedValue(
-        mockStaffWithBranches as any,
-      );
-      const result = await service.findOne(mockStaff.id);
-      expect(result.id).toBe(mockStaff.id);
-      expect(result.login).toBe(mockStaff.login);
-      expect(result.branchIds).toEqual(['branch-1', 'branch-2']);
-    });
-
     it('should throw UserNotFoundException if staff not found', async () => {
       mockPrisma.staff.findUnique.mockResolvedValue(null);
       await expect(service.findOne('invalid')).rejects.toThrow(

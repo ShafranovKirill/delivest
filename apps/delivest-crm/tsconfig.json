@@ -1,13 +1,10 @@
 {
-"files": [],
-"references": [
-{ "path": "./tsconfig.app.json" },
-{ "path": "./tsconfig.node.json" }
-],
-"compilerOptions": {
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
+  "compilerOptions": {
     "paths": {
       "@delivest/types": ["../../libs/types/src/index.ts"],
       "@/*": ["./src/*"]
     }
-}
+  }
 }
