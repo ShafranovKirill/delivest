@@ -33,7 +33,7 @@ import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { LoginStaffDto } from './dto/login.dto.js';
 import { Response } from 'express';
 import { UpdateStaffDto } from './dto/update.dto.js';
-import { isDev } from '../../utils/env.js';
+import { isDev, isProd } from '../../utils/env.js';
 
 @Injectable()
 export class StaffService {
@@ -290,17 +290,15 @@ export class StaffService {
       where: { login: dto.login },
     });
     if (!staff) {
-      throw new NotFoundException();
+      throw new InvalidCredentialsException('Неверный логин или пароль');
     }
-    if (!staff.passwordHash) {
-      throw new UserNotRegisteredException();
-    }
+
     const isPasswordValid = await argon2.verify(
       staff.passwordHash,
       dto.password,
     );
     if (!isPasswordValid) {
-      throw new InvalidCredentialsException();
+      throw new InvalidCredentialsException('Неверный логин или пароль');
     }
     return staff;
   }
@@ -338,22 +336,20 @@ export class StaffService {
 
     res.cookie(COOKIE_NAMES.STAFF_REFRESH_TOKEN, token, {
       httpOnly: true,
-      secure: this.config.get<string>('NODE_ENV') === 'production',
-      sameSite: 'strict',
+      secure: isProd(),
+      sameSite: isDev() ? 'lax' : 'none',
       path: '/',
       maxAge: refreshMaxAge,
     });
   }
 
   clearRefreshTokenCookie(res: Response): void {
-    const isDevelopment = isDev();
-    res.cookie('refreshToken', '', {
+    res.cookie(COOKIE_NAMES.STAFF_REFRESH_TOKEN, '', {
       expires: new Date(0),
       httpOnly: true,
       path: '/',
-      secure: !isDevelopment,
-      sameSite: isDevelopment ? 'lax' : 'none',
-      domain: isDevelopment ? undefined : this.cookieDomain,
+      secure: isProd(),
+      sameSite: isDev() ? 'lax' : 'none',
     });
   }
 

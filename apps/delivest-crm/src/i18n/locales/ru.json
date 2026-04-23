@@ -7,11 +7,10 @@
     "password_placeholder": "Введите пароль",
     "login_button": "Войти",
     "success_title": "Вход выполнен",
-    "error_title": "Ошибка",
+    "error_title": "Ошибка входа",
     "login_error": "Неверные данные",
     "logout_button": "Выйти из системы"
   },
-
   "dashboard": {
     "title": "Панель управления",
     "user_info": "Данные профиля",

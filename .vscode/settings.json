@@ -1,0 +1,6 @@
+{
+  "i18n-ally.localesPaths": ["apps/delivest-crm/src/i18n/locales"],
+  "i18n-ally.enabledFrameworks": ["vue", "svelte"],
+  "i18n-ally.keystyle": "nested",
+  "i18n-ally.pathMatcher": "{locale}.{ext}"
+}
