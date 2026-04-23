@@ -8,15 +8,14 @@ import Card from "primevue/card";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Button from "primevue/button";
-import { useAuth } from "@/hooks/useAuth";
 import axios from "axios";
 import type { ApiError } from "@/types/api";
+import { useAuthStore } from "@/stores/auth.store";
 
 const { t } = useI18n();
 const router = useRouter();
 const toast = useToast();
-const { login } = useAuth();
-
+const { login } = useAuthStore();
 const loading = ref(false);
 const form = reactive({
   login: "",
@@ -25,10 +24,7 @@ const form = reactive({
 
 const handleLogin = async () => {
   try {
-    await login.mutateAsync({
-      login: form.login,
-      password: form.password,
-    });
+    await login(form.login, form.password);
 
     toast.add({
       severity: "success",

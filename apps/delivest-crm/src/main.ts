@@ -14,7 +14,6 @@ import "dayjs/locale/ru";
 import relativeTime from "dayjs/plugin/relativeTime";
 import i18n from "./i18n";
 import ToastService from "primevue/toastservice";
-import { VueQueryPlugin } from "@tanstack/vue-query";
 
 dayjs.locale("ru");
 dayjs.extend(relativeTime);
@@ -25,7 +24,6 @@ const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
 app.use(router);
-app.use(VueQueryPlugin);
 app.use(i18n);
 app.use(PrimeVue, {
   theme: {

@@ -2,14 +2,10 @@
 import { useI18n } from "vue-i18n";
 import Card from "primevue/card";
 import Button from "primevue/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthStore } from "@/stores/auth.store";
 
 const { t } = useI18n();
-
-const { profile, logout } = useAuth();
-const handleLogout = () => {
-  void logout();
-};
+const { staff, logout } = useAuthStore();
 </script>
 
 <template>
@@ -18,7 +14,7 @@ const handleLogout = () => {
       <h1 class="text-2xl font-bold text-(--text-color) m-0">
         {{ t("dashboard.title") }}
       </h1>
-      <Button :label="t('auth.logout_button')" icon="pi pi-sign-out" severity="danger" text @click="handleLogout" />
+      <Button :label="t('auth.logout_button')" icon="pi pi-sign-out" severity="danger" text @click="logout" />
     </div>
 
     <Card class="w-full max-w-2xl shadow-sm">
@@ -32,7 +28,7 @@ const handleLogout = () => {
       <template #content>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div
-            v-for="(value, key) in profile.data.value"
+            v-for="(value, key) in staff"
             :key="key"
             class="border border-(--surface-border) rounded-lg overflow-hidden flex flex-col">
             <span class="px-4 py-2 text-sm font-bold uppercase tracking-wider border-b">

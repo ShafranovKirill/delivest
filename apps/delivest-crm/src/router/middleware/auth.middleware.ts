@@ -14,11 +14,14 @@ export async function authMiddleware(
 
   const isLoggedIn = authStore.isLoggedIn;
 
-  if (!isLoggedIn && to.name !== "login") {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+  const isGuestOnly = to.matched.some(record => record.meta.guestOnly);
+
+  if (requiresAuth && !isLoggedIn) {
     return next({ name: "login" });
   }
 
-  if (isLoggedIn && to.name === "login") {
+  if (isGuestOnly && isLoggedIn) {
     return next({ name: "dashboard" });
   }
 
