@@ -1,5 +1,6 @@
 import { StaffResponse } from '@delivest/types';
 import { Expose } from 'class-transformer';
+import { Permission } from '../../../../generated/prisma/enums.js';
 
 export class ReadStaffDto implements StaffResponse {
   @Expose()
@@ -13,6 +14,9 @@ export class ReadStaffDto implements StaffResponse {
 
   @Expose()
   name: string;
+
+  @Expose()
+  permissions: Permission[];
 
   @Expose()
   branchIds: string[];

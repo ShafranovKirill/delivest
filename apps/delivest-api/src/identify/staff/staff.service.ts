@@ -43,7 +43,7 @@ export class StaffService {
   private readonly refreshTtl: number;
   private readonly accessSecret: string;
   private readonly refreshSecret: string;
-  private readonly cookieDomain: string;
+
   constructor(
     private readonly config: ConfigService,
     private readonly jwt: JwtService,
@@ -63,14 +63,13 @@ export class StaffService {
       'JWT_REFRESH_SECRET_STAFF',
       '',
     );
-    this.cookieDomain = config.getOrThrow<string>('COOKIE_DOMAIN');
   }
 
   async findOne(id: string): Promise<ReadStaffDto> {
     try {
       const staff = await this.prisma.staff.findUnique({
         where: { id: id },
-        include: { branches: true },
+        include: { branches: true, role: true },
       });
 
       if (!staff) {
@@ -80,6 +79,7 @@ export class StaffService {
       const staffWithIds = {
         ...staff,
         branchIds: staff.branches.map((b) => b.branchId),
+        permissions: staff.role.permissions,
       };
 
       return toDto(staffWithIds, ReadStaffDto);

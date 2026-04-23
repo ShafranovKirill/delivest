@@ -1,4 +1,5 @@
-import { Permission } from "@prisma-generated/prisma/enums.js";
+import { Permission } from "../../../../apps/delivest-api/generated/prisma/enums.js";
+import { Permission as PrismaPermission } from "../../../../apps/delivest-api/generated/prisma/enums.js";
 
 export interface RefreshStaffTokenPayload {
   sub: string;
@@ -44,6 +45,7 @@ export interface StaffResponse {
   login: string;
   roleId: string;
   name?: string;
+  permissions: Permission[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -60,3 +62,6 @@ export interface FindByLoginRequest {
 export interface TokenStaffResponse {
   accessToken: string;
 }
+
+export const PermissionsConst = PrismaPermission;
+export const Permissions: typeof PrismaPermission = PrismaPermission;
