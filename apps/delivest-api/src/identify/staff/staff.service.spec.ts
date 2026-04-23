@@ -100,6 +100,21 @@ describe('StaffService', () => {
               };
               return config[key as keyof typeof config] || null;
             }),
+            getOrThrow: jest.fn((key: string) => {
+              const config = {
+                JWT_ACCESS_TTL_SECONDS_STAFF: 900,
+                JWT_REFRESH_TTL_SECONDS_STAFF: 604800,
+                JWT_ACCESS_SECRET_STAFF: 'ACCESS_SECRET_STAFF',
+                JWT_REFRESH_SECRET_STAFF: 'REFRESH_SECRET_STAFF',
+                NODE_ENV: 'test',
+                COOKIE_DOMAIN: 'localhost',
+              };
+              const value = config[key as keyof typeof config];
+              if (value === undefined) {
+                throw new Error(`Configuration key "${key}" does not exist`);
+              }
+              return value;
+            }),
           },
         },
         {
