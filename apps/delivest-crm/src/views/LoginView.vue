@@ -8,7 +8,7 @@ import Card from "primevue/card";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Button from "primevue/button";
-import { useAuth } from "@/hooks/auth/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import axios from "axios";
 import type { ApiError } from "@/types/api";
 
