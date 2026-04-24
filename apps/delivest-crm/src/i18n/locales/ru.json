@@ -39,7 +39,9 @@
     "employees": "Сотрудники",
     "changeBranch": "Сменить филиал",
     "lightTheme": "Светлая тема",
-    "darkTheme": "Темная тема"
+    "darkTheme": "Темная тема",
+    "staff": "Сотрудник",
+    "accessYes" : "Доступ разрешен"
   },
   "common": {
     "select": "Выбрать",

@@ -6,6 +6,7 @@ export const useBranchStore = defineStore("branch", {
   state: () => ({
     branches: [] as BranchResponce[],
     activeBranchId: localStorage.getItem("selectedBranchId") as string | null,
+    isLoading: false,
   }),
 
   getters: {
@@ -21,6 +22,7 @@ export const useBranchStore = defineStore("branch", {
 
   actions: {
     async fetchBranches() {
+      this.isLoading = true;
       try {
         const { data } = await api.get<BranchResponce[]>("/admin/branch/all");
         this.branches = data;
@@ -30,6 +32,8 @@ export const useBranchStore = defineStore("branch", {
         }
       } catch (error) {
         console.error("Error fetching branches:", error);
+      } finally {
+        this.isLoading = false;
       }
     },
 
