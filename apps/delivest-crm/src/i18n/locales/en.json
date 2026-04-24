@@ -1,3 +1,50 @@
 {
-  "auth": {}
+  "auth": {
+    "login_title": "Authorization",
+    "login_label": "Login",
+    "login_placeholder": "Enter your login",
+    "password_label": "Password",
+    "password_placeholder": "Enter your password",
+    "login_button": "Sign In",
+    "success_title": "Login Successful",
+    "error_title": "Login Error",
+    "login_error": "Invalid credentials",
+    "logout_button": "Log Out"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "user_info": "Profile Info",
+    "status_active": "Session active. All systems are running normally.",
+    "logout_button": "Logout"
+  },
+  "branches": {
+    "select_title": "Select Branch",
+    "select_subtitle": "Please select an available branch to continue",
+    "no_branches": "No branches available. Please contact your administrator.",
+    "current_branch": "Current Branch",
+    "change_branch": "Change Branch"
+  },
+  "error-view": {
+    "404": {
+      "title": "Oops! Page Lost",
+      "description": "It looks like this address leads nowhere. The page may have been deleted, or you might have taken a wrong turn.",
+      "back_button": "Back to Home"
+    }
+  },
+  "menu": {
+    "orders": "Orders",
+    "branch": "Branch",
+    "products": "Products",
+    "categories": "Categories",
+    "employees": "Employees",
+    "changeBranch": "Change Branch",
+    "lightTheme": "Light Theme",
+    "darkTheme": "Dark Theme"
+  },
+  "common": {
+    "select": "Select",
+    "loading": "Loading configuration...",
+    "error": "An error occurred",
+    "search": "Search..."
+  }
 }

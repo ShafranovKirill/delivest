@@ -31,6 +31,16 @@
       "back_button": "Вернуться домой"
     }
   },
+  "menu": {
+    "orders": "Заказы",
+    "branch": "Филиал",
+    "products": "Товары",
+    "categories": "Категории",
+    "employees": "Сотрудники",
+    "changeBranch": "Сменить филиал",
+    "lightTheme": "Светлая тема",
+    "darkTheme": "Темная тема"
+  },
   "common": {
     "select": "Выбрать",
     "loading": "Загрузка конфигурации...",

@@ -29,7 +29,7 @@ app.use(PrimeVue, {
   theme: {
     preset: MyPreset,
     options: {
-      darkModeSelector: "system",
+      darkModeSelector: ".p-dark",
     },
   },
 });
