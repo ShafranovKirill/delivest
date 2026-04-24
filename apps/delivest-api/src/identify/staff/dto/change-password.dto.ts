@@ -5,6 +5,14 @@ import { IsString, MinLength, Matches } from 'class-validator';
 
 export class ChangePasswordDto implements ChangePasswordStaffRequest {
   @ApiProperty({
+    description: 'Айди работника',
+    example: 'staff-123',
+    required: true,
+  })
+  @IsString()
+  id: string;
+
+  @ApiProperty({
     description: 'Текущий пароль',
     example: 'OldPass123',
     required: true,

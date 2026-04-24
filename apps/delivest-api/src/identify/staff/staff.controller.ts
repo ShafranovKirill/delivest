@@ -115,17 +115,15 @@ export class StaffController {
     return this.service.findOne(id);
   }
 
-  @Patch('me/password')
+  @Patch('password')
   @ApiBearerAuth('staff-auth')
-  @ApiOperation({ summary: 'Изменить пароль' })
+  @ApiOperation({ summary: 'Изменить пароль сотруднику' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiResponse({ status: 204, description: 'Пароль успешно изменен' })
-  @UseGuards(JwtStaffAuthGuard)
-  async changePassword(
-    @CurrentStaff('sub') userId: string,
-    @Body() dto: ChangePasswordDto,
-  ) {
-    await this.service.changePassword(userId, dto);
+  @UseGuards(JwtStaffAuthGuard, AclGuard)
+  @RequirePermission(Permission.STAFF_UPDATE)
+  async changePassword(@Body() dto: ChangePasswordDto) {
+    await this.service.changePassword(dto.id, dto);
   }
 
   @Get('find-by-login/:login')

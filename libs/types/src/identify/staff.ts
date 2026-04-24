@@ -50,6 +50,7 @@ export interface StaffResponse {
 }
 
 export interface ChangePasswordStaffRequest {
+  id: string;
   oldPassword: string;
   newPassword: string;
 }
