@@ -18,6 +18,7 @@ declare module 'vue' {
     BranchCreateDialog: typeof import('./src/components/branch/BranchCreateDialog.vue')['default']
     BranchDeleteDialog: typeof import('./src/components/branch/BranchDeleteDialog.vue')['default']
     BranchEditDialog: typeof import('./src/components/branch/BranchEditDialog.vue')['default']
+    BranchForm: typeof import('./src/components/branch/BranchForm.vue')['default']
     BranchSelectCard: typeof import('./src/components/branch/BranchSelectCard.vue')['default']
     Button: typeof import('primevue/button')['default']
     ConfirmDialog: typeof import('primevue/confirmdialog')['default']

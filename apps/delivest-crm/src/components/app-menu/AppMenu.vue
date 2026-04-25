@@ -37,7 +37,7 @@ const menuItems = computed(() => [
         label: t("menu.branch"),
         icon: "pi pi-building",
         visible: authStore.hasPermission(Permission.STAFF_READ),
-        command: () => router.push({ name: "branches" }),
+        command: () => router.push({ name: "branch" }),
       },
       {
         label: t("menu.team"),
@@ -48,7 +48,7 @@ const menuItems = computed(() => [
             label: t("menu.employees"),
             icon: "pi pi-user",
             visible: authStore.hasPermission(Permission.STAFF_READ),
-            command: () => router.push({ name: "branches" }),
+            command: () => router.push({ name: "admin-branches" }),
           },
           {
             label: t("menu.role"),
@@ -75,7 +75,7 @@ const adminMenuItems = computed(() => [
       {
         label: t("menu.system_logs"),
         icon: "pi pi-building",
-        command: () => router.push({ name: "branches" }),
+        command: () => router.push({ name: "admin-branches" }),
       },
     ],
   },

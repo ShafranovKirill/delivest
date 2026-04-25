@@ -29,10 +29,16 @@ const router = createRouter({
           component: () => import("../views/orders/OrdersView.vue"),
         },
         {
-          path: "branches",
-          name: "branches",
+          path: "branch",
+          name: "branch",
 
-          component: () => import("../views/branches/BranchListView.vue"),
+          component: () => import("../views/branches/BranchEditView.vue"),
+        },
+        {
+          path: "admin-branches",
+          name: "admin-branches",
+
+          component: () => import("../views/branches/BranchAdminView.vue"),
         },
       ],
     },
