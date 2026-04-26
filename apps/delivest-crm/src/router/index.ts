@@ -46,6 +46,18 @@ const router = createRouter({
 
           component: () => import("../views/role/RoleAdminView.vue"),
         },
+        {
+          path: "staff",
+          name: "staff",
+
+          component: () => import("../views/staff/StaffView.vue"),
+        },
+        {
+          path: "admin-staff",
+          name: "admin-staff",
+
+          component: () => import("../views/staff/StaffAdminView.vue"),
+        },
       ],
     },
     {

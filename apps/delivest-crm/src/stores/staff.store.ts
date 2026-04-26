@@ -28,7 +28,7 @@ export const useStaffStore = defineStore("staff", {
     async fetchAllStaff() {
       this.isLoading = true;
       try {
-        const { data } = await api.get<StaffResponse[]>("/admin/staff/all");
+        const { data } = await api.get<StaffResponse[]>("/staff/all");
         this.staffList = data;
       } catch (error) {
         console.error("Error fetching all staff:", error);
@@ -41,7 +41,7 @@ export const useStaffStore = defineStore("staff", {
     async fetchOneStaff(id: string) {
       this.isLoading = true;
       try {
-        const { data } = await api.get<StaffResponse>(`/admin/staff/${id}`);
+        const { data } = await api.get<StaffResponse>(`/staff/${id}`);
         this.currentStaff = data;
         return data;
       } catch (error) {
@@ -54,7 +54,7 @@ export const useStaffStore = defineStore("staff", {
 
     async createStaff(payload: CreateStaffRequest) {
       try {
-        const { data } = await api.post<StaffResponse>("/admin/staff/create", payload);
+        const { data } = await api.post<StaffResponse>("/staff/create", payload);
         this.staffList.push(data);
         return data;
       } catch (error) {
@@ -65,7 +65,7 @@ export const useStaffStore = defineStore("staff", {
 
     async updateStaff(payload: UpdateStaffRequest) {
       try {
-        const { data } = await api.patch<StaffResponse>("/admin/staff/update", payload);
+        const { data } = await api.patch<StaffResponse>("/staff/update", payload);
 
         const index = this.staffList.findIndex((s: StaffResponse) => s.id === payload.id);
         if (index !== -1) {
@@ -85,7 +85,7 @@ export const useStaffStore = defineStore("staff", {
 
     async deleteStaff(id: string) {
       try {
-        await api.delete(`/admin/staff/delete/${id}`);
+        await api.delete(`/staff/delete/${id}`);
         this.staffList = this.staffList.filter((s: StaffResponse) => s.id !== id);
       } catch (error) {
         console.error("Error deleting staff:", error);
@@ -95,7 +95,7 @@ export const useStaffStore = defineStore("staff", {
 
     async changePassword(payload: ChangePasswordStaffRequest) {
       try {
-        await api.patch("/admin/staff/password", payload);
+        await api.patch("/staff/password", payload);
       } catch (error) {
         console.error("Error changing password:", error);
         throw error;
@@ -104,7 +104,7 @@ export const useStaffStore = defineStore("staff", {
 
     async fetchMe() {
       try {
-        const { data } = await api.get<StaffResponse>("/admin/staff/me");
+        const { data } = await api.get<StaffResponse>("/staff/me");
         this.currentStaff = data;
         return data;
       } catch (error) {
