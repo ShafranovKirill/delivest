@@ -99,9 +99,11 @@ export class CategoryService {
     staffToken?: AccessStaffTokenPayload,
   ): Promise<AdminReadCategoryDto> {
     try {
+      const { categoryId, ...data } = dto;
+
       const updatedCategory = await this.txHost.tx.category.update({
-        where: { id: dto.categoryId },
-        data: { ...dto },
+        where: { id: categoryId },
+        data: data,
       });
 
       if (staffToken) {

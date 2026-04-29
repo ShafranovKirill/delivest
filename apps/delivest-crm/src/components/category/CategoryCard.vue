@@ -26,10 +26,12 @@ defineEmits<{
 
   <div
     v-else-if="category"
-    @click="$emit('select', category.id)"
-    class="group relative p-4 rounded-xl flex items-center gap-4 transition-all duration-200 hover:shadow-md cursor-pointer bg-(--surface-card) border border-(--surface-border)">
-    <div
-      class="shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+    class="group relative p-4 rounded-xl flex items-center gap-4 transition-all duration-200 hover:shadow-md bg-(--surface-card) border border-(--surface-border)">
+    <div class="drag-handle cursor-grab active:cursor-grabbing p-2 text-(--surface-400) hover:text-primary">
+      <i class="pi pi-bars"></i>
+    </div>
+
+    <div class="shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
       <i class="pi pi-tags text-xl"></i>
     </div>
 

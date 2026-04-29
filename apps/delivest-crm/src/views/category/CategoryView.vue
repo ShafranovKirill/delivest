@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref, computed, watch } from "vue";
 import { useCategoryList } from "@/composables/useCategoryList";
 import { useBranchStore } from "@/stores/branch.store";
 import { useAuthStore } from "@/stores/auth.store";
@@ -10,12 +10,26 @@ import CategoryCreateDialog from "@/components/category/CategoryCreateDialog.vue
 import CategoryEditDialog from "@/components/category/CategoryEditDialog.vue";
 import CategoryDeleteDialog from "@/components/category/CategoryDeleteDialog.vue";
 import type { CategoryResponse } from "@delivest/types";
-import Button from "primevue/button";
+import draggable from "vuedraggable";
 
 const branchStore = useBranchStore();
 const authStore = useAuthStore();
 const { t } = useI18n();
 const { categoryStore, isLoading, loadCategories } = useCategoryList();
+
+const localCategories = ref<CategoryResponse[]>([]);
+
+const syncLocalCategories = () => {
+  localCategories.value = [...categoryStore.sortedCategories];
+};
+
+watch(
+  () => categoryStore.sortedCategories,
+  newVal => {
+    localCategories.value = [...newVal];
+  },
+  { immediate: true },
+);
 
 const isCreateVisible = ref(false);
 const isEditVisible = ref(false);
@@ -28,7 +42,32 @@ const isEmpty = computed(() => !isLoading.value && categories.value.length === 0
 
 onMounted(async () => {
   await loadCategories();
+  syncLocalCategories();
 });
+
+const onDragEnd = async () => {
+  const updates = localCategories.value
+    .map((cat, index) => ({ id: cat.id, oldOrder: cat.order, newOrder: index }))
+    .filter(item => item.oldOrder !== item.newOrder);
+
+  if (updates.length === 0) return;
+
+  try {
+    await Promise.all(
+      updates.map(update =>
+        categoryStore.updateCategory(update.id, {
+          categoryId: update.id,
+          order: update.newOrder,
+        }),
+      ),
+    );
+    await loadCategories();
+    syncLocalCategories();
+  } catch (error) {
+    console.error("Ошибка при сохранении порядка:", error);
+    syncLocalCategories();
+  }
+};
 
 const openEdit = (category: CategoryResponse) => {
   selectedCategory.value = category;
@@ -99,26 +138,35 @@ const onDeleted = async () => {
         <p class="text-(--surface-500)">Для выбранного филиала категории не найдены.</p>
       </div>
 
-      <template v-else>
-        <CategoryCard v-for="category in categories" :key="category.id" :category="category">
-          <template #actions>
-            <Button
-              v-if="authStore.hasPermission(Permission.CATEGORY_UPDATE)"
-              icon="pi pi-pencil"
-              severity="secondary"
-              text
-              rounded
-              @click.stop="openEdit(category)" />
-            <Button
-              v-if="authStore.hasPermission(Permission.CATEGORY_DELETE)"
-              icon="pi pi-trash"
-              severity="danger"
-              text
-              rounded
-              @click.stop="openDelete(category)" />
-          </template>
-        </CategoryCard>
-      </template>
+      <draggable
+        v-else
+        v-model="localCategories"
+        item-key="id"
+        handle=".drag-handle"
+        ghost-class="opacity-50"
+        @end="onDragEnd"
+        class="grid gap-4">
+        <template #item="{ element: category }">
+          <CategoryCard :category="category">
+            <template #actions>
+              <Button
+                v-if="authStore.hasPermission(Permission.CATEGORY_UPDATE)"
+                icon="pi pi-pencil"
+                severity="secondary"
+                text
+                rounded
+                @click.stop="openEdit(category)" />
+              <Button
+                v-if="authStore.hasPermission(Permission.CATEGORY_DELETE)"
+                icon="pi pi-trash"
+                severity="danger"
+                text
+                rounded
+                @click.stop="openDelete(category)" />
+            </template>
+          </CategoryCard>
+        </template>
+      </draggable>
     </div>
 
     <CategoryCreateDialog v-model:visible="isCreateVisible" @created="loadCategories" />
