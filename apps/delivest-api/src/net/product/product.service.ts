@@ -218,8 +218,10 @@ export class ProductService {
       if (staffPayload) {
         this.identityService.checkBranchAbility(staffPayload, dto.branchId);
       }
-
-      const newProduct = await this.prisma.product.create({ data: { ...dto } });
+      const maxOrder = await this.getMaxProductOrderForBranch(dto.branchId);
+      const newProduct = await this.prisma.product.create({
+        data: { ...dto, order: maxOrder + 1000 },
+      });
 
       this.logger.log(
         `create() success | Product created | id: ${newProduct.id} | branchId: ${dto.branchId}`,
@@ -385,6 +387,49 @@ export class ProductService {
     this.logger.error(
       `Photo conversion failed | file: ${fileId} | error: ${error}`,
     );
+  }
+
+  @Transactional()
+  async reorderProductsForBranch(branchId: string) {
+    const products = await this.txHost.tx.product.findMany({
+      where: { branchId, deletedAt: null },
+      orderBy: { order: 'asc' },
+    });
+
+    if (products.length === 0) return;
+
+    await Promise.all(
+      products.map((cat, index) =>
+        this.txHost.tx.product.update({
+          where: { id: cat.id },
+          data: { order: -(index + 1) },
+        }),
+      ),
+    );
+
+    await Promise.all(
+      products.map((cat, index) =>
+        this.txHost.tx.product.update({
+          where: { id: cat.id },
+          data: { order: (index + 1) * 1000 },
+        }),
+      ),
+    );
+
+    this.logger.log(
+      `reorderProductsForBranch() | Reorder completed for branch ${branchId}. Total products: ${products.length}`,
+    );
+  }
+
+  private async getMaxProductOrderForBranch(branchId: string): Promise<number> {
+    const lastProduct = await this.txHost.tx.product.findFirst({
+      orderBy: {
+        order: 'desc',
+      },
+      where: { branchId },
+    });
+
+    return lastProduct?.order ?? 0;
   }
 
   handleProductConstraintError(error: unknown): never {

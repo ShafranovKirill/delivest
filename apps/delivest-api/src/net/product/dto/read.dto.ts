@@ -28,6 +28,18 @@ export class ReadProductDto implements ProductResponse {
   @Expose()
   description?: string | undefined;
 
+  @ApiProperty({ required: false })
+  @Expose()
+  order?: number;
+
+  @ApiProperty({ required: false })
+  @Expose()
+  weight?: number | undefined;
+
+  @ApiProperty({ required: false })
+  @Expose()
+  quantity?: number | undefined;
+
   @ApiProperty({
     description:
       'объект фото продукта (ключ: photo type, значение: ключ для s3)',

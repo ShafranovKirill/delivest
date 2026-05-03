@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useAuthStore } from "./stores/auth.store";
+import { socket } from "./plugins/socket";
 const authStore = useAuthStore();
 onMounted(() => {
   authStore.init();
+  socket.connect();
 });
 </script>
 

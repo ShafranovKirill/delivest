@@ -33,4 +33,14 @@ export class CreateProductDto implements CreateProductRequest {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiProperty({ example: '1000' })
+  @IsNumber()
+  @IsOptional()
+  weight?: number | undefined;
+
+  @ApiProperty({ example: '1' })
+  @IsNumber()
+  @IsOptional()
+  quantity?: number | undefined;
 }

@@ -86,7 +86,6 @@ model Category {
   branch   Branch    @relation(fields: [branchId], references: [id])
   branchId String    @map("branch_id")
   products Product[]
-
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
@@ -100,6 +99,9 @@ model Product {
   name        String
   price       Int
   isActive    Boolean @default(true)
+  weight      Int?
+  quantity    Int?
+  order       Float
   description String?
   photos      Json?   @map("photos")
 
@@ -113,6 +115,7 @@ model Product {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
+  @@unique([branchId, order])
   @@map("product")
 }
 

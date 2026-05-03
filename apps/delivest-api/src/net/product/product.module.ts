@@ -8,6 +8,8 @@ import { PhotoQueueModule } from '../../media/photo-queue/photo-queue.module.js'
 import { MediaModule } from '../../media/media.module.js';
 import { NotificationModule } from '../../notification/notification.module.js';
 import { IdentityModule } from '../../identify/identify.module.js';
+import { ProductsReorderWorker } from './workers/product-reorder.worker.js';
+import { BranchModule } from '../branch/branch.module.js';
 
 @Module({
   imports: [
@@ -17,9 +19,10 @@ import { IdentityModule } from '../../identify/identify.module.js';
     MediaModule,
     NotificationModule,
     IdentityModule,
+    BranchModule,
   ],
   controllers: [ProductController, AdminProductController],
-  providers: [ProductService],
+  providers: [ProductService, ProductsReorderWorker],
   exports: [ProductService],
 })
 export class ProductModule {}

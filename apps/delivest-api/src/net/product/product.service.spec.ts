@@ -23,7 +23,6 @@ jest.mock('../../shared/helpers/db-errors.js', () => ({
   getPrismaModelName: jest.fn(),
 }));
 
-// Мокаем декоратор Transactional, чтобы он просто пропускал выполнение функции
 jest.mock('@nestjs-cls/transactional', () => ({
   ...(jest.requireActual('@nestjs-cls/transactional') as any),
   Transactional:

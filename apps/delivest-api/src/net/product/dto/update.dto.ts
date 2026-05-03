@@ -1,6 +1,6 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateProductDto } from './create.dto.js';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 import { UpdateProductRequest } from '@delivest/types';
 
 export class UpdateProductDto
@@ -11,4 +11,9 @@ export class UpdateProductDto
   @IsString()
   @IsNotEmpty()
   productId: string;
+
+  @ApiProperty({ example: 1000 })
+  @IsNumber()
+  @IsOptional()
+  order?: number | undefined;
 }
