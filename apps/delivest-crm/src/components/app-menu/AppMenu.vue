@@ -27,6 +27,7 @@ const menuItems = computed(() => [
         label: t("menu.products"),
         icon: "pi pi-box",
         visible: authStore.hasPermission(Permission.PRODUCT_READ),
+        command: () => router.push({ name: "products" }),
       },
       {
         label: t("menu.categories"),

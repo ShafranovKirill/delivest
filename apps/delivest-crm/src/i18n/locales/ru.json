@@ -111,6 +111,51 @@
     "create": "Создать",
     "confirm": "Подтвердить"
   },
+  "product": {
+    "create": {
+      "title": "Создание товара",
+      "success_summary": "Успешно",
+      "success_detail": "Товар создан",
+      "error_summary": "Ошибка",
+      "error_detail": "Не удалось создать товар"
+    },
+    "update": {
+      "title": "Редактирование товара",
+      "success_summary": "Успешно",
+      "success_detail": "Товар обновлен",
+      "error_summary": "Ошибка",
+      "error_detail": "Не удалось обновить товар"
+    },
+    "delete": {
+      "title": "Удаление товара",
+      "confirmation_text": "Вы действительно хотите удалить товар",
+      "success_summary": "Успешно",
+      "success_detail": "Товар \"{name}\" удален",
+      "error_summary": "Ошибка",
+      "error_detail": "Не удалось удалить товар"
+    },
+    "form": {
+      "name": "Название",
+      "name_placeholder": "Например: Яблочный сок",
+      "category": "Категория",
+      "category_placeholder": "Выберите категорию",
+      "price": "Цена",
+      "quantity": "Кол-во",
+      "weight": "Вес (г)",
+      "description": "Описание",
+      "image_upload": "Выбрать фото"
+    },
+    "list": {
+      "select_branch": "Выберите филиал для просмотра товаров",
+      "select_branch_with_name": "Продукты филиала {name}",
+      "empty": "Для выбранного филиала товары не найдены",
+      "no_items_in_category": "Товары в этой категории отсутствуют",
+      "no_category": "Без категории",
+      "items_count": "товаров",
+      "image_load_error": "Ошибка при загрузке фото",
+      "drag_order_error": "Ошибка при сохранении порядка продукта"
+    }
+  },
   "permissions": {
     "groups": {
       "staff": "Управление сотрудниками",

@@ -39,31 +39,13 @@ export class AdminProductController {
   constructor(private readonly service: ProductService) {}
 
   @Post('create')
-  @ApiOperation({ summary: 'Создать продукт с фото' })
-  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Создать продукт' })
   @RequirePermission(Permission.PRODUCT_CREATE)
-  @UseInterceptors(FileInterceptor('file'))
   async create(
     @Body() dto: CreateProductDto,
-    @Query('socketId') socketId: string,
-    @UploadedFile() file?: Express.Multer.File,
     @CurrentStaff() staff?: AccessStaffTokenPayload,
   ): Promise<AdminReadProductDto> {
     const product = await this.service.create(dto, staff);
-
-    if (file) {
-      await this.service.updatePhoto(
-        {
-          body: file.buffer,
-          originalName: file.originalname,
-          mimeType: file.mimetype,
-          size: file.size,
-        },
-        product.id,
-        socketId,
-        staff,
-      );
-    }
 
     return product;
   }
