@@ -36,9 +36,9 @@ export interface CreateProductRequest {
   name: string;
   price: number;
   branchId: string;
+  categoryId: string;
   weight?: number;
   quantity?: number;
-  categoryId?: string;
   description?: string;
 }
 

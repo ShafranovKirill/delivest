@@ -24,10 +24,10 @@ export class CreateProductDto implements CreateProductRequest {
   @IsUUID()
   branchId!: string;
 
-  @ApiPropertyOptional({ example: '7d2e0b12-9c3a-4f1e-8d5c-1a2b3c4d5e6f' })
+  @ApiProperty({ example: '7d2e0b12-9c3a-4f1e-8d5c-1a2b3c4d5e6f' })
   @IsUUID()
-  @IsOptional()
-  categoryId?: string;
+  @IsNotEmpty()
+  categoryId!: string;
 
   @ApiPropertyOptional({ example: 'Очень вкусная пицца с томатами' })
   @IsString()

@@ -218,7 +218,7 @@ export class ProductService {
       if (staffPayload) {
         this.identityService.checkBranchAbility(staffPayload, dto.branchId);
       }
-      const maxOrder = await this.getMaxProductOrderForBranch(dto.branchId);
+      const maxOrder = await this.getMaxProductOrderForCategory(dto.categoryId);
       const newProduct = await this.prisma.product.create({
         data: { ...dto, order: maxOrder + 1000 },
       });
@@ -391,6 +391,38 @@ export class ProductService {
   }
 
   @Transactional()
+  async reorderProductsForCategory(categoryId: string) {
+    const products = await this.txHost.tx.product.findMany({
+      where: { categoryId, deletedAt: null },
+      orderBy: { order: 'asc' },
+    });
+
+    if (products.length === 0) return;
+
+    await Promise.all(
+      products.map((cat, index) =>
+        this.txHost.tx.product.update({
+          where: { id: cat.id },
+          data: { order: -(index + 1) },
+        }),
+      ),
+    );
+
+    await Promise.all(
+      products.map((cat, index) =>
+        this.txHost.tx.product.update({
+          where: { id: cat.id },
+          data: { order: (index + 1) * 1000 },
+        }),
+      ),
+    );
+
+    this.logger.log(
+      `reorderProductsForCategory() | Reorder completed for category ${categoryId}. Total products: ${products.length}`,
+    );
+  }
+
+  @Transactional()
   async reorderProductsForBranch(branchId: string) {
     const products = await this.txHost.tx.product.findMany({
       where: { branchId, deletedAt: null },
@@ -422,12 +454,25 @@ export class ProductService {
     );
   }
 
+  private async getMaxProductOrderForCategory(
+    categoryId: string,
+  ): Promise<number> {
+    const lastProduct = await this.txHost.tx.product.findFirst({
+      orderBy: {
+        order: 'desc',
+      },
+      where: { categoryId, deletedAt: null },
+    });
+
+    return lastProduct?.order ?? 0;
+  }
+
   private async getMaxProductOrderForBranch(branchId: string): Promise<number> {
     const lastProduct = await this.txHost.tx.product.findFirst({
       orderBy: {
         order: 'desc',
       },
-      where: { branchId },
+      where: { branchId, deletedAt: null },
     });
 
     return lastProduct?.order ?? 0;

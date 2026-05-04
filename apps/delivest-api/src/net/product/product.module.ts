@@ -10,6 +10,7 @@ import { NotificationModule } from '../../notification/notification.module.js';
 import { IdentityModule } from '../../identify/identify.module.js';
 import { ProductsReorderWorker } from './workers/product-reorder.worker.js';
 import { BranchModule } from '../branch/branch.module.js';
+import { CategoryModule } from '../category/category.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { BranchModule } from '../branch/branch.module.js';
     NotificationModule,
     IdentityModule,
     BranchModule,
+    CategoryModule,
   ],
   controllers: [ProductController, AdminProductController],
   providers: [ProductService, ProductsReorderWorker],
