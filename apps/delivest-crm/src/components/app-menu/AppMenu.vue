@@ -10,13 +10,14 @@ const router = useRouter();
 const { t } = useI18n();
 const branchStore = useBranchStore();
 const authStore = useAuthStore();
+const branchParams = computed(() => ({ branchAlias: branchStore.activeBranchAlias }));
 
 const menuItems = computed(() => [
   {
     label: t("menu.orders"),
     icon: "pi pi-shopping-cart",
     visible: authStore.hasPermission(Permission.ORDER_READ),
-    command: () => router.push({ name: "orders", params: { branchAlias: branchStore.activeBranchAlias } }),
+    command: () => router.push({ name: "orders", params: branchParams.value }),
   },
   {
     label: t("menu.organization"),
@@ -27,19 +28,19 @@ const menuItems = computed(() => [
         label: t("menu.products"),
         icon: "pi pi-box",
         visible: authStore.hasPermission(Permission.PRODUCT_READ),
-        command: () => router.push({ name: "products" }),
+        command: () => router.push({ name: "products", params: branchParams.value }),
       },
       {
         label: t("menu.categories"),
         icon: "pi pi-tags",
         visible: authStore.hasPermission(Permission.CATEGORY_READ),
-        command: () => router.push({ name: "categories" }),
+        command: () => router.push({ name: "categories", params: branchParams.value }),
       },
       {
         label: t("menu.branch"),
         icon: "pi pi-building",
         visible: authStore.hasPermission(Permission.STAFF_READ),
-        command: () => router.push({ name: "branch" }),
+        command: () => router.push({ name: "branch", params: branchParams.value }),
       },
       {
         label: t("menu.team"),
@@ -50,13 +51,13 @@ const menuItems = computed(() => [
             label: t("menu.employees"),
             icon: "pi pi-user",
             visible: authStore.hasPermission(Permission.STAFF_READ),
-            command: () => router.push({ name: "staff" }),
+            command: () => router.push({ name: "staff", params: branchParams.value }),
           },
           {
             label: t("menu.role"),
             icon: "pi pi-tags",
             visible: authStore.hasPermission(Permission.ROLE_READ),
-            command: () => router.push({ name: "role" }),
+            command: () => router.push({ name: "role", params: branchParams.value }),
           },
         ],
       },
@@ -78,20 +79,20 @@ const adminMenuItems = computed(() => [
             label: t("menu.employees"),
             icon: "pi pi-user",
             visible: authStore.hasPermission(Permission.STAFF_READ),
-            command: () => router.push({ name: "admin-staff" }),
+            command: () => router.push({ name: "admin-staff", params: branchParams.value }),
           },
           {
             label: t("menu.role"),
             icon: "pi pi-tags",
             visible: authStore.hasPermission(Permission.ROLE_READ),
-            command: () => router.push({ name: "role" }),
+            command: () => router.push({ name: "role", params: branchParams.value }),
           },
         ],
       },
       {
         label: t("menu.system_logs"),
         icon: "pi pi-building",
-        command: () => router.push({ name: "admin-branches" }),
+        command: () => router.push({ name: "admin-branches", params: branchParams.value }),
       },
     ],
   },

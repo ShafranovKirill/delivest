@@ -12,7 +12,8 @@ interface Props {
 const props = defineProps<Props>();
 
 const imageUrl = computed(() => {
-  return ImageHelper.getProductPhotoUrl(props.product?.photos, PHOTO_KEYS.PRODUCT_PREVIEW);
+  const url = ImageHelper.getProductPhotoUrl(props.product?.photos, PHOTO_KEYS.PRODUCT_PREVIEW);
+  return url;
 });
 </script>
 

@@ -194,6 +194,7 @@ const onDragEnd = async (categoryId: string, event: any) => {
               v-model="categoryGroups[category.id]"
               item-key="id"
               handle=".drag-handle"
+              class="space-y-3"
               ghost-class="opacity-50"
               @end="onDragEnd(category.id, $event)">
               <template #item="{ element: product }">

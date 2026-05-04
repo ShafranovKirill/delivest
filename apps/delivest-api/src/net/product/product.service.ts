@@ -241,9 +241,10 @@ export class ProductService {
     staffPayload?: AccessStaffTokenPayload,
   ): Promise<AdminReadProductDto> {
     try {
+      const { productId, ...updateData } = dto;
       const updatedProduct = await this.txHost.tx.product.update({
-        where: { id: dto.productId },
-        data: { ...dto },
+        where: { id: productId },
+        data: { ...updateData },
       });
 
       if (staffPayload) {

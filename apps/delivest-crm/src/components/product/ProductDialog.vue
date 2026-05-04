@@ -65,19 +65,15 @@ const handleSubmit = async (formData: Omit<CreateProductRequest, "branchId">) =>
   const branchId = props.branchId ?? props.product?.branchId;
   if (!branchId) return;
 
-  const payload = {
-    ...formData,
-    branchId,
-  };
-
   const id = props.product?.id ?? null;
-  const { success, data } = await submit(id, id ? { productId: id, ...payload } : payload);
 
+  const { success, data } = await submit(id, id ? { productId: id, ...formData, branchId } : { ...formData, branchId });
   if (!success) return;
 
-  if (selectedFile.value && data?.id) {
+  const finalProductId = data?.id ?? id;
+  if (selectedFile.value && finalProductId) {
     try {
-      await productStore.uploadProductImage(data.id, selectedFile.value);
+      await productStore.uploadProductImage(finalProductId, selectedFile.value);
     } catch (error) {
       console.error(t("product.list.image_load_error"), error);
     }
