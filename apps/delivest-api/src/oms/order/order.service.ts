@@ -28,6 +28,8 @@ import { ReadValidateOrderDto } from './dto/read-validate.dto.js';
 import { OrderStatusContext } from './order-status.context.js';
 import { CreateOrderDto } from './dto/create.dto.js';
 import { IdentityService } from '../../identify/identify.service.js';
+import { NotificationGateway } from '../../notification/notification.gateway.js';
+import { SocketEvent } from '@delivest/types';
 
 @Injectable()
 export class OrderService {
@@ -42,6 +44,7 @@ export class OrderService {
     private readonly netService: NetService,
     private readonly jwtService: JwtService,
     private readonly identityService: IdentityService,
+    private readonly notificationGateway: NotificationGateway,
     private readonly txHost: TransactionHost<
       TransactionalAdapterPrisma<PrismaClient>
     >,
@@ -101,6 +104,11 @@ export class OrderService {
         await this.statusContext.execute(order);
 
         this.logger.log(`Order #${order.orderNumber} created successfully`);
+
+        this.notificationGateway.server.emit(SocketEvent.ORDER_CREATED, {
+          branchId: order.branchId,
+          orderId: order.id,
+        });
 
         return toDto(order, ReadOrderDto);
       });

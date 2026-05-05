@@ -30,7 +30,7 @@ import { type AccessStaffTokenPayload } from '@delivest/types';
 })
 @ApiBearerAuth('staff-auth')
 @UseGuards(JwtStaffAuthGuard, AclGuard)
-@Controller('orders')
+@Controller('admin/orders')
 export class AdminOrderController {
   constructor(private readonly orderService: OrderService) {}
 

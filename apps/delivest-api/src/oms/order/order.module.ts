@@ -6,11 +6,13 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { OrderService } from './order.service.js';
 import { OrderController } from './order.controller.js';
+import { AdminOrderController } from './admin-order.controller.js';
 import { OrderStatusContext } from './order-status.context.js';
 import { ProcessingStrategy } from './strategies/processing.strategy.js';
 import { IOrderStatusStrategy } from './interfaces/order-status.strategy.interface.js';
 import { CartModule } from '../cart/cart.module.js';
 import { IdentityModule } from '../../identify/identify.module.js';
+import { NotificationModule } from '../../notification/notification.module.js';
 const STRATEGIES = [ProcessingStrategy];
 @Module({
   imports: [
@@ -21,6 +23,7 @@ const STRATEGIES = [ProcessingStrategy];
     MediaModule,
     ConfigModule,
     IdentityModule,
+    NotificationModule,
   ],
   providers: [
     OrderService,
@@ -33,7 +36,7 @@ const STRATEGIES = [ProcessingStrategy];
       inject: STRATEGIES,
     },
   ],
-  controllers: [OrderController],
+  controllers: [OrderController, AdminOrderController],
   exports: [OrderService],
 })
 export class OrderModule {}

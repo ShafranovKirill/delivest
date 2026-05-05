@@ -1,6 +1,6 @@
 import { AdminCreateOrderRequest } from '@delivest/types';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { OrderStatus } from '../../../../generated/prisma/enums.js';
 
 export class AdminCreateOrderDto implements AdminCreateOrderRequest {
@@ -9,13 +9,15 @@ export class AdminCreateOrderDto implements AdminCreateOrderRequest {
   @IsNotEmpty()
   validationToken: string;
 
-  @ApiProperty({ description: 'ID клиента, для которого создается заказ' })
+  @ApiPropertyOptional({
+    description: 'ID клиента, для которого создается заказ',
+  })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  clientId: string;
+  clientId?: string;
 
-  @ApiProperty({ description: 'Статус заказа' })
-  @IsEnum({ enum: ['PENDING'] })
-  @IsNotEmpty()
-  status: OrderStatus;
+  @ApiPropertyOptional({ description: 'Статус заказа' })
+  @IsOptional()
+  @IsEnum(OrderStatus)
+  status?: OrderStatus;
 }

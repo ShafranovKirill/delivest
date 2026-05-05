@@ -25,8 +25,8 @@ export interface CreateOrderRequest {
 }
 
 export interface AdminCreateOrderRequest extends CreateOrderRequest {
-  clientId: string;
-  status: OrderStatus;
+  clientId?: string;
+  status?: OrderStatus;
 }
 
 export interface OrderItem {
