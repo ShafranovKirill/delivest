@@ -1,11 +1,16 @@
 import api from "@/api/axios";
-import { socketState } from "@/plugins/socket";
+import { socket, socketState } from "@/plugins/socket";
+import { SocketEvent } from "@delivest/types";
 import type { CreateProductRequest, ProductResponse, UpdateProductRequest } from "@delivest/types";
 import { defineStore } from "pinia";
+
+let socketListenersInitialized = false;
+
 export const useProductStore = defineStore("product", {
   state: () => ({
     products: [] as ProductResponse[],
     isLoading: false,
+    photoUploadResult: null as { productId: string; photos: ProductResponse["photos"] } | null,
   }),
 
   getters: {},
@@ -69,6 +74,30 @@ export const useProductStore = defineStore("product", {
         console.error("Error deleting product:", error);
         throw error;
       }
+    },
+
+    initSocketListeners() {
+      if (socketListenersInitialized) return;
+      socketListenersInitialized = true;
+
+      socket.on(
+        SocketEvent.PHOTO_EDIT_RESULT,
+        (data: { targetId: string; photos: ProductResponse["photos"]; success: boolean }) => {
+          if (!data || !data.success || !data.targetId) return;
+          const index = this.products.findIndex(product => product.id === data.targetId);
+          if (index !== -1) {
+            this.products[index].photos = data.photos;
+          }
+          this.photoUploadResult = {
+            productId: data.targetId,
+            photos: data.photos,
+          };
+        },
+      );
+    },
+
+    clearPhotoUploadResult() {
+      this.photoUploadResult = null;
     },
 
     async uploadProductImage(productId: string, file: File) {

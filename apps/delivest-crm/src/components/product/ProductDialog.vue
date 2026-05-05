@@ -3,6 +3,7 @@ import Dialog from "primevue/dialog";
 import FileUpload from "primevue/fileupload";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useToast } from "primevue/usetoast";
 import { useProductForm } from "@/composables/useProductForm";
 import { useProductStore } from "@/stores/product.store";
 import { useCategoryStore } from "@/stores/category.store";
@@ -23,9 +24,11 @@ const { t } = useI18n();
 const { submit, isSubmitting } = useProductForm();
 const productStore = useProductStore();
 const categoryStore = useCategoryStore();
+const toast = useToast();
 
 const selectedFile = ref<File | null>(null);
 const previewUrl = ref<string | null>(null);
+const uploadedProductId = ref<string | null>(null);
 
 const isEditMode = computed(() => !!props.product);
 const headerText = computed(() => (isEditMode.value ? t("product.update.title") : t("product.create.title")));
@@ -42,11 +45,27 @@ watch(
     } else {
       selectedFile.value = null;
       previewUrl.value = null;
+      uploadedProductId.value = null;
     }
   },
   { immediate: true },
 );
 
+watch(
+  () => productStore.photoUploadResult,
+  result => {
+    if (result && uploadedProductId.value === result.productId) {
+      toast.add({
+        severity: "success",
+        summary: t("common.success"),
+        detail: t("product.list.image_uploaded_successfully"),
+        life: 5000,
+      });
+      uploadedProductId.value = null;
+      productStore.clearPhotoUploadResult();
+    }
+  },
+);
 const onFileSelect = (event: any) => {
   const file = event.files[0];
   if (file) {
@@ -75,9 +94,17 @@ const handleSubmit = async (formData: Omit<CreateProductRequest, "branchId"> & {
   const finalProductId = data?.id ?? id;
   if (selectedFile.value && finalProductId) {
     try {
+      uploadedProductId.value = finalProductId;
       await productStore.uploadProductImage(finalProductId, selectedFile.value);
     } catch (error) {
       console.error(t("product.list.image_load_error"), error);
+      uploadedProductId.value = null;
+      toast.add({
+        severity: "error",
+        summary: t("common.error"),
+        detail: t("product.list.image_load_error"),
+        life: 5000,
+      });
     }
   }
 

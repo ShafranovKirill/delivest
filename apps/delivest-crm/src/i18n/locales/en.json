@@ -45,6 +45,15 @@
     "select": "Select",
     "loading": "Loading configuration...",
     "error": "An error occurred",
-    "search": "Search..."
+    "success": "Success",
+    "search": "Search...",
+    "save": "Save",
+    "create": "Create"
+  },
+  "product": {
+    "list": {
+      "image_load_error": "Error uploading photo",
+      "image_uploaded_successfully": "Photo uploaded successfully"
+    }
   }
 }

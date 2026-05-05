@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        "@delivest/types": path.resolve(__dirname, "../../libs/types/src/index.ts"),
       },
     },
   };

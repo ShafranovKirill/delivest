@@ -62,19 +62,37 @@ watch(
   { immediate: true, deep: true },
 );
 
-const onSubmit = () => emit("submit", { ...form.value });
+const errors = ref<Record<string, string>>({});
+
+const validateForm = () => {
+  errors.value = {};
+  if (!form.value.name?.trim()) {
+    errors.value.name = t("product.form.name_required");
+  }
+  if (!form.value.categoryId) {
+    errors.value.categoryId = t("product.form.category_required");
+  }
+  return Object.keys(errors.value).length === 0;
+};
+
+const onSubmit = () => {
+  if (validateForm()) {
+    emit("submit", { ...form.value });
+  }
+};
 const onCancel = () => emit("cancel");
 </script>
 
 <template>
   <div class="flex flex-col gap-4">
     <div class="field">
-      <label class="font-bold mb-1 block">{{ t("product.form.name") }}</label>
+      <label class="font-bold mb-1 block">{{ t("product.form.name") }} <span class="text-red-500">*</span></label>
       <InputText v-model.trim="form.name" :placeholder="t('product.form.name_placeholder')" autofocus />
+      <small v-if="errors.name" class="text-red-500">{{ errors.name }}</small>
     </div>
 
     <div class="field">
-      <label class="font-bold mb-1 block">{{ t("product.form.category") }}</label>
+      <label class="font-bold mb-1 block">{{ t("product.form.category") }} <span class="text-red-500">*</span></label>
       <Select
         v-model="form.categoryId"
         :options="props.categories"
@@ -82,6 +100,7 @@ const onCancel = () => emit("cancel");
         optionValue="id"
         :placeholder="t('product.form.category_placeholder')"
         class="w-full" />
+      <small v-if="errors.categoryId" class="text-red-500">{{ errors.categoryId }}</small>
     </div>
 
     <div class="grid grid-cols-2 gap-4">
@@ -135,7 +154,7 @@ const onCancel = () => emit("cancel");
         :label="props.submitLabel || t('common.save')"
         icon="pi pi-check"
         :loading="props.loading"
-        :disabled="!form.name || !form.categoryId"
+        :disabled="!form.name?.trim() || !form.categoryId"
         @click="onSubmit" />
     </div>
   </div>

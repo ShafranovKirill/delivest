@@ -138,8 +138,10 @@
     "form": {
       "name": "Название",
       "name_placeholder": "Например: Яблочный сок",
+      "name_required": "Название товара обязательно",
       "category": "Категория",
       "category_placeholder": "Выберите категорию",
+      "category_required": "Выберите категорию товара",
       "price": "Цена",
       "quantity": "Кол-во",
       "weight": "Вес (г)",
@@ -154,6 +156,7 @@
       "no_category": "Без категории",
       "items_count": "товаров",
       "image_load_error": "Ошибка при загрузке фото",
+      "image_uploaded_successfully": "Фото успешно загружено",
       "drag_order_error": "Ошибка при сохранении порядка продукта"
     }
   },
