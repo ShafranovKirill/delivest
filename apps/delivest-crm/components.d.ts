@@ -34,6 +34,7 @@ declare module 'vue' {
     FileUpload: typeof import('primevue/fileupload')['default']
     InputMask: typeof import('primevue/inputmask')['default']
     InputNumber: typeof import('primevue/inputnumber')['default']
+    InputSwitch: typeof import('primevue/inputswitch')['default']
     InputText: typeof import('primevue/inputtext')['default']
     MultiSelect: typeof import('primevue/multiselect')['default']
     PanelMenu: typeof import('primevue/panelmenu')['default']
@@ -62,5 +63,6 @@ declare module 'vue' {
     StaffForm: typeof import('./src/components/staff/StaffForm.vue')['default']
     Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
+    ToggleSwitch: typeof import('primevue/toggleswitch')['default']
   }
 }

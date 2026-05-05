@@ -31,7 +31,8 @@ const imageUrl = computed(() => {
 
   <div
     v-else-if="props.product"
-    class="group relative p-3 rounded-2xl flex items-center gap-4 transition-all duration-300 hover:shadow-lg hover:border-primary/30 bg-(--surface-card) border border-(--surface-border)">
+    class="group relative p-3 rounded-2xl flex items-center gap-4 transition-all duration-300 hover:shadow-lg hover:border-primary/30 bg-(--surface-card) border border-(--surface-border)"
+    :class="{ 'opacity-50': !props.product.isAvailable }">
     <div
       class="drag-handle cursor-grab active:cursor-grabbing px-1 text-(--surface-300) hover:text-primary transition-colors">
       <i class="pi pi-ellipsis-v text-lg"></i>
@@ -66,6 +67,8 @@ const imageUrl = computed(() => {
         <p v-if="props.product.description" class="text-sm text-(--surface-500) line-clamp-1 mb-2">
           {{ props.product.description }}
         </p>
+
+        <p v-if="props.product.isAvailable === false" class="text-xs text-red-500 font-medium mb-2">Недоступен</p>
       </div>
 
       <div class="flex items-center gap-4">

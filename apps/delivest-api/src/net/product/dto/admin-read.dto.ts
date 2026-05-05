@@ -1,7 +1,7 @@
 import { PhotoKey } from '@delivest/common';
 import { ProductResponse } from '@delivest/types';
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 
 export class AdminReadProductDto implements ProductResponse {
   @ApiProperty()
@@ -39,6 +39,11 @@ export class AdminReadProductDto implements ProductResponse {
   @ApiProperty({ required: false })
   @Expose()
   quantity?: number | undefined;
+
+  @ApiProperty({ required: false })
+  @Expose()
+  @Transform(({ obj }) => obj.isAvailable)
+  isAvailable?: boolean | undefined;
 
   @ApiProperty({
     description:

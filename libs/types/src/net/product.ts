@@ -28,6 +28,7 @@ export interface ProductResponse {
   order?: number;
   weight?: number;
   quantity?: number;
+  isAvailable?: boolean;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -45,4 +46,5 @@ export interface CreateProductRequest {
 export type UpdateProductRequest = Partial<CreateProductRequest> & {
   productId: string;
   order?: number;
+  isAvailable?: boolean;
 };

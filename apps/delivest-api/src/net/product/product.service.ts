@@ -244,7 +244,7 @@ export class ProductService {
       const { productId, ...updateData } = dto;
       const updatedProduct = await this.txHost.tx.product.update({
         where: { id: productId },
-        data: { ...updateData },
+        data: updateData,
       });
 
       if (staffPayload) {

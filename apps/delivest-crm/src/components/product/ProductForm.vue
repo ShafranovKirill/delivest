@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
-import Textarea from "primevue/textarea";
-import Select from "primevue/select";
-import Button from "primevue/button";
+
 import { useI18n } from "vue-i18n";
 import type { ProductResponse, CreateProductRequest, CategoryResponse } from "@delivest/types";
 
-type ProductFormData = Omit<CreateProductRequest, "branchId">;
+type ProductFormData = Omit<CreateProductRequest, "branchId"> & { isAvailable?: boolean };
 
 const props = defineProps<{
   initialData?: ProductResponse | null;
@@ -31,6 +27,7 @@ const form = ref<ProductFormData>({
   quantity: 1,
   weight: 0,
   description: "",
+  isAvailable: true,
 });
 
 const resetForm = () => {
@@ -41,6 +38,7 @@ const resetForm = () => {
     quantity: 1,
     weight: 0,
     description: "",
+    isAvailable: true,
   };
 };
 
@@ -55,12 +53,13 @@ watch(
         quantity: value.quantity ?? 1,
         weight: value.weight ?? 0,
         description: value.description ?? "",
+        isAvailable: value.isAvailable !== undefined ? value.isAvailable : true,
       };
     } else {
       resetForm();
     }
   },
-  { immediate: true },
+  { immediate: true, deep: true },
 );
 
 const onSubmit = () => emit("submit", { ...form.value });
@@ -88,22 +87,46 @@ const onCancel = () => emit("cancel");
     <div class="grid grid-cols-2 gap-4">
       <div class="field">
         <label for="weight" class="font-bold mb-1 block">Вес (г)</label>
-        <InputNumber id="weight" v-model="form.weight" :maxFractionDigits="0" suffix=" г" inputClass="w-full" />
+        <InputNumber
+          id="weight"
+          v-model="form.weight"
+          :useGrouping="false"
+          :maxFractionDigits="0"
+          inputClass="w-full"
+          placeholder="Например: 500" />
       </div>
+
       <div class="field">
         <label for="quantity" class="font-bold mb-1 block">Кол-во</label>
-        <InputNumber id="quantity" v-model="form.quantity" showButtons :min="1" inputClass="w-full" />
+        <InputNumber
+          id="quantity"
+          v-model="form.quantity"
+          showButtons
+          :min="1"
+          :useGrouping="false"
+          inputClass="w-full" />
       </div>
     </div>
 
     <div class="field">
-      <label for="price" class="font-bold mb-1 block">Цена</label>
-      <InputNumber id="price" v-model="form.price" mode="currency" currency="RUB" locale="ru-RU" inputClass="w-full" />
+      <label for="price" class="font-bold mb-1 block">Цена (₽)</label>
+      <InputNumber
+        id="price"
+        v-model="form.price"
+        :useGrouping="false"
+        :maxFractionDigits="0"
+        inputClass="w-full"
+        placeholder="Введите целое число" />
     </div>
 
     <div class="field">
       <label class="font-bold mb-1 block">{{ t("product.form.description") }}</label>
       <Textarea v-model="form.description" rows="3" autoResize class="w-full" />
+    </div>
+
+    <div class="field flex align-items-center gap-2">
+      <InputSwitch v-model="form.isAvailable" id="isAvailable" />
+      <label for="isAvailable" class="font-bold">Доступен</label>
     </div>
 
     <div class="flex justify-end gap-2 mt-4">

@@ -40,6 +40,10 @@ export class ReadProductDto implements ProductResponse {
   @Expose()
   quantity?: number | undefined;
 
+  @ApiProperty({ required: false })
+  @Expose()
+  isAvailable?: boolean | undefined;
+
   @ApiProperty({
     description:
       'объект фото продукта (ключ: photo type, значение: ключ для s3)',

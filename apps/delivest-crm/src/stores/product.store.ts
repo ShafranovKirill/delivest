@@ -49,6 +49,18 @@ export const useProductStore = defineStore("product", {
       }
     },
 
+    async toggleAvailability(productId: string, currentStatus: boolean) {
+      try {
+        return await this.updateProduct({
+          productId,
+          isAvailable: !currentStatus,
+        });
+      } catch (error) {
+        console.error("Error toggling availability:", error);
+        throw error;
+      }
+    },
+
     async deleteProduct(id: string) {
       try {
         await api.delete(`/admin/product/delete/${id}`);

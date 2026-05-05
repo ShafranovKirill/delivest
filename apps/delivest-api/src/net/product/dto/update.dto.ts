@@ -1,6 +1,12 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateProductDto } from './create.dto.js';
-import { IsString, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 import { UpdateProductRequest } from '@delivest/types';
 
 export class UpdateProductDto
@@ -16,4 +22,9 @@ export class UpdateProductDto
   @IsNumber()
   @IsOptional()
   order?: number | undefined;
+
+  @ApiProperty({ example: true })
+  @IsBoolean()
+  @IsOptional()
+  isAvailable?: boolean | undefined;
 }

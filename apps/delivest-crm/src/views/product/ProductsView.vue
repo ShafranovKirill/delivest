@@ -76,8 +76,8 @@ const toggleCategory = (categoryId: string) => {
   activeCategory.value = activeCategory.value === categoryId ? null : categoryId;
 };
 
-const openCreate = () => {
-  selectedProduct.value = null;
+const openCreate = (categoryId?: string) => {
+  selectedProduct.value = categoryId ? ({ categoryId } as ProductResponse) : null;
   isCreateVisible.value = true;
 };
 
@@ -141,10 +141,10 @@ const onDragEnd = async (categoryId: string, event: any) => {
         <Button
           v-if="authStore.hasPermission(Permission.PRODUCT_CREATE)"
           :disabled="!branchStore.activeBranchId"
-          :label="$t('product.create')"
+          :label="$t('product.create.cr')"
           icon="pi pi-plus"
           class="py-2 h-fit"
-          @click="openCreate" />
+          @click="openCreate()" />
       </div>
     </div>
 
@@ -206,6 +206,17 @@ const onDragEnd = async (categoryId: string, event: any) => {
                 </ProductCard>
               </template>
             </draggable>
+
+            <div class="pt-2">
+              <Button
+                v-if="authStore.hasPermission(Permission.PRODUCT_CREATE)"
+                :label="$t('product.create.cr')"
+                icon="pi pi-plus"
+                severity="secondary"
+                text
+                class="w-full justify-center"
+                @click="openCreate(category.id)" />
+            </div>
           </div>
         </div>
 
@@ -239,6 +250,17 @@ const onDragEnd = async (categoryId: string, event: any) => {
                 </ProductCard>
               </template>
             </draggable>
+
+            <div class="pt-2">
+              <Button
+                v-if="authStore.hasPermission(Permission.PRODUCT_CREATE)"
+                :label="$t('product.create.cr')"
+                icon="pi pi-plus"
+                severity="secondary"
+                text
+                class="w-full justify-center"
+                @click="openCreate()" />
+            </div>
           </div>
         </div>
       </div>

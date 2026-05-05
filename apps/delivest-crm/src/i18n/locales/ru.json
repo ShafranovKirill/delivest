@@ -113,6 +113,7 @@
   },
   "product": {
     "create": {
+      "cr": "Создать товар",
       "title": "Создание товара",
       "success_summary": "Успешно",
       "success_detail": "Товар создан",
@@ -147,7 +148,7 @@
     },
     "list": {
       "select_branch": "Выберите филиал для просмотра товаров",
-      "select_branch_with_name": "Продукты филиала {name}",
+      "select_branch_with_name": "товары филиала {name}",
       "empty": "Для выбранного филиала товары не найдены",
       "no_items_in_category": "Товары в этой категории отсутствуют",
       "no_category": "Без категории",

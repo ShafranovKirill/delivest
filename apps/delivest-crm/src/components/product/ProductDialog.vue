@@ -61,13 +61,15 @@ const close = () => {
   previewUrl.value = null;
 };
 
-const handleSubmit = async (formData: Omit<CreateProductRequest, "branchId">) => {
+const handleSubmit = async (formData: Omit<CreateProductRequest, "branchId"> & { isAvailable?: boolean }) => {
   const branchId = props.branchId ?? props.product?.branchId;
   if (!branchId) return;
 
   const id = props.product?.id ?? null;
 
-  const { success, data } = await submit(id, id ? { productId: id, ...formData, branchId } : { ...formData, branchId });
+  const payload = id ? { productId: id, ...formData, branchId } : { ...formData, branchId };
+
+  const { success, data } = await submit(id, payload);
   if (!success) return;
 
   const finalProductId = data?.id ?? id;

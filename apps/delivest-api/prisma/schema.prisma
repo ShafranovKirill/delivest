@@ -26,8 +26,8 @@ model Staff {
   name         String?
 
   branches StaffBranch[]
-  roleId String @map("role_id")
-  role   Role   @relation(fields: [roleId], references: [id])
+  roleId   String        @map("role_id")
+  role     Role          @relation(fields: [roleId], references: [id])
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -40,7 +40,7 @@ model StaffBranch {
   staffId  String @map("staff_id")
   branchId String @map("branch_id")
 
-  staff  Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
   @@id([staffId, branchId])
   @@map("staff_branches")
@@ -62,7 +62,7 @@ model Role {
 
 model Branch {
   id          String    @id @default(uuid())
-  alias       String    
+  alias       String
   name        String
   address     String?
   phone       String?
@@ -83,9 +83,9 @@ model Category {
   name  String
   order Float
 
-  branch   Branch    @relation(fields: [branchId], references: [id])
-  branchId String    @map("branch_id")
-  products Product[]
+  branch    Branch    @relation(fields: [branchId], references: [id])
+  branchId  String    @map("branch_id")
+  products  Product[]
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
@@ -98,7 +98,7 @@ model Product {
   id          String  @id @default(uuid())
   name        String
   price       Int
-  isActive    Boolean @default(true)
+  isAvailable Boolean @default(true)
   weight      Int?
   quantity    Int?
   order       Float
@@ -115,7 +115,6 @@ model Product {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  @@unique([categoryId, order])
   @@map("product")
 }
 
@@ -198,7 +197,7 @@ model Order {
   id          String @id @default(uuid())
   orderNumber Int    @unique @default(autoincrement()) @map("order_number")
 
-  branchId    String @map("branch_id")
+  branchId String @map("branch_id")
 
   clientId String? @map("client_id")
   staffId  String? @map("staff_id")
