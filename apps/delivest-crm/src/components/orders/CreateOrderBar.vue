@@ -14,8 +14,8 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="fixed bottom-0 w-full border-t border-slate-200 bg-white p-6 shadow-2xl z-50">
-    <div class="mx-auto max-w-7xl">
+  <div class="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white p-6 shadow-2xl z-50">
+    <div class="mx-auto w-full max-w-[calc(100vw-16rem)]">
       <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 class="text-xl font-semibold">Создать заказ</h2>
