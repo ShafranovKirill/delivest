@@ -1,11 +1,13 @@
 import api from "@/api/axios";
 import { socket } from "@/plugins/socket";
 import { SocketEvent } from "@delivest/types";
-import type { CartResponse, OrderResponse, FindOrdersRequest } from "@delivest/types";
+import type { OrderResponse, FindOrdersRequest, ValidateOrderResponse } from "@delivest/types";
 import { defineStore } from "pinia";
 import { useBranchStore } from "./branch.store";
+import { useCartStore } from "./cart.store";
 
 type OrderModalType = "TABLE" | "TAKEAWAY" | "DELIVERY" | "PICKUP";
+type OrderStatusType = "PENDING" | "PROCESSING" | "READY" | "PICKED_UP" | "COMPLETED" | "CANCELLED";
 
 const orderTypeLabels: Record<OrderModalType, string> = {
   TABLE: "За столом",
@@ -21,19 +23,24 @@ const orderTypeDeliveryMap: Record<OrderModalType, string> = {
   PICKUP: "PICKUP",
 };
 
+const deliveryTypeToOrderModalType: Record<string, OrderModalType> = {
+  DINE_IN: "TABLE",
+  DELIVERY: "DELIVERY",
+  PICKUP: "PICKUP",
+};
+
 let socketListenersInitialized = false;
 
 export const useOrderStore = defineStore("order", {
   state: () => ({
     orders: [] as OrderResponse[],
     isLoadingOrders: false,
-    isLoadingCart: false,
     page: 1,
     limit: 20,
     orderStatus: undefined as FindOrdersRequest["orderStatus"],
     startDate: undefined as FindOrdersRequest["startDate"],
     endDate: undefined as FindOrdersRequest["endDate"],
-    orderCart: null as CartResponse | null,
+    selectedOrder: null as OrderResponse | null,
     orderModalOpen: false,
     orderModalType: null as OrderModalType | null,
     orderRequest: {
@@ -42,16 +49,18 @@ export const useOrderStore = defineStore("order", {
       comment: "",
       tableNumber: "",
     },
+    validatedOrder: null as ValidateOrderResponse | null,
     isSubmittingOrder: false,
+    isUpdatingOrder: false,
     successMessage: "",
     errorMessage: "",
   }),
 
   getters: {
     totalOrders: state => state.orders.length,
-    cartItemCount: state => state.orderCart?.totalItems ?? 0,
     activeOrderTypeLabel: state => (state.orderModalType ? orderTypeLabels[state.orderModalType] : ""),
     activeOrderDeliveryType: state => (state.orderModalType ? orderTypeDeliveryMap[state.orderModalType] : undefined),
+    isEditingOrder: state => Boolean(state.selectedOrder),
   },
 
   actions: {
@@ -88,80 +97,11 @@ export const useOrderStore = defineStore("order", {
       }
     },
 
-    async fetchStaffCart(branchId: string) {
-      this.isLoadingCart = true;
-      try {
-        const { data } = await api.get<CartResponse>(`/admin/cart/${branchId}`);
-        this.orderCart = data;
-      } catch (error) {
-        console.error("Error fetching staff cart:", error);
-        this.orderCart = null;
-        throw error;
-      } finally {
-        this.isLoadingCart = false;
-      }
-    },
-
-    async addProductToCart(productId: string, quantity: number = 1) {
-      if (!this.orderCart) {
-        throw new Error("Cart is not initialized");
-      }
-
-      this.isLoadingCart = true;
-      try {
-        const payload = {
-          cartId: this.orderCart.id,
-          productId,
-          quantity,
-        };
-
-        const { data } = await api.post<CartResponse>("/admin/cart/add", payload);
-        this.orderCart = data;
-      } catch (error) {
-        console.error("Error adding product to cart:", error);
-        throw error;
-      } finally {
-        this.isLoadingCart = false;
-      }
-    },
-
-    async removeProductFromCart(productId: string, deleteAll = false) {
-      if (!this.orderCart) {
-        throw new Error("Cart is not initialized");
-      }
-
-      this.isLoadingCart = true;
-      try {
-        const payload = {
-          cartId: this.orderCart.id,
-          productId,
-          deleteAll,
-        };
-
-        const { data } = await api.patch<CartResponse>("/admin/cart/remove", payload);
-        this.orderCart = data;
-      } catch (error) {
-        console.error("Error removing product from cart:", error);
-        throw error;
-      } finally {
-        this.isLoadingCart = false;
-      }
-    },
-
-    async clearStaffCart() {
-      if (!this.orderCart) return;
-      try {
-        await api.delete(`/admin/cart/clear/${this.orderCart.id}`);
-        this.orderCart = null;
-      } catch (error) {
-        console.error("Error clearing staff cart:", error);
-        throw error;
-      }
-    },
-
     openOrderModal(type: OrderModalType) {
       this.orderModalType = type;
       this.orderModalOpen = true;
+      this.selectedOrder = null;
+      this.validatedOrder = null;
       this.orderRequest = {
         phone: "",
         address: "",
@@ -172,15 +112,33 @@ export const useOrderStore = defineStore("order", {
       this.errorMessage = "";
     },
 
-    closeOrderModal() {
-      this.orderModalOpen = false;
-      this.orderModalType = null;
+    openEditOrderModal(order: OrderResponse) {
+      this.selectedOrder = order;
+      this.orderModalType = deliveryTypeToOrderModalType[order.deliveryType] ?? "DELIVERY";
+      this.orderModalOpen = true;
+      this.validatedOrder = null;
+      this.orderRequest = {
+        phone: order.phone,
+        address: order.address ?? "",
+        comment: order.comment ?? "",
+        tableNumber: "",
+      };
       this.successMessage = "";
       this.errorMessage = "";
     },
 
-    async createStaffOrder() {
-      if (!this.orderCart || !this.orderModalType) {
+    closeOrderModal() {
+      this.orderModalOpen = false;
+      this.orderModalType = null;
+      this.selectedOrder = null;
+      this.validatedOrder = null;
+      this.successMessage = "";
+      this.errorMessage = "";
+    },
+
+    async validateStaffOrder() {
+      const cartStore = useCartStore();
+      if (!cartStore.cart || !this.orderModalType) {
         throw new Error("Невозможно создать заказ без активной корзины или типа заказа");
       }
 
@@ -192,7 +150,7 @@ export const useOrderStore = defineStore("order", {
 
       if (!this.orderRequest.phone.trim()) {
         this.errorMessage = "Введите телефон клиента";
-        return;
+        return null;
       }
 
       this.isSubmittingOrder = true;
@@ -200,14 +158,15 @@ export const useOrderStore = defineStore("order", {
       this.successMessage = "";
 
       try {
-        const payload = {
-          cartId: this.orderCart.id,
+        const payload: Record<string, unknown> = {
+          cartId: cartStore.cart.id,
           branchId,
+          status: "PENDING",
           phone: this.orderRequest.phone,
           deliveryType: orderTypeDeliveryMap[this.orderModalType],
           comment: this.orderRequest.comment || undefined,
           address: this.orderModalType === "DELIVERY" ? this.orderRequest.address || undefined : undefined,
-        } as Record<string, unknown>;
+        };
 
         if (this.orderModalType === "TABLE" && this.orderRequest.tableNumber) {
           payload.comment = `Стол ${this.orderRequest.tableNumber}${
@@ -215,25 +174,125 @@ export const useOrderStore = defineStore("order", {
           }`;
         }
 
-        const { data: validationResult } = await api.post<{ validationToken: string }>(
-          "/admin/orders/validate",
-          payload,
-        );
+        const { data } = await api.post<ValidateOrderResponse>("/admin/orders/validate", payload);
+        this.validatedOrder = data;
+        return data;
+      } catch (error) {
+        console.error("Error validating staff order:", error);
+        this.errorMessage = "Не удалось проверить заказ. Проверьте данные и попробуйте снова.";
+        return null;
+      } finally {
+        this.isSubmittingOrder = false;
+      }
+    },
 
-        const createPayload: Record<string, unknown> = {
-          validationToken: validationResult.validationToken,
-        };
+    async createStaffOrder() {
+      if (this.selectedOrder) {
+        this.closeOrderModal();
+        return;
+      }
 
-        const { data: createdOrder } = await api.post<OrderResponse>("/admin/orders", createPayload);
+      if (!this.validatedOrder) {
+        throw new Error("Заказ должен быть предварительно подтверждён");
+      }
+
+      const cartStore = useCartStore();
+      const branchStore = useBranchStore();
+      const branchId = branchStore.activeBranchId;
+      if (!branchId) {
+        throw new Error("Active branch is required");
+      }
+
+      this.isSubmittingOrder = true;
+      this.errorMessage = "";
+      this.successMessage = "";
+
+      try {
+        const { data: createdOrder } = await api.post<OrderResponse>("/admin/orders", {
+          validationToken: this.validatedOrder.validationToken,
+        });
 
         this.successMessage = `Заказ #${createdOrder.orderNumber} создан`;
+        this.validatedOrder = null;
         await this.fetchOrdersForBranch(branchId);
-        await this.fetchStaffCart(branchId);
+        await cartStore.fetchStaffCart(branchId);
+        this.closeOrderModal();
       } catch (error) {
         console.error("Error creating staff order:", error);
         this.errorMessage = "Не удалось создать заказ. Проверьте данные и попробуйте снова.";
       } finally {
         this.isSubmittingOrder = false;
+      }
+    },
+
+    async updateOrderStatus(orderId: string, status: OrderStatusType) {
+      this.isUpdatingOrder = true;
+      try {
+        const { data } = await api.patch<OrderResponse>("/admin/orders/status", {
+          orderId,
+          status,
+        });
+
+        const index = this.orders.findIndex(order => order.id === orderId);
+        if (index !== -1) {
+          this.orders[index] = data;
+        }
+        if (this.selectedOrder?.id === orderId) {
+          this.selectedOrder = data;
+        }
+      } catch (error) {
+        console.error("Error updating order status:", error);
+        throw error;
+      } finally {
+        this.isUpdatingOrder = false;
+      }
+    },
+
+    async addProductToOrder(orderId: string, productId: string, quantity: number = 1) {
+      this.isUpdatingOrder = true;
+      try {
+        const { data } = await api.post<OrderResponse>("/admin/orders/item", {
+          orderId,
+          productId,
+          quantity,
+        });
+
+        const index = this.orders.findIndex(order => order.id === orderId);
+        if (index !== -1) {
+          this.orders[index] = data;
+        }
+        if (this.selectedOrder?.id === orderId) {
+          this.selectedOrder = data;
+        }
+      } catch (error) {
+        console.error("Error adding product to order:", error);
+        throw error;
+      } finally {
+        this.isUpdatingOrder = false;
+      }
+    },
+
+    async removeProductFromOrder(orderId: string, productId: string, deleteAll = false) {
+      this.isUpdatingOrder = true;
+      try {
+        const { data } = await api.patch<OrderResponse>("/admin/orders/item", {
+          orderId,
+          productId,
+          deleteAll,
+        });
+
+        const index = this.orders.findIndex(order => order.id === orderId);
+        if (index !== -1) {
+          this.orders[index] = data;
+        }
+        if (this.selectedOrder?.id === orderId) {
+          this.selectedOrder = data;
+        }
+      } catch (error) {
+        console.error("Error removing product from order:", error);
+        throw error;
+      } finally {
+        this.isUpdatingOrder = false;
       }
     },
 
