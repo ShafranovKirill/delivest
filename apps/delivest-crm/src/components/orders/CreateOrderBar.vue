@@ -14,14 +14,12 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white p-6 shadow-2xl z-50">
-    <div class="mx-auto w-full max-w-[calc(100vw-16rem)]">
+  <div class="sticky top-0 left-0 right-0 border-b border-slate-200 bg-white/95 backdrop-blur-sm shadow-sm z-50">
+    <div class="w-full px-6 py-5">
       <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h2 class="text-xl font-semibold">Создать заказ</h2>
-          <p class="mt-2 text-sm text-slate-500">
-            Нажмите одну из кнопок, чтобы открыть модальное окно оформления заказа.
-          </p>
+          <h1 class="text-2xl font-semibold">Управление заказами</h1>
+          <p class="mt-2 text-sm text-slate-500">Создавайте и редактируйте заказы, изменяйте статусы прямо в списке.</p>
         </div>
       </div>
 
@@ -36,6 +34,4 @@ const emit = defineEmits<{
       </div>
     </div>
   </div>
-
-  <div class="h-40" />
 </template>

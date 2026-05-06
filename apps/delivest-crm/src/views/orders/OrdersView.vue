@@ -188,21 +188,7 @@ const handleSubmitOrder = async () => {
 
 <template>
   <div class="space-y-6 p-6 pb-48">
-    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 class="text-2xl font-semibold">Управление заказами</h1>
-          <p class="mt-2 text-sm text-slate-500">Создавайте и редактируйте заказы, изменяйте статусы прямо в списке.</p>
-        </div>
-        <div class="flex flex-wrap gap-3">
-          <button
-            class="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
-            @click="loadPageData">
-            Обновить данные
-          </button>
-        </div>
-      </div>
-    </section>
+    <CreateOrderBar @create-order="handleCreateOrder" />
 
     <OrdersList
       :orders="orderStore.orders"
@@ -213,8 +199,6 @@ const handleSubmitOrder = async () => {
       @update-status="handleUpdateOrderStatus"
       @edit="handleEditOrder" />
   </div>
-
-  <CreateOrderBar @create-order="handleCreateOrder" />
 
   <OrderModal
     :is-open="orderStore.orderModalOpen"

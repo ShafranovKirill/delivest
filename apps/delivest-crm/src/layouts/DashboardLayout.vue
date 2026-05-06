@@ -13,7 +13,7 @@ const menuStore = useMenuStore();
     </div>
 
     <div class="flex-1 flex flex-col min-w-0">
-      <main class="flex-1 overflow-y-auto p-4 md:p-8">
+      <main class="flex-1 overflow-y-auto">
         <div class="max-w-350 mx-auto w-full">
           <router-view />
         </div>

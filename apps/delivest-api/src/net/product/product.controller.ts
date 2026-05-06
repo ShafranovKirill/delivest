@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -49,7 +49,7 @@ export class ProductController {
   @ApiOperation({ summary: 'Поиск товара' })
   @ApiOkResponse({ type: [ReadProductDto] })
   @ApiNotFoundResponse({ description: 'Товар не найден' })
-  async findProduct(@Query() dto: FindProductsByNameDto) {
+  async findProduct(@Param() dto: FindProductsByNameDto) {
     return this.productService.findByName(dto.branchId, dto.name);
   }
 }
