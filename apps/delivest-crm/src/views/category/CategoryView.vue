@@ -96,8 +96,8 @@ const onDeleted = async () => {
 </script>
 
 <template>
-  <div class="p-6 max-w-4xl mx-auto">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+  <teleport to="#app-header-slot">
+    <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-(--surface-900)">{{ t("menu.categories") }}</h1>
         <p class="text-(--surface-500) text-sm mt-2">
@@ -115,7 +115,9 @@ const onDeleted = async () => {
           @click="isCreateVisible = true" />
       </div>
     </div>
+  </teleport>
 
+  <div class="p-6 max-w-4xl mx-auto">
     <div class="grid gap-4">
       <template v-if="categoryStore.isLoading">
         <CategoryCard v-for="i in 4" :key="i" loading />
