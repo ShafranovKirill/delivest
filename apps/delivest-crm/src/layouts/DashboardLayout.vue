@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useMenuStore } from "@/stores/state/menu.store";
+import Button from "primevue/button";
 
 const menuStore = useMenuStore();
 </script>
@@ -7,12 +8,18 @@ const menuStore = useMenuStore();
 <template>
   <div class="flex min-h-screen bg-surface-ground">
     <div
-      v-if="menuStore.isSidebarVisible"
-      class="w-64 shrink-0 bg-surface-card border-r border-surface-border sticky top-0 h-screen overflow-y-auto hidden md:block">
-      <AppMenu />
+      class="shrink-0 bg-surface-card border-r border-surface-border sticky top-0 h-screen overflow-y-auto transition-all duration-300 ease-in-out hidden md:block"
+      :class="menuStore.isSidebarVisible ? 'w-64' : 'w-0'">
+      <AppMenu v-if="menuStore.isSidebarVisible" />
     </div>
 
     <div class="flex-1 flex flex-col min-w-0">
+      <div v-if="!menuStore.isSidebarVisible" class="fixed top-4 left-4 z-10 hidden md:block">
+        <Button icon="pi pi-bars" severity="secondary" @click="menuStore.toggleSidebar" />
+      </div>
+      <div class="md:hidden p-4">
+        <Button icon="pi pi-bars" @click="menuStore.toggleSidebar" />
+      </div>
       <main class="flex-1 overflow-y-auto">
         <div class="max-w-350 mx-auto w-full">
           <router-view />

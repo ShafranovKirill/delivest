@@ -98,7 +98,9 @@
     "team": "Команда",
     "role": "Должности",
     "categories-name": "Название категории",
-    "categories-name-placeholder": "Например: напитки"
+    "categories-name-placeholder": "Например: напитки",
+    "collapseSidebar": "Свернуть меню",
+    "expandSidebar": "Развернуть меню"
   },
   "common": {
     "select": "Выбрать",

@@ -39,7 +39,9 @@
     "employees": "Employees",
     "changeBranch": "Change Branch",
     "lightTheme": "Light Theme",
-    "darkTheme": "Dark Theme"
+    "darkTheme": "Dark Theme",
+    "collapseSidebar": "Collapse Menu",
+    "expandSidebar": "Expand Menu"
   },
   "common": {
     "select": "Select",

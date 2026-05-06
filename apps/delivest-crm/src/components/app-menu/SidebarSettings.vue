@@ -4,6 +4,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useBranchStore } from "@/stores/branch.store";
 import { useThemeStore } from "@/stores/state/theme.store";
 import { useLangStore } from "@/stores/state/lang.store";
+import { useMenuStore } from "@/stores/state/menu.store";
 import { useI18n } from "vue-i18n";
 
 const router = useRouter();
@@ -11,6 +12,7 @@ const authStore = useAuthStore();
 const branchStore = useBranchStore();
 const themeStore = useThemeStore();
 const langStore = useLangStore();
+const menuStore = useMenuStore();
 const { t } = useI18n();
 
 const handleChangeBranch = () => {
@@ -26,6 +28,14 @@ const handleFullLogout = async () => {
 
 <template>
   <div class="mt-auto border-t border-surface-200 dark:border-surface-700 pt-4 flex flex-col gap-2">
+    <Button
+      :label="menuStore.isSidebarVisible ? t('menu.collapseSidebar') : t('menu.expandSidebar')"
+      :icon="menuStore.isSidebarVisible ? 'pi pi-chevron-left' : 'pi pi-chevron-right'"
+      severity="secondary"
+      text
+      class="w-full justify-start py-2!"
+      @click="menuStore.toggleSidebar" />
+
     <Button
       :label="langStore.currentLocale === 'ru' ? 'English' : 'Русский'"
       icon="pi pi-language"
