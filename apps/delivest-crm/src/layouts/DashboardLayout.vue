@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useMenuStore } from "@/stores/state/menu.store";
 import Button from "primevue/button";
+import AppHeader from "@/components/AppHeader.vue";
 
 const menuStore = useMenuStore();
 </script>
@@ -14,9 +15,7 @@ const menuStore = useMenuStore();
     </div>
 
     <div class="flex-1 flex flex-col min-w-0">
-      <div v-if="!menuStore.isSidebarVisible" class="fixed top-4 left-4 z-10 hidden md:block">
-        <Button icon="pi pi-bars" severity="secondary" @click="menuStore.toggleSidebar" />
-      </div>
+      <AppHeader />
       <div class="md:hidden p-4">
         <Button icon="pi pi-bars" @click="menuStore.toggleSidebar" />
       </div>

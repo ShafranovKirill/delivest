@@ -11,7 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AppHeader: typeof import('./src/components/header/AppHeader.vue')['default']
+    AppHeader: typeof import('./src/components/AppHeader.vue')['default']
     AppMenu: typeof import('./src/components/app-menu/AppMenu.vue')['default']
     Avatar: typeof import('primevue/avatar')['default']
     BranchCard: typeof import('./src/components/branch/BranchCard.vue')['default']
