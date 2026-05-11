@@ -378,6 +378,7 @@ export class CartService {
         quantity: item.quantity,
         name: product?.name ?? 'Unknown',
         price: price,
+        weight: product?.weight,
         totalPrice: price * item.quantity,
         photoUrl: photoUrl,
       };

@@ -21,6 +21,10 @@ export class ReadCartItemDto implements CartItemResponse {
 
   @ApiProperty()
   @Expose()
+  weight: number;
+
+  @ApiProperty()
+  @Expose()
   name: string;
 
   @ApiProperty()
