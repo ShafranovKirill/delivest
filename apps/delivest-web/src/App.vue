@@ -1,11 +1,22 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { useBranchStore } from './stores/branch.store'
+
+const branchStore = useBranchStore()
+
+onMounted(() => {
+  branchStore.fetchBranches()
+})
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <div v-if="branchStore.isLoading" class="flex items-center justify-center min-h-screen">
+    <ProgressSpinner />
+  </div>
+  <template v-else>
+    <Toast />
+    <router-view />
+  </template>
 </template>
 
 <style scoped></style>

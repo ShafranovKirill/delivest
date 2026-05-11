@@ -20,9 +20,10 @@ async function bootstrap() {
   app.setGlobalPrefix(globalPrefix);
 
   app.enableCors({
-    origin: process.env.VITE_PORT_CRM
-      ? `http://localhost:${process.env.VITE_PORT_CRM}`
-      : 'http://localhost:4200',
+    origin: [
+      `http://localhost:${process.env.VITE_PORT_CRM || 4200}`,
+      `http://localhost:${process.env.VITE_PORT_WEB || 4300}`,
+    ],
 
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
