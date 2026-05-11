@@ -50,7 +50,7 @@ export const PHOTO_PROFILES = {
   PRODUCT_CARD: {
     format: PhotoConvertFormat.WEBP,
     width: 600,
-    height: 480,
+    height: 600,
     fit: 'contain' as const,
     position: 'centre',
     quality: 90,

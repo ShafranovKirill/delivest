@@ -8,5 +8,7 @@ const menuState = ref(false)
 <template>
   <AppHeader v-model:is-menu-open="menuState" />
   <AppSidebar v-model:visible="menuState" />
-  <router-view />
+  <main class="max-w-360 mx-auto px-4 sm:px-6 lg:px-8 w-full">
+    <router-view />
+  </main>
 </template>

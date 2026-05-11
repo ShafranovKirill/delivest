@@ -18,10 +18,13 @@ declare module 'vue' {
     Divider: typeof import('primevue/divider')['default']
     Dropdown: typeof import('primevue/dropdown')['default']
     PanelMenu: typeof import('primevue/panelmenu')['default']
+    ProductCard: typeof import('./src/components/product/ProductCard.vue')['default']
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Sidebar: typeof import('primevue/sidebar')['default']
+    Skeleton: typeof import('primevue/skeleton')['default']
+    SkeletonProductCard: typeof import('./src/components/product/SkeletonProductCard.vue')['default']
     StateSetting: typeof import('./src/components/state/StateSetting.vue')['default']
     Toast: typeof import('primevue/toast')['default']
   }

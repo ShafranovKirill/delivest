@@ -12,7 +12,7 @@ export const useBranchStore = defineStore('branch', {
     async fetchBranches() {
       this.isLoading = true
       try {
-        const { data } = await api.get('/branch')
+        const { data } = await api.get<BranchResponce[]>('/branch')
         this.branches = data
       } catch (error) {
         throw error

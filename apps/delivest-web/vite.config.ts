@@ -22,6 +22,8 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
+        '@delivest/types': path.resolve(__dirname, '../../libs/types/src/index.ts'),
+        '@delivest/common': path.resolve(__dirname, '../../libs/common/src/index.ts'),
         '@': path.resolve(__dirname, './src'),
       },
     },
