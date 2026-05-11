@@ -1,0 +1,13 @@
+{
+  "common": {
+    "select": "select",
+    "loading": "Loading configuration...",
+    "error": "An error occurred",
+    "search": "Search...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "create": "Create",
+    "confirm": "Confirm"
+  }
+}
