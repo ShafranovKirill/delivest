@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     envDir: rootDir,
     envPrefix: ['VITE_', 'DB_', 'STORAGE_'],
     server: {
-      port: Number(loadedEnv.VITE_PORT_CRM) || 5173,
+      port: Number(loadedEnv.VITE_PORT_WEB) || 5173,
     },
     plugins: [
       vue(),
@@ -23,7 +23,6 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
-        '@delivest/types': path.resolve(__dirname, '../../libs/types/src/index.ts'),
       },
     },
   }
