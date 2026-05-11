@@ -11,8 +11,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AppHeader: typeof import('./src/components/layout/AppHeader.vue')['default']
-    AppSidebar: typeof import('./src/components/layout/AppSidebar.vue')['default']
+    AppHeader: typeof import('./src/components/app-header/AppHeader.vue')['default']
+    AppSidebar: typeof import('./src/components/app-sidebar/AppSidebar.vue')['default']
     Button: typeof import('primevue/button')['default']
     Card: typeof import('primevue/card')['default']
     Divider: typeof import('primevue/divider')['default']
@@ -23,6 +23,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Sidebar: typeof import('primevue/sidebar')['default']
+    SidebarSettings: typeof import('./src/components/app-sidebar/SidebarSettings.vue')['default']
     Skeleton: typeof import('primevue/skeleton')['default']
     SkeletonProductCard: typeof import('./src/components/product/SkeletonProductCard.vue')['default']
     StateSetting: typeof import('./src/components/state/StateSetting.vue')['default']
