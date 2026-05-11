@@ -12,8 +12,14 @@ const router = createRouter({
     },
     {
       path: '/:branchAlias',
-      name: 'branch-home',
       component: () => import('@/layouts/BranchLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'branch-home',
+          component: () => import('../views/HomeView.vue'),
+        },
+      ],
     },
   ],
 })
