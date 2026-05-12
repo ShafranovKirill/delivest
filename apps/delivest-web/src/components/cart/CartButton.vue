@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useCartStore } from '@/stores/cart.store'
+import { useOrderStore } from '@/stores/order.store'
 
+const orderStore = useOrderStore()
 const cartStore = useCartStore()
 </script>
 <template>
@@ -9,5 +11,6 @@ const cartStore = useCartStore()
 "
     class="shrink-0"
     :label="`${cartStore.totalPrice} ₽`"
+    @click="orderStore.openModal"
   />
 </template>

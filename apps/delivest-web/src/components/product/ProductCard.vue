@@ -3,6 +3,7 @@ import { ImageHelper } from '@/utils/image.utils'
 import { PHOTO_KEYS } from '@delivest/common'
 import type { ProductResponse } from '@delivest/types'
 import { computed, ref } from 'vue'
+import CommonCounterRight from '../common/CommonCounterRight.vue'
 
 const props = defineProps<{
   product?: ProductResponse
@@ -30,7 +31,7 @@ const handleImageError = () => {
     </template>
 
     <article v-else class="flex flex-col h-full">
-      <div class="w-full">
+      <div class="w-full relative group">
         <div class="w-full aspect-square overflow-hidden flex items-center justify-center">
           <img
             v-if="imageUrl && !imageError"
@@ -39,13 +40,16 @@ const handleImageError = () => {
             class="w-full h-full object-contain p-2 rounded-3xl"
             @error="handleImageError"
           />
-
           <div
             v-else
             class="flex flex-col items-center justify-center h-full w-full text-(--p-text-muted-color) bg-(--p-content-background)"
           >
             <i class="pi pi-image text-7xl!"></i>
           </div>
+        </div>
+
+        <div class="absolute bottom-0.5 right-2 left-2 flex justify-end">
+          <CommonCounterRight />
         </div>
       </div>
 
@@ -65,8 +69,6 @@ const handleImageError = () => {
         >
           {{ product?.weight }} г
         </div>
-
-        <Button label="+" class="rounded-2xl! mt-2 text-xl!" />
       </div>
     </article>
   </div>

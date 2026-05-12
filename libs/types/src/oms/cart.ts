@@ -1,7 +1,7 @@
 export interface CartItemResponse {
   productId: string;
   quantity: number;
-  weight: number;
+  weight?: number;
   name: string;
   price: number;
   photoUrl?: string | null;

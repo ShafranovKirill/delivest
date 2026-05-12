@@ -1,0 +1,1 @@
+<template>заказ создан</template>

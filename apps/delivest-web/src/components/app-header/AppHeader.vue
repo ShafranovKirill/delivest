@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { useBranchStore } from '@/stores/branch.store'
 import { useRouter } from 'vue-router'
-import StateSetting from '../state/StateSetting.vue'
-import CartButton from '../cart/CartButton.vue'
 
 const router = useRouter()
 const branchStore = useBranchStore()
@@ -37,7 +35,6 @@ const onBranchChange = (e: { value: { alias: string } }) => {
 
       <div class="flex gap-1.5">
         <CartButton />
-        <StateSetting />
       </div>
     </div>
   </header>
