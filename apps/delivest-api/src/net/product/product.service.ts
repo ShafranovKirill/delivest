@@ -34,6 +34,8 @@ import { IdentityService } from '../../identify/identify.service.js';
 import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma/dist/src/lib/transactional-adapter-prisma.js';
 import { PrismaClient } from '../../../generated/prisma/client.js';
+import { ReadCategoryzedProductsDto } from './dto/read-categoryzed-products.dto.js';
+import { ReadCategoryDto } from '../category/dto/read.dto.js';
 
 @Injectable()
 export class ProductService {
@@ -98,6 +100,54 @@ export class ProductService {
     } catch (error) {
       this.logger.error(
         `findAllByCategory(${categoryId}) | error: ${(error as Error).message}`,
+      );
+      this.handleProductConstraintError(error);
+    }
+  }
+
+  @Transactional()
+  async getCategoryzedProductForBranch(
+    branchId: string,
+  ): Promise<ReadCategoryzedProductsDto[]> {
+    try {
+      const [categories, products] = await Promise.all([
+        this.prisma.category.findMany({
+          where: { branchId, deletedAt: null },
+          orderBy: { order: 'asc' },
+        }),
+        this.prisma.product.findMany({
+          where: { branchId, deletedAt: null },
+          orderBy: { order: 'asc' },
+        }),
+      ]);
+
+      const productsByCategory = products.reduce(
+        (acc, product) => {
+          const catId = product.categoryId;
+          if (catId) {
+            if (!acc[catId]) acc[catId] = [];
+            acc[catId].push(toDto(product, ReadProductDto));
+          }
+          return acc;
+        },
+        {} as Record<string, ReadProductDto[]>,
+      );
+
+      return categories
+        .map((category) => {
+          const categoryProducts = productsByCategory[category.id] || [];
+
+          const categoryDto = toDto(category, ReadCategoryDto);
+
+          return {
+            ...categoryDto,
+            products: categoryProducts,
+          } as ReadCategoryzedProductsDto;
+        })
+        .filter((cat) => cat.products.length > 0);
+    } catch (error) {
+      this.logger.error(
+        `getCategoryzedProductForBranch(${branchId}) | error: ${(error as Error).message}`,
       );
       this.handleProductConstraintError(error);
     }

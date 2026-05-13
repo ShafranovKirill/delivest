@@ -27,6 +27,17 @@ export class ProductController {
     return this.productService.findAllByBranch(dto.branchId);
   }
 
+  @Get('categorized/:branchId')
+  @ApiParam({ name: 'branchId', description: 'айди филиала' })
+  @ApiOperation({
+    summary: 'Получить все товары категорированно по айди филиала',
+  })
+  @ApiOkResponse({ type: [ReadProductDto] })
+  @ApiNotFoundResponse({ description: 'Товары не найдены' })
+  async getCategorizedProducts(@Param() dto: GetProductsByBranchDto) {
+    return this.productService.getCategoryzedProductForBranch(dto.branchId);
+  }
+
   @Get('category/:categoryId')
   @ApiParam({ name: 'categoryId', description: 'айди категории' })
   @ApiOperation({ summary: 'Получить все товары по айди категории' })

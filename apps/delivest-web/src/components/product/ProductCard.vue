@@ -73,7 +73,7 @@ const handleImageError = () => {
           {{ product?.weight }} г
         </div>
       </div>
-      <div class="hidden lg:block px-4 pb-4">
+      <div class="hidden lg:block px-2 pb-4">
         <CommonCounterLarge v-model:count="count" />
       </div>
     </article>

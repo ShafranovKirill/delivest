@@ -20,28 +20,10 @@ export const useCartStore = defineStore('cart', {
     },
   },
   actions: {
-    initCartWatcher() {
-      const branchStore = useBranchStore()
-
-      watch(
-        () => branchStore.curentBranch,
-        async (newBranch) => {
-          if (newBranch?.id) {
-            await this.fetchCart()
-          } else {
-            this.cart = null
-          }
-        },
-        { immediate: true },
-      )
-    },
     async fetchCart() {
       const branchStore = useBranchStore()
-      if (branchStore.branches.length === 0) {
-        await branchStore.fetchBranches()
-      }
+
       if (!branchStore.curentBranch) {
-        console.log('error fetching cart')
         return
       }
       this.isLoading = true

@@ -1,4 +1,5 @@
 import { PhotoKey } from "../../../common/src/photo-keys.js";
+import { CategoryResponse } from "./category.js";
 
 export interface FindProductRequest {
   id: string;
@@ -31,6 +32,10 @@ export interface ProductResponse {
   isAvailable?: boolean;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+}
+
+export interface CategorizedProducts extends CategoryResponse {
+  products: ProductResponse[];
 }
 
 export interface CreateProductRequest {
