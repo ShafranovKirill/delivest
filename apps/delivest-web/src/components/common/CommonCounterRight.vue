@@ -26,7 +26,7 @@ const decrement = () => {
           icon="pi pi-minus"
           text
           rounded
-          class="w-10 h-10 p-0! shrink-0 text-surface-900! dark:text-surface-0! hover:bg-surface-100! dark:hover:bg-surface-700!"
+          class="w-10 h-10 p-0! shrink-0 text-surface-900!"
           @click="decrement"
         />
 
@@ -41,7 +41,7 @@ const decrement = () => {
         icon="pi pi-plus"
         text
         rounded
-        class="w-10 h-10 p-0! shrink-0 text-surface-900! dark:text-surface-0! hover:bg-surface-100! dark:hover:bg-surface-700!"
+        class="w-10 h-10 p-0! shrink-0 text-surface-900!"
         @click="increment"
       />
     </div>

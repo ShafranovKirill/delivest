@@ -8,6 +8,7 @@ import { useProductStore } from './product.store'
 export const useCategoryStore = defineStore('category', {
   state: () => ({
     caterories: [] as CategoryResponse[],
+    activeCategoryId: null as string | null,
     isLoading: false,
   }),
   getters: {
@@ -31,21 +32,6 @@ export const useCategoryStore = defineStore('category', {
       } finally {
         this.isLoading = false
       }
-    },
-
-    initCategoryWatcher() {
-      const branchStore = useBranchStore()
-      watch(
-        () => branchStore.curentBranch,
-        async (newBranch) => {
-          if (newBranch?.id) {
-            await this.fetchCategoriesForBranch(newBranch.id)
-          } else {
-            this.caterories = []
-          }
-        },
-        { immediate: true },
-      )
     },
   },
 })

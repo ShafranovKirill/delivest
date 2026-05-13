@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import CategoryNavigationDesktop from '@/components/category/CategoryNavigationDesktop.vue'
+import { useScrollSpy } from '@/composables/useScrollSpy'
 import { useProductStore } from '@/stores/product.store'
 
 const productStore = useProductStore()
+
+useScrollSpy('.product-section', () => productStore.categorizedProducts)
 </script>
 
 <template>
@@ -27,6 +30,7 @@ const productStore = useProductStore()
           :id="section.id"
           :key="section.id"
           :section="section"
+          class="scroll-mt-20 product-section"
         />
 
         <div v-if="productStore.categorizedProducts.length === 0" class="text-center py-20">

@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AppFooter: typeof import('./src/components/app-footer/AppFooter.vue')['default']
     AppHeader: typeof import('./src/components/app-header/AppHeader.vue')['default']
     AppSidebar: typeof import('./src/components/app-sidebar/AppSidebar.vue')['default']
     BranchCard: typeof import('./src/components/branch/BranchCard.vue')['default']
@@ -35,6 +36,7 @@ declare module 'vue' {
     Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
     Dropdown: typeof import('primevue/dropdown')['default']
+    FooterComp: typeof import('./src/components/app-footer/FooterComp.vue')['default']
     OrderConfirmStep: typeof import('./src/components/order/OrderConfirmStep.vue')['default']
     OrderCreatedStep: typeof import('./src/components/order/OrderCreatedStep.vue')['default']
     OrderDialog: typeof import('./src/components/order/OrderDialog.vue')['default']
