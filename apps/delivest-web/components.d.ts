@@ -26,6 +26,7 @@ declare module 'vue' {
     CategoryNavigationCard: typeof import('./src/components/category/categoryNavigationCard.vue')['default']
     CategoryNavigationDesktop: typeof import('./src/components/category/CategoryNavigationDesktop.vue')['default']
     CategoryNavigationItem: typeof import('./src/components/category/CategoryNavigationItem.vue')['default']
+    CategoryNavigationMobile: typeof import('./src/components/category/CategoryNavigationMobile.vue')['default']
     CommonCounter: typeof import('./src/components/common/CommonCounter.vue')['default']
     CommonCounterCenter: typeof import('./src/components/common/CommonCounterCenter.vue')['default']
     CommonCounterLarge: typeof import('./src/components/common/CommonCounterLarge.vue')['default']
