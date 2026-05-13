@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useBranchStore } from '@/stores/branch.store'
 import { useRouter } from 'vue-router'
+import BranchCard from '../../components/branch/BranchCard.vue'
 
 const branchStore = useBranchStore()
 const router = useRouter()
@@ -19,12 +20,7 @@ const selectBranch = (alias: string) => {
       <template #content>
         <div class="flex flex-col gap-3">
           <div v-for="branch in branchStore.branches" :key="branch.alias">
-            <Button
-              icon="pi pi-building"
-              :label="branch.name"
-              @click="selectBranch(branch.alias)"
-              class="w-full"
-            ></Button>
+            <BranchCard :branch="branch" @select="selectBranch" />
           </div>
         </div>
       </template>

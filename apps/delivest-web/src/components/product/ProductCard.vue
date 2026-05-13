@@ -6,12 +6,13 @@ import { computed, ref } from 'vue'
 import CommonCounterRight from '../common/CommonCounterRight.vue'
 
 import { useProductCount } from '@/composables/useProductCount'
+import CommonCounterLarge from '../common/CommonCounterLarge.vue'
 
 const props = defineProps<{
-  product: ProductResponse
+  product?: ProductResponse
   loading: boolean
 }>()
-const { count } = useProductCount(() => props.product.id)
+const { count } = useProductCount(() => props.product!.id)
 const imageError = ref(false)
 
 const imageUrl = computed(() => {
@@ -50,7 +51,7 @@ const handleImageError = () => {
           </div>
         </div>
 
-        <div class="absolute bottom-4 right-4 left-4 flex justify-end">
+        <div class="absolute bottom-4 right-4 left-4 flex justify-end lg:hidden">
           <CommonCounterRight v-model:count="count" />
         </div>
       </div>
@@ -71,6 +72,9 @@ const handleImageError = () => {
         >
           {{ product?.weight }} г
         </div>
+      </div>
+      <div class="hidden lg:block px-4 pb-4">
+        <CommonCounterLarge v-model:count="count" />
       </div>
     </article>
   </div>

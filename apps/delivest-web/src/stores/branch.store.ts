@@ -6,6 +6,7 @@ export const useBranchStore = defineStore('branch', {
   state: () => ({
     branches: [] as BranchResponce[],
     curentBranch: null as BranchResponce | null,
+    isSelectionModalOpen: false,
     isLoading: true,
   }),
   actions: {
@@ -23,6 +24,13 @@ export const useBranchStore = defineStore('branch', {
 
     async setBranchByAlias(branchAlias: string) {
       this.curentBranch = this.branches.find((b) => b.alias === branchAlias) || null
+    },
+
+    openSelectionModal() {
+      this.isSelectionModalOpen = true
+    },
+    closwSelectionModal() {
+      this.isSelectionModalOpen = false
     },
   },
 })

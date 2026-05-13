@@ -26,7 +26,7 @@ watch(
 <template>
   <div class="flex flex-col lg:flex-row gap-5 pt-4 py-1">
     <div class="grow">
-      <div class="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4 md:gap-6 pt-4 py-1">
+      <div class="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
         <template v-if="productStore.isLoading">
           <ProductCard v-for="i in 12" :key="i" :loading="true" />
         </template>

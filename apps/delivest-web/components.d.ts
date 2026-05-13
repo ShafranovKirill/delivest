@@ -13,6 +13,9 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppHeader: typeof import('./src/components/app-header/AppHeader.vue')['default']
     AppSidebar: typeof import('./src/components/app-sidebar/AppSidebar.vue')['default']
+    BranchCard: typeof import('./src/components/branch/BranchCard.vue')['default']
+    BranchSelectionModal: typeof import('./src/components/branch/BranchSelectionModal.vue')['default']
+    BranchSelector: typeof import('./src/components/app-header/BranchSelector.vue')['default']
     Button: typeof import('primevue/button')['default']
     Card: typeof import('primevue/card')['default']
     CartButton: typeof import('./src/components/cart/CartButton.vue')['default']
@@ -21,6 +24,7 @@ declare module 'vue' {
     CartStep: typeof import('./src/components/cart/CartStep.vue')['default']
     CommonCounter: typeof import('./src/components/common/CommonCounter.vue')['default']
     CommonCounterCenter: typeof import('./src/components/common/CommonCounterCenter.vue')['default']
+    CommonCounterLarge: typeof import('./src/components/common/CommonCounterLarge.vue')['default']
     CommonCounterRight: typeof import('./src/components/common/CommonCounterRight.vue')['default']
     Counter: typeof import('./src/components/common/Counter.vue')['default']
     CratModal: typeof import('./src/components/cart/CratModal.vue')['default']

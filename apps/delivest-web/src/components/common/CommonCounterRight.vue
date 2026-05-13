@@ -16,7 +16,7 @@ const decrement = () => {
   <div class="flex items-center justify-end w-full">
     <div
       class="flex items-center bg-(--p-content-background) justify-end rounded-full duration-500 ease-in-out overflow-hidden h-12 transition-all shadow-md px-1 bg-surface-0 dark:bg-surface-800"
-      :class="count > 0 ? 'w-64' : 'w-12'"
+      :class="count > 0 ? 'w-full max-w-64' : 'w-12'"
     >
       <div
         class="flex items-center flex-1 transition-all duration-500 ease-in-out overflow-hidden whitespace-nowrap"
@@ -30,7 +30,7 @@ const decrement = () => {
           @click="decrement"
         />
 
-        <div class="flex-1 text-center min-w-10">
+        <div class="flex-1 text-center">
           <span :key="count" class="text-xl font-bold text-primary-600 select-none block">
             {{ count }}
           </span>

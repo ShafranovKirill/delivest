@@ -9,7 +9,7 @@ const cartStore = useCartStore()
   <Button
     icon="pi pi-shopping-bag
 "
-    class="shrink-0"
+    class="shrink-0 rounded-xl!"
     :label="`${cartStore.totalPrice} ₽`"
     @click="orderStore.openModal"
   />

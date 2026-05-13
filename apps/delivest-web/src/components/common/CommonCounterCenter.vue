@@ -15,7 +15,7 @@ const decrement = () => {
 </script>
 
 <template>
-  <div class="flex items-center justify-center h-24 w-full px-4">
+  <div class="flex items-center justify-center w-full">
     <div
       class="flex items-center rounded-full bg-(--p-content-background) duration-500 ease-in-out overflow-hidden h-12 transition-all shadow-sm"
       :class="count > 0 ? 'w-full px-1 justify-between' : 'w-12 justify-center'"
