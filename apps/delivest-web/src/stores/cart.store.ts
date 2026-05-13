@@ -2,6 +2,7 @@ import api from '@/api/axios'
 import type { AddToCartRequest, CartResponse, RemoveFromCartRequest } from '@delivest/types'
 import { defineStore } from 'pinia'
 import { useBranchStore } from './branch.store'
+import { watch } from 'vue'
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
@@ -11,12 +12,37 @@ export const useCartStore = defineStore('cart', {
   getters: {
     totalPrice: (state) => state.cart?.totalPrice ?? 0,
     totalItems: (state) => state.cart?.totalItems ?? 0,
+    getCountForProduct: (state) => {
+      return (productId: string): number => {
+        const item = state.cart?.items.find((i) => i.productId === productId)
+        return item ? item.quantity : 0
+      }
+    },
   },
   actions: {
+    initCartWatcher() {
+      const branchStore = useBranchStore()
+
+      watch(
+        () => branchStore.curentBranch,
+        async (newBranch) => {
+          if (newBranch?.id) {
+            await this.fetchCart()
+          } else {
+            this.cart = null
+          }
+        },
+        { immediate: true },
+      )
+    },
     async fetchCart() {
       const branchStore = useBranchStore()
+      if (branchStore.branches.length === 0) {
+        await branchStore.fetchBranches()
+      }
       if (!branchStore.curentBranch) {
-        await branchStore.fetchBranches
+        console.log('error fetching cart')
+        return
       }
       this.isLoading = true
       try {

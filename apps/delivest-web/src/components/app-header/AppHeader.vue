@@ -17,7 +17,7 @@ const onBranchChange = (e: { value: { alias: string } }) => {
 </script>
 <template>
   <header
-    class="sticky top-0 z-50 w-full border-b border-(--p-content-border-color) bg-(--p-content-background)/80 backdrop-blur-md"
+    class="sticky top-0 z-50 w-full border-b border-(--p-content-border-color) bg-(--p-content-background)"
   >
     <div class="mx-auto flex h-16 max-w-360 items-center justify-between px-4 lg:px-8">
       <div class="flex gap-5">

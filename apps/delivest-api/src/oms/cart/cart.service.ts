@@ -291,7 +291,13 @@ export class CartService {
   private async refreshCart(cartId: string) {
     const cart = await this.txHost.tx.cart.findUnique({
       where: { id: cartId },
-      include: { items: true },
+      include: {
+        items: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
+      },
     });
 
     if (!cart) {
@@ -309,24 +315,6 @@ export class CartService {
     }
 
     return response;
-  }
-
-  private async findGuestCart(
-    sessionId: string,
-  ): Promise<InternalCartWithItems | null> {
-    return this.txHost.tx.cart.findUnique({
-      where: { sessionId },
-      include: { items: true },
-    });
-  }
-
-  private async findClientCart(
-    clientId: string,
-  ): Promise<InternalCartWithItems | null> {
-    return this.txHost.tx.cart.findUnique({
-      where: { clientId },
-      include: { items: true },
-    });
   }
 
   private async setCartToRedis(cart: ReadCartDto) {

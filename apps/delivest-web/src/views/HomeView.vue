@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useBranchStore } from '@/stores/branch.store'
 import { useProsuctStore } from '@/stores/product.store'
-import { computed, onMounted, watch } from 'vue'
+import { watch } from 'vue'
 
 const branchStore = useBranchStore()
 const productStore = useProsuctStore()
@@ -11,7 +11,6 @@ const loadProducts = async () => {
     await productStore.fetchProsuctsForBranch(branchStore.curentBranch!.id)
   }
 }
-onMounted(loadProducts)
 
 watch(
   () => branchStore.curentBranch?.id,
@@ -20,25 +19,30 @@ watch(
       await loadProducts()
     }
   },
+  { immediate: true },
 )
-
-const products = computed(() => productStore.products)
-const isLoading = computed(() => productStore.isLoading)
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-5 md:gap-6 pt-4 py-1">
-    <template v-if="isLoading">
-      <ProductCard v-for="i in 12" :key="i" :loading="true" />
-    </template>
+  <div class="flex flex-col lg:flex-row gap-5 pt-4 py-1">
+    <div class="grow">
+      <div class="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4 md:gap-6 pt-4 py-1">
+        <template v-if="productStore.isLoading">
+          <ProductCard v-for="i in 12" :key="i" :loading="true" />
+        </template>
 
-    <template v-else>
-      <ProductCard
-        v-for="product in products"
-        :key="product.id"
-        :product="product"
-        :loading="false"
-      />
-    </template>
+        <template v-else>
+          <ProductCard
+            v-for="product in productStore.products"
+            :key="product.id"
+            :product="product"
+            :loading="false"
+          />
+        </template>
+      </div>
+    </div>
+    <aside class="hidden lg:block w-full lg:w-87.5 shrink-0">
+      <div class="sticky top-4"><DesktopCart /></div>
+    </aside>
   </div>
 </template>

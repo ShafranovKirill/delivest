@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useBranchStore } from './stores/branch.store'
+import { useCartStore } from './stores/cart.store'
 
 const branchStore = useBranchStore()
+const cartStore = useCartStore()
 
-onMounted(() => {
-  branchStore.fetchBranches()
+cartStore.initCartWatcher()
+
+onMounted(async () => {
+  await branchStore.fetchBranches()
 })
 </script>
 

@@ -24,6 +24,7 @@ declare module 'vue' {
     CommonCounterRight: typeof import('./src/components/common/CommonCounterRight.vue')['default']
     Counter: typeof import('./src/components/common/Counter.vue')['default']
     CratModal: typeof import('./src/components/cart/CratModal.vue')['default']
+    DesktopCart: typeof import('./src/components/cart/DesktopCart.vue')['default']
     Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
     Dropdown: typeof import('primevue/dropdown')['default']

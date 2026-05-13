@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import Button from 'primevue/button'
-
-const count = ref<number>(0)
+const count = defineModel<number>('count', { default: 0 })
 
 const increment = () => {
   count.value++
@@ -16,9 +13,9 @@ const decrement = () => {
 </script>
 
 <template>
-  <div class="flex items-center justify-end h-24 w-full px-4">
+  <div class="flex items-center justify-end w-full">
     <div
-      class="flex items-center justify-end rounded-full bg-white duration-500 ease-in-out overflow-hidden h-12 transition-all shadow-md px-1"
+      class="flex items-center bg-(--p-content-background) justify-end rounded-full duration-500 ease-in-out overflow-hidden h-12 transition-all shadow-md px-1 bg-surface-0 dark:bg-surface-800"
       :class="count > 0 ? 'w-64' : 'w-12'"
     >
       <div
@@ -29,16 +26,14 @@ const decrement = () => {
           icon="pi pi-minus"
           text
           rounded
-          class="w-10 h-10 p-0! text-black! shrink-0 hover:bg-gray-100!"
+          class="w-10 h-10 p-0! shrink-0 text-surface-900! dark:text-surface-0! hover:bg-surface-100! dark:hover:bg-surface-700!"
           @click="decrement"
         />
 
         <div class="flex-1 text-center min-w-10">
-          <Transition name="slide-up" mode="out-in">
-            <span :key="count" class="text-xl font-bold text-primary-600 select-none block">
-              {{ count }}
-            </span>
-          </Transition>
+          <span :key="count" class="text-xl font-bold text-primary-600 select-none block">
+            {{ count }}
+          </span>
         </div>
       </div>
 
@@ -46,7 +41,7 @@ const decrement = () => {
         icon="pi pi-plus"
         text
         rounded
-        class="w-10 h-10 p-0! text-black! hover:bg-gray-100! shrink-0"
+        class="w-10 h-10 p-0! shrink-0 text-surface-900! dark:text-surface-0! hover:bg-surface-100! dark:hover:bg-surface-700!"
         @click="increment"
       />
     </div>

@@ -5,11 +5,13 @@ import type { ProductResponse } from '@delivest/types'
 import { computed, ref } from 'vue'
 import CommonCounterRight from '../common/CommonCounterRight.vue'
 
+import { useProductCount } from '@/composables/useProductCount'
+
 const props = defineProps<{
-  product?: ProductResponse
+  product: ProductResponse
   loading: boolean
 }>()
-
+const { count } = useProductCount(() => props.product.id)
 const imageError = ref(false)
 
 const imageUrl = computed(() => {
@@ -48,12 +50,12 @@ const handleImageError = () => {
           </div>
         </div>
 
-        <div class="absolute bottom-0.5 right-2 left-2 flex justify-end">
-          <CommonCounterRight />
+        <div class="absolute bottom-4 right-4 left-4 flex justify-end">
+          <CommonCounterRight v-model:count="count" />
         </div>
       </div>
 
-      <div class="p-4 pt-2 flex flex-col grow">
+      <div class="px-4 py-2 flex flex-col grow">
         <div class="text-xl font-bold mb-1 text-(--p-text-color)">{{ product?.price }} ₽</div>
 
         <h3 class="text-lg font-medium leading-tight text-(--p-text-color)">
