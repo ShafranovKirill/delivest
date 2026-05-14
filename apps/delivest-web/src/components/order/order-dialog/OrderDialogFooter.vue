@@ -9,6 +9,8 @@ const cartStore = useCartStore()
 const buttonText = computed(() => {
   if (orderStore.step === 2) return 'К подтверждению'
   if (orderStore.step === 3) return 'Оформить заказ'
+  if (orderStore.step === 4) return 'Закрыть'
+
   return 'Далее'
 })
 
@@ -23,7 +25,7 @@ const isNextDisabled = computed(() => {
     case 3:
       return !orderStore.validationToken
     case 4:
-      return true
+      return false
     default:
       return false
   }
@@ -34,6 +36,8 @@ const handleNext = async () => {
     await orderStore.runValidate()
   } else if (orderStore.step === 3) {
     await orderStore.confirmOrder()
+  } else if (orderStore.step === 4) {
+    await orderStore.closeModal()
   } else {
     orderStore.nextStep()
   }
@@ -49,7 +53,9 @@ const handleNext = async () => {
   >
     <div class="flex w-full items-center justify-between px-3">
       <span class="text-lg font-bold">{{ buttonText }}</span>
-      <span class="font-extrabold text-xl">{{ cartStore.totalPrice }} ₽</span>
+      <span v-if="orderStore.step === 1" class="font-extrabold text-xl"
+        >{{ cartStore.totalPrice }} ₽</span
+      >
     </div>
   </Button>
 </template>

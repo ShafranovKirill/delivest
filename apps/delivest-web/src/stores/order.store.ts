@@ -78,11 +78,8 @@ export const useOrderStore = defineStore('order', {
           validationToken: this.validationToken,
         }
 
-        const { data } = await api.post<OrderResponse>('/orders', {
-          method: 'POST',
-          body: payload,
-        })
-
+        const { data } = await api.post<OrderResponse>('/orders', payload)
+        this.step = 4
         this.lastCreatedOrder = data
         this.resetAfterSuccess()
         return data
@@ -94,9 +91,9 @@ export const useOrderStore = defineStore('order', {
       }
     },
     resetAfterSuccess() {
+      const cartStore = useCartStore()
       this.validationData = null
-      this.step = 1
-      this.isModalVisible = false
+      cartStore.fetchCart()
     },
     toggleModal() {
       this.isModalVisible = !this.isModalVisible

@@ -19,8 +19,8 @@ const orderStore = useOrderStore()
     <div class="flex-1 text-center overflow-hidden">
       <h1 class="text-lg sm:text-xl font-black text-slate-700 uppercase tracking-wide m-0 truncate">
         <span v-if="orderStore.step === 1">Корзина</span>
-        <span v-else-if="orderStore.step === 2">Данные</span>
-        <span v-else-if="orderStore.step === 3">Проверка</span>
+        <span v-else-if="orderStore.step === 2">Данные заказа</span>
+        <span v-else-if="orderStore.step === 3">Проверка заказа</span>
         <span v-else-if="orderStore.step === 4">Готово</span>
       </h1>
     </div>

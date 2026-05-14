@@ -51,7 +51,7 @@ const handleImageError = () => {
           </div>
         </div>
 
-        <div class="absolute bottom-4 right-2 left-2 flex justify-end lg:hidden">
+        <div class="absolute bottom-3 right-3 left-3 flex justify-end lg:hidden">
           <CommonCounterRight v-model:count="count" />
         </div>
       </div>
