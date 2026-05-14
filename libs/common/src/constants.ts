@@ -7,3 +7,8 @@ export const COOKIE_NAMES = {
   STAFF_REFRESH_TOKEN: "staff_refresh_token",
   SESSION_ID: "session_id",
 } as const;
+export const DeliveryType = {
+  DELIVERY: "DELIVERY",
+  PICKUP: "PICKUP",
+  DINE_IN: "DINE_IN",
+} as const;

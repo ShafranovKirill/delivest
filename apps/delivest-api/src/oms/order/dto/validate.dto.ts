@@ -8,10 +8,7 @@ import {
 } from 'class-validator';
 
 import { ValidateOrderRequest } from '@delivest/types';
-import {
-  DeliveryType,
-  OrderStatus,
-} from '../../../../generated/prisma/enums.js';
+import { DeliveryType } from '../../../../generated/prisma/enums.js';
 
 export class ValidateOrderDto implements ValidateOrderRequest {
   @ApiProperty({
@@ -29,15 +26,6 @@ export class ValidateOrderDto implements ValidateOrderRequest {
   @IsUUID()
   @IsNotEmpty()
   branchId: string;
-
-  @ApiProperty({
-    enum: OrderStatus,
-    example: OrderStatus.PENDING,
-    description: 'Статус заказа (для сотрудников)',
-  })
-  @IsEnum(OrderStatus)
-  @IsNotEmpty()
-  status: OrderStatus;
 
   @ApiProperty({
     example: '+79991234567',

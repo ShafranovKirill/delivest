@@ -81,3 +81,5 @@ export interface FindOrdersRequest {
   page?: number;
   limit?: number;
 }
+
+export type DeliveryTypeValue = (typeof DeliveryType)[keyof typeof DeliveryType];

@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    '1)': typeof import('./src/components/order/order-step/OrderConfirmStep (copy 1).vue')['default']
     AppFooter: typeof import('./src/components/app-footer/AppFooter.vue')['default']
     AppHeader: typeof import('./src/components/app-header/AppHeader.vue')['default']
     AppSidebar: typeof import('./src/components/app-sidebar/AppSidebar.vue')['default']
@@ -40,6 +41,8 @@ declare module 'vue' {
     Divider: typeof import('primevue/divider')['default']
     Dropdown: typeof import('primevue/dropdown')['default']
     FooterComp: typeof import('./src/components/app-footer/FooterComp.vue')['default']
+    InputMask: typeof import('primevue/inputmask')['default']
+    InputText: typeof import('primevue/inputtext')['default']
     OrderCloseButton: typeof import('./src/components/order/order-dialog/OrderCloseButton.vue')['default']
     OrderConfirmStep: typeof import('./src/components/order/order-step/OrderConfirmStep.vue')['default']
     OrderCreatedStep: typeof import('./src/components/order/order-step/OrderCreatedStep.vue')['default']
@@ -55,11 +58,13 @@ declare module 'vue' {
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SelectButton: typeof import('primevue/selectbutton')['default']
     Sidebar: typeof import('primevue/sidebar')['default']
     SidebarSettings: typeof import('./src/components/app-sidebar/SidebarSettings.vue')['default']
     Skeleton: typeof import('primevue/skeleton')['default']
     SkeletonProductCard: typeof import('./src/components/product/SkeletonProductCard.vue')['default']
     StateSetting: typeof import('./src/components/state/StateSetting.vue')['default']
+    Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -12,7 +12,6 @@ import { CurrentClient } from '../../shared/decorators/current-client.decorator.
 import { OptionalJwtClientAuthGuard } from '../../identify/client/guards/jwt-client-optional.guard.js';
 import { CreateOrderDto } from './dto/create.dto.js';
 import { ValidateOrderDto } from './dto/validate.dto.js';
-import { UpdateOrderStatusDto } from './dto/update-order-status.dto.js';
 
 @ApiTags('Orders (Заказы)')
 @UseGuards(OptionalJwtClientAuthGuard)
@@ -53,16 +52,5 @@ export class OrderController {
       undefined,
       'PENDING',
     );
-  }
-
-  @Patch('status')
-  @ApiOperation({ summary: 'Обновить статус заказа (Admin/Staff)' })
-  @ApiResponse({
-    status: 200,
-    description: 'Статус обновлен',
-    type: ReadOrderDto,
-  })
-  async updateStatus(@Body() dto: UpdateOrderStatusDto): Promise<ReadOrderDto> {
-    return await this.orderService.updateStatus(dto.orderId, dto.status);
   }
 }

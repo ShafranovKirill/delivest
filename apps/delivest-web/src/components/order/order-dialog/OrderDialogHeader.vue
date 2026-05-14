@@ -4,8 +4,8 @@ import { useOrderStore } from '@/stores/order.store'
 const orderStore = useOrderStore()
 </script>
 <template>
-  <div class="flex items-center justify-center w-full relative min-h-12">
-    <div class="absolute left-0 z-20">
+  <div class="flex items-center justify-between w-full min-h-12 gap-2">
+    <div class="flex justify-start min-w-10">
       <Button
         v-if="orderStore.step > 1"
         icon="pi pi-arrow-left"
@@ -16,16 +16,16 @@ const orderStore = useOrderStore()
       />
     </div>
 
-    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-      <h1 class="text-xl font-black text-slate-700 uppercase tracking-wide m-0 pointer-events-auto">
+    <div class="flex-1 text-center overflow-hidden">
+      <h1 class="text-lg sm:text-xl font-black text-slate-700 uppercase tracking-wide m-0 truncate">
         <span v-if="orderStore.step === 1">Корзина</span>
-        <span v-else-if="orderStore.step === 2">Данные заказа</span>
-        <span v-else-if="orderStore.step === 3">Проверка заказа</span>
-        <span v-else-if="orderStore.step === 4">Заказ оформлен</span>
+        <span v-else-if="orderStore.step === 2">Данные</span>
+        <span v-else-if="orderStore.step === 3">Проверка</span>
+        <span v-else-if="orderStore.step === 4">Готово</span>
       </h1>
     </div>
 
-    <div class="absolute right-0 z-20">
+    <div class="flex justify-end min-w-10">
       <OrderCloseButton />
     </div>
   </div>
