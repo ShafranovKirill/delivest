@@ -86,7 +86,14 @@ export const useCartStore = defineStore('cart', {
 
       try {
         await api.delete(`/cart/clear/${this.cart.id}`)
-        this.cart = null
+        if (this.cart) {
+          this.cart = {
+            ...this.cart,
+            items: [],
+            totalItems: 0,
+            totalPrice: 0,
+          }
+        }
       } catch (error) {
         throw error
       } finally {

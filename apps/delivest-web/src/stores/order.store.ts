@@ -17,6 +17,9 @@ export const useOrderStore = defineStore('order', {
       this.step = step
       this.isModalVisible = true
     },
+    closeModal() {
+      this.isModalVisible = false
+    },
     nextStep() {
       this.step++
     },

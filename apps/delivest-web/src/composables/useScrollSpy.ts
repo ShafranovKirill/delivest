@@ -1,8 +1,10 @@
 import { onUnmounted, watch, nextTick } from 'vue'
 import { useCategoryStore } from '@/stores/category.store'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useScrollSpy(selector: string, dependency?: () => any) {
+export function useScrollSpy<T extends { length: number } | boolean | null | undefined>(
+  selector: string,
+  dependency?: () => T,
+) {
   const categoryStore = useCategoryStore()
   let observer: IntersectionObserver | null = null
 
@@ -37,7 +39,9 @@ export function useScrollSpy(selector: string, dependency?: () => any) {
     watch(
       dependency,
       async (val) => {
-        if (val && val.length > 0) {
+        const hasData = Array.isArray(val) || typeof val === 'string' ? val.length > 0 : !!val
+
+        if (hasData) {
           await nextTick()
           start()
         }

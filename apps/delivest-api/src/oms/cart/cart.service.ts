@@ -166,25 +166,26 @@ export class CartService {
 
     return this.refreshCart(cart.id);
   }
-
   async clearCart(cartId: string) {
     try {
       const cart = await this.prisma.cart.findUnique({ where: { id: cartId } });
 
       if (!cart) {
-        return;
+        throw new NotFoundException(`Корзина ${cartId} не найдена`);
       }
 
-      await this.deleteCart(cart.id);
+      await this.prisma.cartItem.deleteMany({
+        where: { cartId: cart.id },
+      });
+
+      await this.refreshCart(cart.id);
+
+      this.logger.log(`Cart ${cartId} cleared (items removed)`);
     } catch (error) {
-      if (error instanceof DomainException) {
-        throw error;
-      }
+      if (error instanceof DomainException) throw error;
 
       this.logger.error(`Failed to clear cart ${cartId}`, error);
-      throw new InternalErrorException(
-        'Failed to clear cart. Please try again later.',
-      );
+      throw new InternalErrorException('Failed to clear cart.');
     }
   }
 
@@ -308,11 +309,7 @@ export class CartService {
       cart as InternalCartWithItems,
     );
 
-    if (response.items.length === 0) {
-      await this.deleteCartFromRedis(cart.id);
-    } else {
-      await this.setCartToRedis(response);
-    }
+    await this.setCartToRedis(response);
 
     return response;
   }
