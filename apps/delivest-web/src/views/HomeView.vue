@@ -47,4 +47,5 @@ useScrollSpy('.product-section', () => productStore.categorizedProducts)
       </div>
     </aside>
   </div>
+  <FloatingCartButton />
 </template>

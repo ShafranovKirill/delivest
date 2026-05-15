@@ -40,6 +40,7 @@ declare module 'vue' {
     Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
     Dropdown: typeof import('primevue/dropdown')['default']
+    FloatingCartButton: typeof import('./src/components/cart/FloatingCartButton.vue')['default']
     FooterComp: typeof import('./src/components/app-footer/FooterComp.vue')['default']
     InputMask: typeof import('primevue/inputmask')['default']
     InputText: typeof import('primevue/inputtext')['default']

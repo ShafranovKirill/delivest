@@ -16,7 +16,7 @@ const branchStore = useBranchStore()
         </div>
       </div>
 
-      <div class="hidden sm:block">
+      <div class="hidden lg:block">
         <CartButton />
       </div>
     </div>

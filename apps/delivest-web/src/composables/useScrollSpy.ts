@@ -20,15 +20,22 @@ export function useScrollSpy<T extends { length: number } | boolean | null | und
 
     observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            categoryStore.activeCategoryId = entry.target.id
+        const visibleEntries = entries.filter((entry) => entry.isIntersecting)
+
+        if (visibleEntries.length > 0) {
+          const sorted = visibleEntries.sort(
+            (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
+          )
+          const firstVisible = sorted[0]
+
+          if (firstVisible && categoryStore.activeCategoryId !== firstVisible.target.id) {
+            categoryStore.activeCategoryId = firstVisible.target.id
           }
-        })
+        }
       },
       {
-        rootMargin: '-10% 0px -70% 0px',
-        threshold: [0, 0.5],
+        rootMargin: '-20% 0px -60% 0px',
+        threshold: 0,
       },
     )
 
