@@ -41,7 +41,7 @@ useScrollSpy('.product-section', () => productStore.categorizedProducts)
       </template>
     </div>
 
-    <aside class="hidden lg:block w-full lg:w-87.5 shrink-0">
+    <aside class="hidden 2xl:block w-full lg:w-87.5 shrink-0">
       <div class="sticky top-21">
         <DesktopCart />
       </div>

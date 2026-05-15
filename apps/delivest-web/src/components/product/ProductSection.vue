@@ -15,7 +15,7 @@ defineProps<{
       </h2>
     </div>
 
-    <div class="grid grid-cols-2 gap-2.5 md:grid-cols-3 scroll-mt-21 2xl:grid-cols-4 md:gap-6">
+    <div class="grid grid-cols-2 gap-2.5 md:grid-cols-3 scroll-mt-21 xl:grid-cols-4 md:gap-6">
       <ProductCard
         v-for="product in section.products"
         :key="product.id"
