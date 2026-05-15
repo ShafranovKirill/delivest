@@ -35,6 +35,7 @@ const isCreateVisible = ref(false);
 const isEditVisible = ref(false);
 const isDeleteVisible = ref(false);
 const selectedCategory = ref<CategoryResponse | null>(null);
+const isHeaderSlotReady = ref(false);
 
 const categories = computed(() => categoryStore.sortedCategories);
 const branchName = computed(() => branchStore.activeBranch?.name || "");
@@ -43,6 +44,7 @@ const isEmpty = computed(
 );
 
 onMounted(async () => {
+  isHeaderSlotReady.value = !!document.getElementById("app-header-slot");
   await categoryStore.fetchByActiveBranch();
   syncLocalCategories();
 });
@@ -96,7 +98,7 @@ const onDeleted = async () => {
 </script>
 
 <template>
-  <teleport to="#app-header-slot">
+  <teleport v-if="isHeaderSlotReady" to="#app-header-slot">
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-(--surface-900)">{{ t("menu.categories") }}</h1>

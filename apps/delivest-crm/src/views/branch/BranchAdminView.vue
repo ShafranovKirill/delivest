@@ -15,8 +15,10 @@ const { t } = useI18n();
 const confirm = useConfirm();
 const router = useRouter();
 const route = useRoute();
+const isHeaderSlotReady = ref(false);
 
 onMounted(async () => {
+  isHeaderSlotReady.value = !!document.getElementById("app-header-slot");
   if (branchStore.branches.length === 0) {
     await branchStore.fetchBranches();
   }
@@ -63,7 +65,7 @@ const handleBranchSwitch = (branch: BranchResponce) => {
 </script>
 
 <template>
-  <teleport to="#app-header-slot">
+  <teleport v-if="isHeaderSlotReady" to="#app-header-slot">
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-(--surface-900)">{{ t("branches.list.title") }}</h1>

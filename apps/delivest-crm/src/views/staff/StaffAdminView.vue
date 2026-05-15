@@ -19,8 +19,10 @@ const isCreateVisible = ref(false);
 const isEditVisible = ref(false);
 const isDeleteVisible = ref(false);
 const selectedStaff = ref<StaffResponse | null>(null);
+const isHeaderSlotReady = ref(false);
 
 onMounted(async () => {
+  isHeaderSlotReady.value = !!document.getElementById("app-header-slot");
   if (staffStore.staffList.length === 0) {
     await staffStore.fetchAllStaff();
   }
@@ -56,7 +58,7 @@ const openDelete = (staff: StaffResponse) => {
 </script>
 
 <template>
-  <teleport to="#app-header-slot">
+  <teleport v-if="isHeaderSlotReady" to="#app-header-slot">
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-(--surface-900)">{{ t("staff.list.title") }}</h1>

@@ -21,6 +21,7 @@ const selectedProduct = ref<ProductResponse | null>(null);
 const categoryGroups = ref<Record<string, ProductResponse[]>>({});
 const unassignedProducts = ref<ProductResponse[]>([]);
 const activeCategory = ref<string | null>(null);
+const isHeaderSlotReady = ref(false);
 
 const branchName = computed(() => branchStore.activeBranch?.name || "");
 const categories = computed(() => categoryStore.sortedCategories);
@@ -66,6 +67,7 @@ watch(
 watch([() => categories.value, () => productStore.products], syncLocalProducts, { immediate: true, deep: true });
 
 onMounted(async () => {
+  isHeaderSlotReady.value = !!document.getElementById("app-header-slot");
   if (branchStore.activeBranchId) {
     await categoryStore.fetchByActiveBranch();
     await productStore.fetchProductsForBranch(branchStore.activeBranchId);
@@ -124,7 +126,7 @@ const onDragEnd = async (categoryId: string, event: any) => {
 };
 </script>
 <template>
-  <teleport to="#app-header-slot">
+  <teleport v-if="isHeaderSlotReady" to="#app-header-slot">
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-(--surface-900)">{{ t("menu.products") }}</h1>

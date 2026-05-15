@@ -15,8 +15,10 @@ const isCreateVisible = ref(false);
 const isEditVisible = ref(false);
 const isDeleteVisible = ref(false);
 const selectedRole = ref<RoleResponse | null>(null);
+const isHeaderSlotReady = ref(false);
 
 onMounted(async () => {
+  isHeaderSlotReady.value = !!document.getElementById("app-header-slot");
   if (roleStore.roles.length === 0) {
     await roleStore.fetchAllRoles();
   }
@@ -34,7 +36,7 @@ const openDelete = (role: RoleResponse) => {
 </script>
 
 <template>
-  <teleport to="#app-header-slot">
+  <teleport v-if="isHeaderSlotReady" to="#app-header-slot">
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-(--surface-900)">{{ t("roles.list.title") }}</h1>

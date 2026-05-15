@@ -16,6 +16,7 @@ const productStore = useProductStore();
 const cartStore = useCartStore();
 
 const orderStep = ref<"CART" | "DETAILS">("CART");
+const isHeaderSlotReady = ref(false);
 
 const orderStatusOptions = ["PENDING", "PROCESSING", "READY", "PICKED_UP", "COMPLETED", "CANCELLED"] as const;
 
@@ -67,6 +68,7 @@ const loadPageData = async () => {
 };
 
 onMounted(() => {
+  isHeaderSlotReady.value = !!document.getElementById("app-header-slot");
   orderStore.initSocketListeners();
   if (activeBranchId.value) {
     loadPageData();
@@ -227,11 +229,10 @@ const handleSubmitOrder = async () => {
 </script>
 
 <template>
-  <teleport to="#app-header-slot">
+  <teleport v-if="isHeaderSlotReady" to="#app-header-slot">
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-(--surface-900)">Управление заказами</h1>
-        <p class="text-(--surface-500) text-sm">Создавайте и редактируйте заказы, изменяйте статусы прямо в списке.</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <Button label="Создать заказ" icon="pi pi-plus" @click="handleCreateOrder" class="py-2 h-fit" />
