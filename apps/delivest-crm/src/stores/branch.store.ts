@@ -1,6 +1,11 @@
 import { defineStore } from "pinia";
 import api from "@/api/axios";
 import type { BranchResponce, CreateBranchRequest, UpdateBranchRequest } from "@delivest/types"; // Проверь путь к типам
+import { watch } from "vue";
+import { useCategoryStore } from "./category.store";
+import { useProductStore } from "./product.store";
+import { useOrderStore } from "./order.store";
+import { useCartStore } from "./cart.store";
 
 export const useBranchStore = defineStore("branch", {
   state: () => ({
@@ -31,12 +36,52 @@ export const useBranchStore = defineStore("branch", {
         if (this.branches.length === 1 && !this.activeBranchId) {
           this.setActiveBranch(this.branches[0].id);
         }
+        // If there is an activeBranchId persisted but it's not in fetched branches, clear it
+        if (this.activeBranchId && !this.branches.find(b => b.id === this.activeBranchId)) {
+          this.clearActiveBranch();
+        }
       } catch (error) {
         console.error("Error fetching branches:", error);
         throw error;
       } finally {
         this.isLoading = false;
       }
+    },
+
+    initBranchWatcher() {
+      const categoryStore = useCategoryStore();
+      const productStore = useProductStore();
+      const orderStore = useOrderStore();
+      const cartStore = useCartStore();
+
+      watch(
+        () => this.activeBranchId,
+        async newBranchId => {
+          if (newBranchId) {
+            try {
+              await Promise.all([
+                categoryStore.fetchByBranch(newBranchId),
+                productStore.fetchProductsForBranch(newBranchId),
+                orderStore.fetchOrdersForBranch(newBranchId),
+                cartStore.fetchStaffCart(newBranchId),
+              ]);
+
+              productStore.initSocketListeners?.();
+              orderStore.initSocketListeners?.();
+            } catch (e) {
+              console.error("Error loading branch data:", e);
+            }
+          } else {
+            try {
+              categoryStore.clearCategories?.();
+            } catch {}
+            productStore.products = [];
+            orderStore.orders = [];
+            cartStore.cart = null;
+          }
+        },
+        { immediate: true },
+      );
     },
 
     async fetchOneBranch(id: string) {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import Button from "primevue/button";
 import { useBranchStore } from "@/stores/branch.store";
 import type { BranchResponce } from "@delivest/types";
 import { useAuthStore } from "@/stores/auth.store";
@@ -62,21 +63,26 @@ const handleBranchSwitch = (branch: BranchResponce) => {
 </script>
 
 <template>
-  <div class="p-6 max-w-4xl mx-auto">
-    <ConfirmDialog />
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+  <teleport to="#app-header-slot">
+    <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-(--surface-900)">{{ t("branches.list.title") }}</h1>
         <p class="text-(--surface-500) text-sm">{{ t("branches.list.subtitle") }}</p>
       </div>
 
-      <Button
-        v-if="authStore.hasPermission(Permission.BRANCH_CREATE)"
-        :label="t('branches.list.add_button')"
-        icon="pi pi-plus"
-        class="py-2 self-center"
-        @click="isCreateVisible = true" />
+      <div class="flex flex-wrap items-center gap-2">
+        <Button
+          v-if="authStore.hasPermission(Permission.BRANCH_CREATE)"
+          :label="t('branches.list.add_button')"
+          icon="pi pi-plus"
+          class="py-2 self-center"
+          @click="isCreateVisible = true" />
+      </div>
     </div>
+  </teleport>
+
+  <div class="p-6 max-w-4xl mx-auto">
+    <ConfirmDialog />
 
     <div class="grid gap-4">
       <template v-if="branchStore.isLoading">

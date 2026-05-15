@@ -16,6 +16,8 @@ import i18n from "./i18n";
 import ToastService from "primevue/toastservice";
 import { ConfirmationService } from "primevue";
 import { useProductStore } from "@/stores/product.store";
+import { useOrderStore } from "@/stores/order.store";
+import { useBranchStore } from "@/stores/branch.store";
 
 dayjs.locale("ru");
 dayjs.extend(relativeTime);
@@ -40,5 +42,15 @@ app.use(pinia);
 
 const productStore = useProductStore();
 productStore.initSocketListeners();
+const orderStore = useOrderStore();
+orderStore.initSocketListeners();
+
+const branchStore = useBranchStore();
+branchStore
+  .fetchBranches()
+  .then(() => {
+    branchStore.initBranchWatcher();
+  })
+  .catch(() => {});
 
 app.mount("#app");

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import Button from "primevue/button";
 import { useRoleStore } from "@/stores/role.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { Permission } from "@delivest/common";
@@ -33,25 +34,25 @@ const openDelete = (role: RoleResponse) => {
 </script>
 
 <template>
-  <div class="p-6 max-w-4xl mx-auto">
-    <div class="flex items-center justify-between mb-8">
+  <teleport to="#app-header-slot">
+    <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-(--surface-900)">
-          {{ t("roles.list.title") }}
-        </h1>
-        <p class="text-(--surface-500) text-sm">
-          {{ t("roles.list.subtitle") }}
-        </p>
+        <h1 class="text-2xl font-bold text-(--surface-900)">{{ t("roles.list.title") }}</h1>
+        <p class="text-(--surface-500) text-sm">{{ t("roles.list.subtitle") }}</p>
       </div>
 
-      <Button
-        v-if="authStore.hasPermission(Permission.ROLE_CREATE)"
-        :label="t('roles.list.add_button')"
-        icon="pi pi-plus"
-        class="py-2 h-fit"
-        @click="isCreateVisible = true" />
+      <div class="flex flex-wrap items-center gap-2">
+        <Button
+          v-if="authStore.hasPermission(Permission.ROLE_CREATE)"
+          :label="t('roles.list.add_button')"
+          icon="pi pi-plus"
+          class="py-2 h-fit"
+          @click="isCreateVisible = true" />
+      </div>
     </div>
+  </teleport>
 
+  <div class="p-6 max-w-4xl mx-auto">
     <div class="grid gap-4">
       <template v-if="roleStore.isLoading">
         <RoleCard v-for="i in 3" :key="i" loading />

@@ -61,25 +61,27 @@ const openDelete = (staff: StaffResponse) => {
 </script>
 
 <template>
-  <div class="p-6 max-w-4xl mx-auto">
-    <div class="flex items-center justify-between mb-8">
+  <teleport to="#app-header-slot">
+    <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-(--surface-900)">
           {{ t("staff.branch.title") }} {{ branchStore.activeBranch?.name }}
         </h1>
-        <p class="text-(--surface-500) text-sm">
-          {{ t("staff.branch.subtitle") }}
-        </p>
+        <p class="text-(--surface-500) text-sm">{{ t("staff.branch.subtitle") }}</p>
       </div>
 
-      <Button
-        v-if="authStore.hasPermission(Permission.STAFF_CREATE)"
-        :label="t('staff.list.add_button')"
-        icon="pi pi-plus"
-        class="py-2 h-fit"
-        @click="isCreateVisible = true" />
+      <div class="flex flex-wrap items-center gap-2">
+        <Button
+          v-if="authStore.hasPermission(Permission.STAFF_CREATE)"
+          :label="t('staff.list.add_button')"
+          icon="pi pi-plus"
+          class="py-2 h-fit"
+          @click="isCreateVisible = true" />
+      </div>
     </div>
+  </teleport>
 
+  <div class="p-6 max-w-4xl mx-auto">
     <div class="grid gap-4">
       <template v-if="staffStore.isLoading">
         <StaffCard v-for="i in 3" :key="i" loading />

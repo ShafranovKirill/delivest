@@ -82,11 +82,7 @@ export const useOrderStore = defineStore("order", {
           limit: this.limit,
         };
 
-        const { data } = await api.request<OrderResponse[]>({
-          method: "GET",
-          url: "/admin/orders",
-          data: payload,
-        });
+        const { data } = await api.get<OrderResponse[]>("/admin/orders", { params: payload });
 
         this.orders = data;
       } catch (error) {

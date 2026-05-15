@@ -37,11 +37,15 @@ const onSave = async (formData: CreateBranchRequest | UpdateBranchRequest) => {
 </script>
 
 <template>
-  <h1 class="text-xl font-bold mb-6">{{ $t("branches.update.title") }}</h1>
+  <div class="p-6 max-w-3xl mx-auto">
+    <h1 class="text-xl font-bold mb-6">{{ $t("branches.update.title") }}</h1>
 
-  <BranchForm v-if="branch" :initialData="branch" :loading="isSubmitting" @submit="onSave" @cancel="router.back()" />
+    <div v-if="branch" class="bg-(--surface-card) p-6 rounded-2xl shadow-sm">
+      <BranchForm :initialData="branch" :loading="isSubmitting" @submit="onSave" @cancel="router.back()" />
+    </div>
 
-  <div v-else class="text-center py-10">
-    <i class="pi pi-spin pi-spinner text-3xl"></i>
+    <div v-else class="text-center py-10">
+      <i class="pi pi-spin pi-spinner text-3xl"></i>
+    </div>
   </div>
 </template>
