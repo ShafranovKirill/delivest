@@ -63,6 +63,7 @@ declare module 'vue' {
     Select: typeof import('primevue/select')['default']
     SidebarSettings: typeof import('./src/components/app-menu/SidebarSettings.vue')['default']
     SidebarUserInfo: typeof import('./src/components/app-menu/SidebarUserInfo.vue')['default']
+    SplitButton: typeof import('primevue/splitbutton')['default']
     StaffCard: typeof import('./src/components/staff/StaffCard.vue')['default']
     StaffCreateDialog: typeof import('./src/components/staff/StaffCreateDialog.vue')['default']
     StaffDeleteDialog: typeof import('./src/components/staff/StaffDeleteDialog.vue')['default']

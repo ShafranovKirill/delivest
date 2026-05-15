@@ -49,6 +49,7 @@ const emit = defineEmits<{
   updateTableNumber: [value: string];
   updateAddress: [value: string];
   updateComment: [value: string];
+  updateDeliveryType: [value: OrderModalType];
   submit: [];
 }>();
 
@@ -82,7 +83,20 @@ const buttonLabel = computed(() => {
 });
 
 const isButtonDisabled = computed(() => {
-  return props.isSubmittingOrder || (!props.isEditingOrder && props.step === "CART" && props.cartItems.length === 0);
+  if (props.isSubmittingOrder || (!props.isEditingOrder && props.step === "CART" && props.cartItems.length === 0)) {
+    return true;
+  }
+
+  // Validate required fields on DETAILS step
+  if (props.step === "DETAILS" && !props.isEditingOrder) {
+    const phoneValid = props.phone.trim().length > 0 && /^[+]?[\d\s().-]{10,}$/.test(props.phone);
+    if (!phoneValid) return true;
+
+    if (props.orderModalType === "TABLE" && !props.tableNumber?.trim()) return true;
+    if (props.orderModalType === "DELIVERY" && !props.address?.trim()) return true;
+  }
+
+  return false;
 });
 </script>
 
@@ -130,7 +144,8 @@ const isButtonDisabled = computed(() => {
           @update-phone="emit('updatePhone', $event)"
           @update-table-number="emit('updateTableNumber', $event)"
           @update-address="emit('updateAddress', $event)"
-          @update-comment="emit('updateComment', $event)" />
+          @update-comment="emit('updateComment', $event)"
+          @update-delivery-type="emit('updateDeliveryType', $event)" />
       </div>
 
       <!-- Right Panel - Cart -->

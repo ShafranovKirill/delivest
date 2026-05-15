@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
+import Button from "primevue/button";
 import { useBranchStore } from "@/stores/branch.store";
 import { useCategoryStore } from "@/stores/category.store";
 import { useOrderStore } from "@/stores/order.store";
 import { useProductStore } from "@/stores/product.store";
 import { useCartStore } from "@/stores/cart.store";
 import OrdersList from "@/components/orders/OrdersList.vue";
-import CreateOrderBar from "@/components/orders/CreateOrderBar.vue";
 import OrderModal from "@/components/orders/OrderModal.vue";
 
 const branchStore = useBranchStore();
@@ -78,8 +78,8 @@ watch(activeBranchId, async branchId => {
   await loadPageData();
 });
 
-const handleCreateOrder = (type: string) => {
-  orderStore.openOrderModal(type as any);
+const handleCreateOrder = () => {
+  orderStore.openOrderModal("TABLE" as any);
   orderStep.value = "CART";
 };
 
@@ -162,6 +162,42 @@ const handleUpdateComment = (value: string) => {
   orderStore.orderRequest.comment = value;
 };
 
+const handleUpdateDeliveryType = (type: string) => {
+  orderStore.orderModalType = type as any;
+};
+
+const isPhoneValid = (phone: string) => {
+  return phone.trim().length > 0 && /^[+]?[\d\s().-]{10,}$/.test(phone);
+};
+
+const isTableNumberValid = (tableNumber?: string) => {
+  return tableNumber && tableNumber.trim().length > 0;
+};
+
+const isAddressValid = (address?: string) => {
+  return address && address.trim().length > 0;
+};
+
+const validateOrderRequestFields = (): boolean => {
+  if (!isPhoneValid(orderStore.orderRequest.phone)) {
+    orderStore.errorMessage = "Укажите корректный номер телефона";
+    return false;
+  }
+
+  if (orderStore.orderModalType === "TABLE" && !isTableNumberValid(orderStore.orderRequest.tableNumber)) {
+    orderStore.errorMessage = "Укажите номер стола";
+    return false;
+  }
+
+  if (orderStore.orderModalType === "DELIVERY" && !isAddressValid(orderStore.orderRequest.address)) {
+    orderStore.errorMessage = "Укажите адрес доставки";
+    return false;
+  }
+
+  orderStore.errorMessage = "";
+  return true;
+};
+
 const handleSubmitOrder = async () => {
   if (isEditingOrder.value) {
     orderStore.closeOrderModal();
@@ -170,6 +206,10 @@ const handleSubmitOrder = async () => {
 
   if (orderStep.value === "CART") {
     await handleGoToDetails();
+    return;
+  }
+
+  if (!validateOrderRequestFields()) {
     return;
   }
 
@@ -187,9 +227,19 @@ const handleSubmitOrder = async () => {
 </script>
 
 <template>
-  <div class="space-y-6 p-6 pb-48">
-    <CreateOrderBar @create-order="handleCreateOrder" />
+  <teleport to="#app-header-slot">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-(--surface-900)">Управление заказами</h1>
+        <p class="text-(--surface-500) text-sm">Создавайте и редактируйте заказы, изменяйте статусы прямо в списке.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <Button label="Создать заказ" icon="pi pi-plus" @click="handleCreateOrder" class="py-2 h-fit" />
+      </div>
+    </div>
+  </teleport>
 
+  <div class="space-y-6 p-6 pb-48">
     <OrdersList
       :orders="orderStore.orders"
       :is-loading="orderStore.isLoadingOrders"
@@ -230,5 +280,6 @@ const handleSubmitOrder = async () => {
     @update-table-number="handleUpdateTableNumber"
     @update-address="handleUpdateAddress"
     @update-comment="handleUpdateComment"
+    @update-delivery-type="handleUpdateDeliveryType"
     @submit="handleSubmitOrder" />
 </template>
