@@ -23,10 +23,19 @@ const summary = orderStore.validationData
       </div>
     </div>
 
-    <div class="flex flex-col gap-3">
-      <h3 class="font-bold text-lg">Состав заказа</h3>
-      <div v-for="item in summary.items" :key="item.productId">
-        <CartItem :cart-item="item" />
+    <div class="flex flex-col gap-2">
+      <h3 class="font-bold text-lg mb-1">Состав заказа</h3>
+
+      <div
+        v-for="item in summary.items"
+        :key="item.productId"
+        class="flex justify-between items-baseline gap-2 text-sm border-b border-gray-100 pb-2 last:border-0"
+      >
+        <div class="flex flex-col min-w-0">
+          <span class="font-medium truncate">{{ item.name }}</span>
+          <span class="text-xs opacity-50"> {{ item.quantity }} шт. × {{ item.price }} ₽ </span>
+        </div>
+        <div class="shrink-0 font-semibold">{{ item.totalPrice }} ₽</div>
       </div>
     </div>
 
