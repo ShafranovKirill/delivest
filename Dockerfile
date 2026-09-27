@@ -1,5 +1,5 @@
-ARG ELIXIR_VERSION=1.17.4
-ARG OTP_VERSION=27.1.2
+ARG ELIXIR_VERSION=1.17.2
+ARG OTP_VERSION=27.0
 ARG DEBIAN_VERSION=bookworm-slim
 
 ARG BUILDER_IMAGE="docker.io/hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
@@ -41,7 +41,7 @@ COPY --from=frontend-builder /app/client/dist ./priv/static
 RUN mix compile
 RUN mix release
 
-FROM debian:${DEBIAN_VERSION}
+FROM ${RUNNER_IMAGE}
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
