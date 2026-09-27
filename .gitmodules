@@ -1,0 +1,6 @@
+[submodule "server"]
+	path = server
+	url = https://github.com/ShafranovKirill/delivest-ex.git
+[submodule "client"]
+	path = client
+	url = https://github.com/ShafranovKirill/delivest-web.git
