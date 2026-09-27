@@ -1,3 +1,7 @@
+ARG ELIXIR_VERSION=1.17.4
+ARG OTP_VERSION=27.1.2
+ARG DEBIAN_VERSION=bookworm-slim
+
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app/client
 
@@ -13,7 +17,7 @@ RUN corepack enable && (pnpm install --frozen-lockfile || npm install)
 COPY client/ ./
 RUN pnpm build || npm run build
 
-FROM hexpm/elixir:1.17-erlang-27-debian-bookworm-slim AS backend-builder
+FROM hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION} AS backend-builder
 WORKDIR /app/server
 
 RUN apt-get update && apt-get install -y build-essential git && rm -rf /var/lib/apt/lists/*
@@ -34,7 +38,7 @@ COPY --from=frontend-builder /app/client/dist ./priv/static
 RUN mix compile
 RUN mix release
 
-FROM debian:bookworm-slim
+FROM debian:${DEBIAN_VERSION}
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
