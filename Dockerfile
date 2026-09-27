@@ -16,7 +16,7 @@ ENV VITE_CAFE_NAME=$VITE_CAFE_NAME
 
 COPY client/package.json client/pnpm-lock.yaml* client/package-lock.json* ./
 RUN corepack enable && corepack prepare pnpm@latest --activate
-RUN pnpm install --no-frozen-lockfile --loglevel verbose
+RUN pnpm install --no-frozen-lockfile --loglevel debug
 
 COPY client/ ./
 RUN pnpm build || npm run build
