@@ -1,6 +1,6 @@
 ARG ELIXIR_VERSION=1.17
 ARG OTP_VERSION=27
-ARG DEBIAN_VERSION=bookworm-slim
+ARG DEBIAN_VERSION=bookworm-20260610-slim
 
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app/client
