@@ -13,7 +13,7 @@ RUN corepack enable && (pnpm install --frozen-lockfile || npm install)
 COPY client/ ./
 RUN pnpm build || npm run build
 
-FROM hexpm/elixir:1.17.4-erlang-27.1.2-debian-bookworm-slim AS backend-builder
+FROM hexpm/elixir:1.17-erlang-27-debian-bookworm-slim AS backend-builder
 WORKDIR /app/server
 
 RUN apt-get update && apt-get install -y build-essential git && rm -rf /var/lib/apt/lists/*
