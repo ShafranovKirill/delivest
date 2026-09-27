@@ -15,7 +15,7 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_CAFE_NAME=$VITE_CAFE_NAME
 
 COPY client/package.json client/pnpm-lock.yaml* client/package-lock.json* ./
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.27.0 --activate
 RUN pnpm install --no-frozen-lockfile --loglevel debug
 
 COPY client/ ./
