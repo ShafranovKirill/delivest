@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  delivest_all:
+  del_all:
     image: ghcr.io/kirillshafranov/delivest:latest
     container_name: delivest_all
     restart: always
@@ -10,7 +10,7 @@ services:
     environment:
       - SERVER_ROLE=all
     ports:
-      - "${WEB_PORT_EXTERNAL:-80}:4000"
+      - "127.0.0.1:${WEB_PORT_EXTERNAL:-4000}:4000"
     depends_on:
       - postgres
       - minio
@@ -28,7 +28,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "${POSTGRES_PORT_EXTERNAL:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT_EXTERNAL:-5432}:5432"
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
     networks:
@@ -47,8 +47,8 @@ services:
     volumes:
       - minio_prod_data:/data
     ports:
-      - "${MINIO_PORT_EXTERNAL:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT_EXTERNAL:-9001}:9001"
+      - "127.0.0.1:${MINIO_PORT_EXTERNAL:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT_EXTERNAL:-9001}:9001"
     networks:
       - delivest-network
 
