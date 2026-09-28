@@ -26,7 +26,9 @@ RUN pnpm build || npm run build
 FROM ${BUILDER_IMAGE} AS backend-builder
 WORKDIR /app/server
 
-RUN apt-get update && apt-get install -y build-essential git && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y build-essential git curl && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
+
 ENV MIX_ENV=prod
 
 RUN mix local.hex --force && mix local.rebar --force
@@ -35,11 +37,18 @@ COPY server/mix.exs server/mix.lock ./
 RUN mix deps.get --only prod
 RUN mix deps.compile
 
+COPY server/assets assets
+RUN cd assets && npm install
+
 COPY server/priv priv
 COPY server/lib lib
 COPY server/config config
 
+RUN mix assets.deploy || true
+
 COPY --from=frontend-builder /app/client/dist ./priv/static
+
+RUN mix phx.digest
 
 RUN mix compile
 RUN mix release
