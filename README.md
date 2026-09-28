@@ -6,22 +6,7 @@
 
 ---
 
-## ✨ Features
-
-- 🧩 **Integrated Architecture** — Combines submodules for client and server layers into a single cohesive deployment workflow.
-- 🚀 **Automated Container Publishing** — Automatically builds and pushes container images to GitHub Container Registry (GHCR).
-- 🐳 **Dockerized Environment** — Fully containerized setup via Docker Compose for fast and consistent deployments.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
-- [Git](https://git-scm.com/) (with submodule support)
-
-### Installation & Deployment
+## Getting Started
 
 #### 1. Clone the repository
 
@@ -54,7 +39,7 @@ docker exec -it delivest_server bin/delivest eval "Delivest.Release.setup"
 
 ---
 
-## 🔄 Updating the Project
+## Updating the Project
 
 To update the application on your server when changes are pushed to the repository or submodules:
 
@@ -64,15 +49,6 @@ git submodule update --remote --merge
 docker compose pull
 docker compose up -d
 ```
-
----
-
-## 📁 Project Structure
-
-| Path                 | Description                                                                                                             |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `docker-compose.yml` | Service and environment configurations.                                                                                 |
-| `Submodules`         | Separate repositories handling client and server logic, assembled into a single production container published to GHCR. |
 
 ---
 
