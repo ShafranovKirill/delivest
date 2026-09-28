@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   del_all:
-    image: ghcr.io/kirillshafranov/delivest:latest
+    image: ghcr.io/shafranovkirill/delivest:latest
     container_name: delivest_all
     restart: always
     env_file:
@@ -51,22 +51,6 @@ services:
       - "127.0.0.1:${MINIO_CONSOLE_PORT_EXTERNAL:-9001}:9001"
     networks:
       - delivest-network
-
-  minio-init:
-    image: minio/mc
-    depends_on:
-      - minio
-    env_file:
-      - .env
-    networks:
-      - delivest-network
-    entrypoint: >
-      /bin/sh -c "
-      until (/usr/bin/mc alias set myminio http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD); do echo 'Waiting for MinIO...'; sleep 1; done;
-      /usr/bin/mc mb myminio/$$MINIO_BUCKET || true;
-      /usr/bin/mc anonymous set public myminio/$$MINIO_BUCKET;
-      exit 0;
-      "
 
 networks:
   delivest-network:
