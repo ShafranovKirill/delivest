@@ -2,6 +2,7 @@ ARG ELIXIR_VERSION=1.17.3
 ARG OTP_VERSION=27.3.4.18
 ARG DEBIAN_VERSION=bookworm-20260918-slim
 
+ARG VITE_PORT_WEB=3000
 ARG VITE_API_BASE_URL=http://localhost:4000
 ARG VITE_CAFE_NAME="Sushi Like"
 
@@ -13,6 +14,7 @@ WORKDIR /app/client
 
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_CAFE_NAME=$VITE_CAFE_NAME
+ENV VITE_PORT_WEB=$VITE_PORT_WEB
 
 COPY client/package.json client/pnpm-lock.yaml* client/package-lock.json* ./
 RUN corepack enable && corepack prepare pnpm@10.27.0 --activate
