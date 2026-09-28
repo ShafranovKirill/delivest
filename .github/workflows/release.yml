@@ -14,6 +14,17 @@ jobs:
       contents: read
       packages: write
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: "server"
+            file: "./Dockerfile.server"
+            suffix: "-server"
+          - variant: "client"
+            file: "./Dockerfile.client"
+            suffix: "-client"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,22 +41,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Backend Docker image
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}${{ matrix.suffix }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push Docker image (${{ matrix.variant }})
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.server
+          file: ${{ matrix.file }}
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/${{ github.repository }}-server:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             COMMIT_SHA=${{ github.sha }}
-
-      - name: Build and push Client Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile.client
-          platforms: linux/amd64
-          push: true
-          tags: ghcr.io/${{ github.repository }}-client:latest
