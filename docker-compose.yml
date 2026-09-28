@@ -2,8 +2,8 @@ version: "3.8"
 
 services:
   del_all:
-    image: ghcr.io/shafranovkirill/delivest:latest
-    container_name: delivest_all
+    image: ghcr.io/shafranovkirill/delivest-server:latest
+    container_name: delivest_server
     restart: always
     env_file:
       - .env
@@ -15,6 +15,15 @@ services:
       - postgres
       - s3
       - filer
+    networks:
+      - delivest-network
+
+  client:
+    image: ghcr.io/shafranovkirill/delivest-client:latest
+    container_name: delivest_client
+    restart: always
+    ports:
+      - "127.0.0.1:${VITE_PORT_WEB:-3000}:3000"
     networks:
       - delivest-network
 
