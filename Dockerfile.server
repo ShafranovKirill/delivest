@@ -26,9 +26,9 @@ COPY server/priv priv
 COPY server/lib lib
 COPY server/config config
 
+RUN mix compile
 RUN mix assets.deploy
 RUN mix phx.digest
-RUN mix compile
 RUN mix release
 
 FROM ${RUNNER_IMAGE}
