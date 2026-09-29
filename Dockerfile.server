@@ -45,6 +45,7 @@ ENV LANG=en_US.UTF-8 LANGUAGE=en_US:C.UTF-8 LC_ALL=en_US.UTF-8 \
 COPY --from=backend-builder /app/server/_build/prod/rel/delivest ./
 
 EXPOSE 4000
+
 ENV PORT=4000
 
 CMD ["bin/delivest", "start"]
