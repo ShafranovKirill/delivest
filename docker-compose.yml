@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  del_all:
+  server:
     image: ghcr.io/shafranovkirill/delivest-server:latest
     container_name: delivest_server
     restart: always

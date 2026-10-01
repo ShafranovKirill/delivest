@@ -9,10 +9,13 @@ COPY client/ ./
 RUN pnpm build || npm run build
 
 FROM nginx:alpine
+
+RUN apk add --no-cache dos2unix
+
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+RUN dos2unix /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 
 RUN echo 'server { \
     listen 3000; \
