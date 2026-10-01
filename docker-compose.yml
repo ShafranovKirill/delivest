@@ -23,7 +23,13 @@ services:
     container_name: delivest_client
     restart: always
     env_file:
-      - .env
+      - path: .env
+        required: true
+    environment:
+      - VITE_API_BASE_URL
+      - VITE_CAFE_NAME
+      - VITE_SITE_DESCRIPTION
+      - VITE_YANDEX_MAPS_API_KEY
     ports:
       - "127.0.0.1:${VITE_PORT_WEB:-3000}:3000"
     networks:
