@@ -11,5 +11,6 @@ window._env = {
 };
 EOF
 
+
 echo "Config generated successfully. Starting Nginx..."
 exec "$@"
