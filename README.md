@@ -31,11 +31,26 @@ docker compose up -d
 
 #### 3. Initial Setup & Release Initialization
 
-After the containers are running, execute the release setup command to perform initial configurations and database migrations:
+After the containers are running, execute the release setup command once. It creates the S3 buckets, seeds roles and creates the admin account:
 
 ```bash
 docker exec -it delivest_server bin/delivest eval "Delivest.Release.setup"
 ```
+
+The admin login and password are taken from `ADMIN_LOGIN` / `ADMIN_PASSWORD`. If `ADMIN_PASSWORD` is not set, a random password is generated and printed once — save it.
+
+Database migrations run automatically every time the server container starts.
+
+#### Environment variables added in this version
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `S3_PRIVATE_BUCKET` | `delivest-private` | Bucket for private files (must differ from `S3_BUCKET`) |
+| `S3_BIND_ADDRESS` | `127.0.0.1` | Host address the S3 port is published on; keep it local and expose S3 via the reverse proxy |
+| `APP_TIMEZONE` | `Europe/Moscow` | Business time zone for "today"/"yesterday" order filters |
+| `ADMIN_LOGIN` / `ADMIN_PASSWORD` | `admin123` / random | Credentials used by `Delivest.Release.setup` |
+
+S3 now requires `S3_ACCESS_KEY` / `S3_SECRET_KEY` for writes and listing; anonymous visitors can only read objects from `S3_BUCKET`.
 
 ---
 

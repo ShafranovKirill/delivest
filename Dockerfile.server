@@ -48,4 +48,5 @@ EXPOSE 4000
 
 ENV PORT=4000
 
-CMD ["bin/delivest", "start"]
+# Apply pending migrations on every start so a pulled image never runs against an old schema.
+CMD ["sh", "-c", "bin/delivest eval 'Delivest.Release.migrate' && exec bin/delivest start"]
