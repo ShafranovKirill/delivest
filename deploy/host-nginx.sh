@@ -22,6 +22,7 @@ PORT=${PORT:-8080}
 CLIENT_HOST=$(host_of "$(env_value CLIENT_ORIGIN)")
 SERVER_HOST=$(host_of "$(env_value PHX_HOST)")
 S3_HOST=$(host_of "$(env_value S3_PUBLIC_HOST)")
+EMAIL=$(env_value LETSENCRYPT_EMAIL)
 
 for name in CLIENT_HOST SERVER_HOST S3_HOST; do
   eval "value=\$$name"
@@ -73,7 +74,14 @@ CONF
 nginx -t
 systemctl reload nginx
 
-certbot --nginx --non-interactive --keep-until-expiring --cert-name "$PROJECT" --redirect \
+if [ -n "$EMAIL" ]; then
+  set -- --email "$EMAIL"
+else
+  set -- --register-unsafely-without-email
+fi
+
+certbot --nginx --non-interactive --agree-tos "$@" --keep-until-expiring \
+  --cert-name "$PROJECT" --redirect \
   -d "$CLIENT_HOST" -d "$SERVER_HOST" -d "$S3_HOST"
 
 echo "Done: https://$CLIENT_HOST, https://$SERVER_HOST, https://$S3_HOST -> 127.0.0.1:$PORT"
