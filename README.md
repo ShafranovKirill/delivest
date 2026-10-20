@@ -87,7 +87,7 @@ sudo ./deploy/host-nginx.sh
 
 The script reads the domains and `GATEWAY_PORT` from `.env`, writes `/etc/nginx/sites-available/<COMPOSE_PROJECT_NAME>.conf` that forwards the three domains to the gateway, reloads nginx and asks certbot for one certificate covering all three domains with an HTTP → HTTPS redirect. Certbot renews it automatically.
 
-Run it again after changing domains or the port. Certbot then offers to reinstall the existing certificate — choose that.
+Run it again after changing domains or the port; the existing certificate is reinstalled.
 
 If the server already has a hand-written config for the same domains, remove it first, otherwise nginx reports conflicting `server_name`.
 

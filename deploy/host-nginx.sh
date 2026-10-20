@@ -51,6 +51,7 @@ server {
     listen 80;
     server_name $CLIENT_HOST $SERVER_HOST $S3_HOST;
 
+    http2 on;
     client_max_body_size 20M;
 
     location / {
@@ -72,7 +73,7 @@ CONF
 nginx -t
 systemctl reload nginx
 
-certbot --nginx --cert-name "$PROJECT" --redirect \
+certbot --nginx --non-interactive --keep-until-expiring --cert-name "$PROJECT" --redirect \
   -d "$CLIENT_HOST" -d "$SERVER_HOST" -d "$S3_HOST"
 
 echo "Done: https://$CLIENT_HOST, https://$SERVER_HOST, https://$S3_HOST -> 127.0.0.1:$PORT"
