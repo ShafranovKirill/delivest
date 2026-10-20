@@ -3,7 +3,7 @@ version: "3.8"
 services:
   server:
     image: ghcr.io/shafranovkirill/delivest-server:latest
-    container_name: delivest_server
+    container_name: ${COMPOSE_PROJECT_NAME:-delivest}_server
     restart: always
     env_file:
       - .env
@@ -19,7 +19,7 @@ services:
 
   client:
     image: ghcr.io/shafranovkirill/delivest-client:latest
-    container_name: delivest_client
+    container_name: ${COMPOSE_PROJECT_NAME:-delivest}_client
     restart: always
     environment:
       - VITE_API_BASE_URL=${VITE_API_BASE_URL}
@@ -33,7 +33,7 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: delivest_prod_postgres
+    container_name: ${COMPOSE_PROJECT_NAME:-delivest}_prod_postgres
     restart: always
     env_file:
       - .env
@@ -50,7 +50,7 @@ services:
 
   s3:
     image: chrislusf/seaweedfs
-    container_name: delivest-s3
+    container_name: ${COMPOSE_PROJECT_NAME:-delivest}-s3
     restart: always
     entrypoint:
       - sh
