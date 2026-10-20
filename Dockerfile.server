@@ -24,6 +24,7 @@ RUN cd assets && npm install
 
 COPY server/priv priv
 COPY server/lib lib
+COPY server/src src
 COPY server/config config
 
 RUN mix compile

@@ -34,7 +34,7 @@ docker compose up -d
 After the containers are running, execute the release setup command once. It creates the S3 buckets, seeds roles and creates the admin account:
 
 ```bash
-docker exec -it delivest_server bin/delivest eval "Delivest.Release.setup"
+docker exec -it ${COMPOSE_PROJECT_NAME:-delivest}_server bin/delivest eval "Delivest.Release.setup"
 ```
 
 The admin login and password are taken from `ADMIN_LOGIN` / `ADMIN_PASSWORD`. If `ADMIN_PASSWORD` is not set, a random password is generated and printed once — save it.
