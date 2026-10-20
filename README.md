@@ -2,12 +2,19 @@
 
 **Delivest** is a food delivery platform: a Phoenix server (API, staff admin, integrations) and a Vue client (customer site). Both live in submodules and ship as Docker images published to **GitHub Container Registry (GHCR)**.
 
-| Part     | Image                                          | Port inside the container |
-| -------- | ---------------------------------------------- | ------------------------- |
-| Server   | `ghcr.io/shafranovkirill/delivest-server`      | `4000`                    |
-| Client   | `ghcr.io/shafranovkirill/delivest-client`      | `3000`                    |
-| Database | `postgres:16-alpine`                           | `5432`                    |
-| Files    | `chrislusf/seaweedfs` (S3 compatible storage) | `8333`                    |
+| Part     | Image                                          |
+| -------- | ---------------------------------------------- |
+| Gateway  | `nginx:1.28-alpine` with `deploy/nginx/gateway.conf.template` |
+| Server   | `ghcr.io/shafranovkirill/delivest-server`      |
+| Client   | `ghcr.io/shafranovkirill/delivest-client`      |
+| Database | `postgres:16-alpine`                           |
+| Files    | `chrislusf/seaweedfs` (S3 compatible storage)  |
+
+Only the gateway publishes a port (`127.0.0.1:${GATEWAY_PORT}`). It routes requests by domain to the server, the client and the file storage and holds all proxy settings: websockets, upload limits, gzip and long caching of product images. The host nginx only terminates TLS and forwards the three domains to the gateway, so several deployments can live on one server side by side.
+
+```
+browser ──https──▶ host nginx (TLS, certbot) ──▶ 127.0.0.1:GATEWAY_PORT ──▶ gateway ──▶ server / client / s3
+```
 
 Every push to `main` runs the server tests and the client type-check and lint, then builds and pushes both images with the `main` tag. Tags `v*` publish images with the same tag.
 
@@ -17,15 +24,13 @@ Every push to `main` runs the server tests and the client type-check and lint, t
 
 ### 1. Prepare the host
 
-You need Docker with the Compose plugin and three domains pointing to the host:
+You need Docker with the Compose plugin, nginx and certbot (`apt install nginx certbot python3-certbot-nginx`), and three domains pointing to the host:
 
-| Domain (example)               | Proxied to       | What it serves                             |
-| ------------------------------ | ---------------- | ------------------------------------------ |
-| `delivest-client.example.com`  | `127.0.0.1:3000` | Customer site                              |
-| `delivest-server.example.com`  | `127.0.0.1:4000` | API, staff admin `/staff`, websockets, webhooks |
-| `delivest-s3.example.com`      | `127.0.0.1:8333` | Product and promotion images               |
-
-All containers publish their ports on `127.0.0.1` only, so the outside world reaches them through a reverse proxy with TLS.
+| Domain (example)               | What it serves                                  |
+| ------------------------------ | ----------------------------------------------- |
+| `delivest-client.example.com`  | Customer site                                   |
+| `delivest-server.example.com`  | API, staff admin `/staff`, websockets, webhooks |
+| `delivest-s3.example.com`      | Product and promotion images                    |
 
 ### 2. Clone the repository
 
@@ -50,6 +55,8 @@ Fill in at least:
 
 | Variable                                   | Value                                                                       |
 | ------------------------------------------ | --------------------------------------------------------------------------- |
+| `COMPOSE_PROJECT_NAME`                     | Unique name of this deployment, e.g. `delivest`                             |
+| `GATEWAY_PORT`                             | Free local port for the gateway, e.g. `8080`                                |
 | `PHX_HOST`                                 | Server domain without scheme, e.g. `delivest-server.example.com`            |
 | `SECRET_KEY_BASE`                          | `openssl rand -base64 48`                                                   |
 | `CLIENT_ORIGIN`                            | Client URL with scheme, e.g. `https://delivest-client.example.com`. Used for CORS and the websocket origin check |
@@ -69,43 +76,20 @@ Optional:
 | `DEFAULT_LOCALE`                 | `ru`                 | Admin language for new staff sessions                          |
 | `S3_BUCKET`                      | `delivest`           | Public bucket for images                                       |
 | `S3_PRIVATE_BUCKET`              | `delivest-private`   | Private bucket, must differ from `S3_BUCKET`                   |
-| `S3_BIND_ADDRESS`                | `127.0.0.1`          | Host address the S3 port is published on                       |
 | `ADMIN_LOGIN` / `ADMIN_PASSWORD` | `admin123` / random  | First admin account created by the setup step                  |
 | `VITE_YANDEX_MAPS_API_KEY`       | —                    | Branch map on the customer site                                |
 
-### 4. Configure the reverse proxy
+### 4. Connect the host nginx
 
-The server uses websockets: `/live` for the staff admin and `/socket` for live order statuses and phone call confirmation on the customer site. The proxy must pass the `Upgrade` headers. Example for nginx:
-
-```nginx
-server {
-    server_name delivest-server.example.com;
-
-    location / {
-        proxy_pass http://127.0.0.1:4000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 120s;
-    }
-}
-
-server {
-    server_name delivest-client.example.com;
-    location / { proxy_pass http://127.0.0.1:3000; }
-}
-
-server {
-    server_name delivest-s3.example.com;
-    client_max_body_size 20m;
-    location / { proxy_pass http://127.0.0.1:8333; proxy_set_header Host $host; }
-}
+```bash
+sudo ./deploy/host-nginx.sh
 ```
 
-Add TLS (for example with `certbot --nginx`).
+The script reads the domains and `GATEWAY_PORT` from `.env`, writes `/etc/nginx/sites-available/<COMPOSE_PROJECT_NAME>.conf` that forwards the three domains to the gateway, reloads nginx and asks certbot for one certificate covering all three domains with an HTTP → HTTPS redirect. Certbot renews it automatically.
+
+Run it again after changing domains or the port. Certbot then offers to reinstall the existing certificate — choose that.
+
+If the server already has a hand-written config for the same domains, remove it first, otherwise nginx reports conflicting `server_name`.
 
 ### 5. Start the containers
 
@@ -135,6 +119,23 @@ Then open `https://delivest-server.example.com/staff`, sign in and create the fi
 
 ---
 
+## Several deployments on one server
+
+Clone the repository into a separate directory for every site and give each `.env` its own values:
+
+```dotenv
+COMPOSE_PROJECT_NAME=pizza
+GATEWAY_PORT=8081
+PHX_HOST=api.pizza.example.com
+CLIENT_ORIGIN=https://pizza.example.com
+S3_HOST=files.pizza.example.com
+S3_PUBLIC_HOST=files.pizza.example.com
+```
+
+Then run `docker compose up -d` and `sudo ./deploy/host-nginx.sh` in that directory. Containers, volumes and networks are prefixed with the project name, so deployments do not share data.
+
+---
+
 ## Updating
 
 ```bash
@@ -142,9 +143,10 @@ git pull origin main
 git submodule update --init --recursive
 docker compose pull
 docker compose up -d
+docker compose restart gateway
 ```
 
-New migrations are applied on container start.
+New migrations are applied on container start. The gateway restart picks up changes in `deploy/nginx/gateway.conf.template`.
 
 ---
 
