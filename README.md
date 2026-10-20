@@ -22,6 +22,8 @@ Every push to `main` runs the server tests and the client type-check and lint, t
 
 ## Deployment
 
+Step-by-step guide in Russian for an empty server: [DEPLOY.md](DEPLOY.md).
+
 ### Quick start
 
 On a clean Ubuntu or Debian server, as root:
