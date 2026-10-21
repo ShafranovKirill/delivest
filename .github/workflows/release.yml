@@ -76,8 +76,36 @@ jobs:
       - run: pnpm type-check
       - run: pnpm exec eslint .
 
+  test-agent:
+    name: Agent tests
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: test
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.3"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            agent/deps
+            agent/_build/test
+          key: ${{ runner.os }}-agent-mix-${{ hashFiles('agent/mix.lock') }}
+
+      - run: mix deps.get
+      - run: mix format --check-formatted
+      - run: mix compile --warnings-as-errors
+      - run: mix test
+
   build-and-push:
-    needs: [test-server, test-client]
+    needs: [test-server, test-client, test-agent]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -93,6 +121,9 @@ jobs:
           - variant: "client"
             file: "./Dockerfile.client"
             suffix: "-client"
+          - variant: "agent"
+            file: "./Dockerfile.agent"
+            suffix: "-agent"
 
     steps:
       - name: Checkout repository

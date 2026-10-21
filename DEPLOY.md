@@ -74,6 +74,8 @@ echo "S3_SECRET_KEY=$(openssl rand -hex 24)"
 | `ZVONOK_WEBHOOK_TOKEN` | любая случайная строка: `openssl rand -hex 16` |
 | `APP_TIMEZONE` | `Europe/Moscow` |
 | `ADMIN_LOGIN` / `ADMIN_PASSWORD` | первый админ; если пароль пустой, он сгенерируется |
+| `BASTION_URL` / `BASTION_TOKEN` | адрес бастиона (`wss://...`) и токен агента; если пусто, агент ничего не делает |
+| `INSTANCE_NAME` | имя сайта в бастионе, по умолчанию `PHX_HOST` |
 
 Текст с пробелами берите в кавычки: `ADMIN_PASSWORD="пароль с пробелами"`.
 
@@ -158,6 +160,8 @@ docker compose pull
 docker compose up -d
 docker compose restart gateway
 ```
+
+Если заполнены `BASTION_URL` и `BASTION_TOKEN`, то же самое можно сделать кнопкой в бастионе: агент обновит все контейнеры, кроме себя. Команды `docker compose` запускайте из папки проекта: агент монтирует её по тому же пути, что и на сервере.
 
 ## Полный сброс базы
 

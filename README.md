@@ -9,6 +9,7 @@
 | Client   | `ghcr.io/shafranovkirill/delivest-client`      |
 | Database | `postgres:16-alpine`                           |
 | Files    | `chrislusf/seaweedfs` (S3 compatible storage)  |
+| Agent    | `ghcr.io/shafranovkirill/delivest-agent`       |
 
 Only the gateway publishes a port (`127.0.0.1:${GATEWAY_PORT}`). It routes requests by domain to the server, the client and the file storage and holds all proxy settings: websockets, upload limits, gzip and long caching of product images. The host nginx only terminates TLS and forwards the three domains to the gateway, so several deployments can live on one server side by side.
 
@@ -113,6 +114,8 @@ Optional:
 | `S3_PRIVATE_BUCKET`              | `delivest-private`   | Private bucket, must differ from `S3_BUCKET`                   |
 | `ADMIN_LOGIN` / `ADMIN_PASSWORD` | `admin123` / random  | First admin account created by the setup step                  |
 | `VITE_YANDEX_MAPS_API_KEY`       | —                    | Branch map on the customer site                                |
+| `BASTION_URL` / `BASTION_TOKEN`  | —                    | Bastion address (`wss://...`) and token for the agent; empty keeps the agent idle |
+| `INSTANCE_NAME`                  | `PHX_HOST`           | Name of this deployment in the bastion                         |
 
 ### 4. Connect the host nginx
 
@@ -192,6 +195,14 @@ New migrations are applied on container start. The gateway restart picks up chan
 With several deployments on one server, repeat the update in each directory.
 
 ---
+
+## Agent
+
+The `agent` service connects this deployment to the bastion over a websocket at `BASTION_URL/agent/websocket` and registers itself with `BASTION_TOKEN`; the instance id is kept in the `agent_data` volume. Every 30 seconds it reports the containers, their image revisions, the free disk space and whether the API and the site answer through the gateway.
+
+The bastion can run `status`, `update`, `start`, `stop`, `restart` and `logs`. They act on every service of this deployment except the agent itself, so the agent stays online while the site is stopped or updated. `update` runs `git pull` as the owner of the deployment directory, then `docker compose pull`, `docker compose up -d`, restarts the gateway and prunes dangling images.
+
+The agent needs the docker socket and the deployment directory mounted at the same path as on the host (`${PWD}:${PWD}`), so run `docker compose` from the deployment directory.
 
 ## Resetting the database
 
