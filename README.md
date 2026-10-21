@@ -200,7 +200,9 @@ With several deployments on one server, repeat the update in each directory.
 
 The `agent` service connects this deployment to the bastion over a websocket at `BASTION_URL/agent/websocket` and registers itself with `BASTION_TOKEN`; the instance id is kept in the `agent_data` volume. Every 30 seconds it reports the containers, their image revisions, the free disk space and whether the API and the site answer through the gateway.
 
-The bastion can run `status`, `update`, `start`, `stop`, `restart` and `logs`. They act on every service of this deployment except the agent itself, so the agent stays online while the site is stopped or updated. `update` runs `git pull` as the owner of the deployment directory, then `docker compose pull`, `docker compose up -d`, restarts the gateway and prunes dangling images.
+The bastion can run `status`, `update`, `start`, `stop`, `restart`, `logs`, `env_read` and `env_write`. They act on every service of this deployment except the agent itself, so the agent stays online while the site is stopped or updated. `update` runs `git pull` as the owner of the deployment directory, then `docker compose pull`, `docker compose up -d`, restarts the gateway and prunes dangling images.
+
+The bastion can also read and replace the `.env` of the deployment (`env_read`, `env_write`). On write the agent keeps the previous file as `.env.bak`, preserves its owner and mode, then runs `docker compose up -d` and restarts the gateway so every service picks up the new values. The agent itself keeps its old environment until it is restarted by hand (`docker compose up -d agent`).
 
 The agent needs the docker socket and the deployment directory mounted at the same path as on the host (`${PWD}:${PWD}`), so run `docker compose` from the deployment directory.
 
