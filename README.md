@@ -22,9 +22,43 @@ Every push to `main` runs the server tests and the client type-check and lint, t
 
 ## Deployment
 
+### Quick start
+
+On a clean Ubuntu or Debian server, as root:
+
+```bash
+apt update && apt upgrade -y
+curl -fsSL https://get.docker.com | sh
+apt install -y nginx certbot python3-certbot-nginx
+
+git clone --recursive https://github.com/ShafranovKirill/delivest.git
+cd delivest
+cp .env.example .env
+nano .env
+
+./deploy/host-nginx.sh
+
+docker compose pull
+docker compose up -d
+docker compose logs server --tail 20
+
+docker compose exec server bin/delivest eval "Delivest.Release.setup"
+```
+
+Before `host-nginx.sh` make sure all three domains already resolve to the server (`dig +short <domain>`) and ports 80 and 443 are open (`ufw allow 'Nginx Full'` if ufw is enabled), otherwise certbot cannot issue the certificate. The steps below explain each command.
+
 ### 1. Prepare the host
 
-You need Docker with the Compose plugin, nginx and certbot (`apt install nginx certbot python3-certbot-nginx`), and three domains pointing to the host:
+Install Docker with the Compose plugin, nginx and certbot:
+
+```bash
+curl -fsSL https://get.docker.com | sh
+apt install -y nginx certbot python3-certbot-nginx
+```
+
+`docker-compose-plugin` is not in the stock Ubuntu and Debian repositories, the official script installs it together with Docker.
+
+Point three domains to the host:
 
 | Domain (example)               | What it serves                                  |
 | ------------------------------ | ----------------------------------------------- |
@@ -103,7 +137,7 @@ Database migrations run automatically every time the server container starts.
 ### 6. Initial setup (once)
 
 ```bash
-docker exec -it ${COMPOSE_PROJECT_NAME:-delivest}_server bin/delivest eval "Delivest.Release.setup"
+docker compose exec server bin/delivest eval "Delivest.Release.setup"
 ```
 
 It runs migrations, creates the S3 buckets, seeds roles and creates the admin account from `ADMIN_LOGIN` / `ADMIN_PASSWORD`. If `ADMIN_PASSWORD` is empty, a random password is printed once — save it.
@@ -138,15 +172,23 @@ Then run `docker compose up -d` and `sudo ./deploy/host-nginx.sh` in that direct
 
 ## Updating
 
+In the deployment directory:
+
 ```bash
 git pull origin main
 git submodule update --init --recursive
 docker compose pull
 docker compose up -d
 docker compose restart gateway
+docker compose logs server --tail 20
+docker image prune -f
 ```
 
-New migrations are applied on container start. The gateway restart picks up changes in `deploy/nginx/gateway.conf.template`.
+New migrations are applied on container start. The gateway restart picks up changes in `deploy/nginx/gateway.conf.template`. `docker image prune -f` removes the old image layers left after the pull.
+
+`host-nginx.sh` is not needed on updates: the host nginx only forwards traffic to the gateway, and certbot renews the certificate on its own. Run the script again only after changing the domains or `GATEWAY_PORT` in `.env`.
+
+With several deployments on one server, repeat the update in each directory.
 
 ---
 
