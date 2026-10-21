@@ -39,8 +39,6 @@ services:
     restart: always
     environment:
       - VITE_API_BASE_URL=${VITE_API_BASE_URL}
-      - VITE_CAFE_NAME=${VITE_CAFE_NAME}
-      - VITE_SITE_DESCRIPTION=${VITE_SITE_DESCRIPTION}
       - VITE_YANDEX_MAPS_API_KEY=${VITE_YANDEX_MAPS_API_KEY}
     networks:
       - delivest-network

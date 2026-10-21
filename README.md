@@ -98,7 +98,6 @@ Fill in at least:
 | `S3_ACCESS_KEY` / `S3_SECRET_KEY`          | Credentials for the file storage, any strong values                         |
 | `S3_HOST` / `S3_PUBLIC_HOST`               | S3 domain without scheme                                                    |
 | `VITE_API_BASE_URL`                        | Server URL with scheme, e.g. `https://delivest-server.example.com`          |
-| `VITE_CAFE_NAME` / `VITE_SITE_DESCRIPTION` | Shown on the customer site                                                  |
 | `ZVONOK_PUBLIC_KEY` / `ZVONOK_CAMPAIGN_ID` | zvonok.com API key and campaign for sign-in by phone call                   |
 | `ZVONOK_WEBHOOK_TOKEN`                     | Any random string, it becomes part of the webhook URL                       |
 
@@ -142,7 +141,7 @@ docker compose exec server bin/delivest eval "Delivest.Release.setup"
 
 It runs migrations, creates the S3 buckets, seeds roles and creates the admin account from `ADMIN_LOGIN` / `ADMIN_PASSWORD`. If `ADMIN_PASSWORD` is empty, a random password is printed once — save it.
 
-Then open `https://delivest-server.example.com/staff`, sign in and create the first branch.
+Then open `https://delivest-server.example.com/staff`, sign in, fill in **Franchise settings** (name, brand color, seller details, legal documents) and create the first branch.
 
 ### 7. Connect integrations
 
