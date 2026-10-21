@@ -1,6 +1,6 @@
 # Delivest
 
-**Delivest** is a food delivery platform: a Phoenix server (API, staff admin, integrations) and a Vue client (customer site). Both live in submodules and ship as Docker images published to **GitHub Container Registry (GHCR)**.
+**Delivest** is a food delivery platform: a Phoenix server (API, staff admin, integrations), a Vue client (customer site) and a deployment agent. All three live in submodules and ship as Docker images published to **GitHub Container Registry (GHCR)**.
 
 | Part     | Image                                          |
 | -------- | ---------------------------------------------- |
