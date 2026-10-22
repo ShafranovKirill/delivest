@@ -130,22 +130,42 @@ curl -I https://delivest-server.example.com/client/branches
 - **Вход по номеру телефона (Zvonok):** в админке «Интеграции» → «Вход по номеру телефона» ввести API-ключ и ID кампании из кабинета zvonok.com, сохранить и указать показанный адрес вебхука в кампании как GET-постбэк с параметрами `call_id` и `phone` подтверждённого звонка. Настройка общая для всех филиалов.
 - **Frontpad:** в админке «Интеграции» → «Frontpad» для выбранного филиала ввести API-ключ, включить передачу заказов и скопировать показанный адрес вебхука в Frontpad.
 
-## 9. Бэкапы каждый день
+## 9. Бэкапы
+
+Бэкапы базы делает бастион, если сайт к нему подключён (`BASTION_URL` и `BASTION_TOKEN` в `.env`). Каждый день в 03:00 МСК агент снимает дамп и отправляет его в хранилище бастиона, там лежат последние 7. Логи сайта в бэкап не входят, картинки товаров тоже: они в томе `s3_data`.
+
+На странице сети в бастионе есть список бэкапов и кнопки «Сделать бэкап», «Скачать» и «Восстановить». При восстановлении:
+
+- сервер выключается, бэкап разворачивается во временную базу и только потом подменяет рабочую;
+- если файл битый, рабочая база не меняется;
+- прежняя база остаётся как `<DB_NAME>_before_restore` до следующего восстановления;
+- сервер включается и сам применяет миграции, так что старый бэкап подходит и к новой версии.
+
+Откатить восстановление:
 
 ```bash
-mkdir -p /root/backups
-cat > /etc/cron.d/delivest-backup <<'EOF'
-0 4 * * * root docker exec delivest_prod_postgres pg_dump -U postgres -Fc delivest > /root/backups/delivest-$(date +\%F).dump && find /root/backups -name 'delivest-*.dump' -mtime +14 -delete
-EOF
+docker compose stop server
+docker exec ${COMPOSE_PROJECT_NAME:-delivest}_prod_postgres sh -c 'psql -U "$POSTGRES_USER" -d postgres -c "ALTER DATABASE \"$POSTGRES_DB\" RENAME TO \"${POSTGRES_DB}_broken\"" -c "ALTER DATABASE \"${POSTGRES_DB}_before_restore\" RENAME TO \"$POSTGRES_DB\""'
+docker compose up -d server
 ```
 
-Если вы меняли `COMPOSE_PROJECT_NAME`, `DB_USER` или `DB_NAME`, поправьте имена в этой строке.
+### Перенос сети на другой сервер
 
-Восстановление:
+1. Разверните новый сайт по этой инструкции и подключите его к бастиону.
+2. На странице нового сайта в бастионе выберите в «Развернуть сюда бэкап другой сети» нужный бэкап и нажмите «Восстановить».
+
+Бэкапы удалённой из бастиона сети не пропадают, их тоже можно развернуть.
+
+Без бастиона, из скачанного файла, на новом сервере:
 
 ```bash
-docker exec -i delivest_prod_postgres pg_restore -U postgres -d delivest --clean --if-exists < /root/backups/delivest-2026-10-21.dump
+docker cp backup.dump ${COMPOSE_PROJECT_NAME:-delivest}_prod_postgres:/tmp/backup.dump
+docker compose stop server
+docker exec ${COMPOSE_PROJECT_NAME:-delivest}_prod_postgres sh -c 'dropdb -U "$POSTGRES_USER" --force "$POSTGRES_DB" && createdb -U "$POSTGRES_USER" "$POSTGRES_DB" && pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner --no-privileges --exit-on-error /tmp/backup.dump && rm /tmp/backup.dump'
+docker compose up -d server
 ```
+
+Эти команды стирают текущую базу сайта, запускайте их только на новом сервере.
 
 ## Обновление
 

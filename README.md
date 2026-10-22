@@ -196,7 +196,7 @@ With several deployments on one server, repeat the update in each directory.
 
 The `agent` service connects this deployment to the bastion over a websocket at `BASTION_URL/agent/websocket` and registers itself with `BASTION_TOKEN`; the instance id is kept in the `agent_data` volume. Every 30 seconds it reports the containers, their image revisions, the free disk space and whether the API and the site answer through the gateway.
 
-The bastion can run `status`, `update`, `start`, `stop`, `restart`, `logs`, `env_read` and `env_write`. They act on every service of this deployment except the agent itself, so the agent stays online while the site is stopped or updated. `update` runs `git pull` as the owner of the deployment directory, then `docker compose pull`, `docker compose up -d`, restarts the gateway and prunes dangling images.
+The bastion can run `status`, `update`, `start`, `stop`, `restart`, `logs`, `env_read`, `env_write`, `backup` and `restore`. They act on every service of this deployment except the agent itself, so the agent stays online while the site is stopped or updated. `update` runs `git pull` as the owner of the deployment directory, then `docker compose pull`, `docker compose up -d`, restarts the gateway and prunes dangling images.
 
 The bastion can also read and replace the `.env` of the deployment (`env_read`, `env_write`). On write the agent keeps the previous file as `.env.bak`, preserves its owner and mode, then runs `docker compose up -d` and restarts the gateway so every service picks up the new values. The agent itself keeps its old environment until it is restarted by hand (`docker compose up -d agent`).
 
@@ -221,17 +221,9 @@ For local development: `cd server && mix ecto.reset && mix delivest.create_admin
 
 ## Backups
 
-```bash
-docker exec ${COMPOSE_PROJECT_NAME:-delivest}_prod_postgres \
-  pg_dump -U "$DB_USER" -Fc "$DB_NAME" > delivest-$(date +%F).dump
-```
+When the deployment is connected to the bastion, the bastion makes a database backup every day at 00:00 UTC and keeps the last 7 in its own storage. The agent runs `pg_dump -Fc` inside the `postgres` container without the `app_logs` data and uploads the file to the bastion over HTTPS. Uploaded images are not included.
 
-Restore into an empty database:
-
-```bash
-docker exec -i ${COMPOSE_PROJECT_NAME:-delivest}_prod_postgres \
-  pg_restore -U "$DB_USER" -d "$DB_NAME" --clean --if-exists < delivest-2026-01-01.dump
-```
+From the instance page in the bastion a backup can be made, downloaded or restored, also into another deployment. On restore the agent stops the `server`, restores into a separate database, and only then swaps it with the live one. The previous database stays as `<DB_NAME>_before_restore` until the next restore, and the `server` runs the migrations on start. Manual steps are in [DEPLOY.md](DEPLOY.md#9-бэкапы).
 
 ---
 
