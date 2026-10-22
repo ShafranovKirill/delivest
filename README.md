@@ -144,7 +144,7 @@ docker compose exec server bin/delivest eval "Delivest.Release.setup"
 
 It runs migrations, creates the S3 buckets, seeds roles and creates the admin account from `ADMIN_LOGIN` / `ADMIN_PASSWORD`. If `ADMIN_PASSWORD` is empty, a random password is printed once — save it.
 
-Then open `https://delivest-server.example.com/staff`, sign in, fill in **Franchise settings** (name, brand color, seller details, legal documents) and create the first branch.
+Then open `https://delivest-server.example.com/staff`, sign in, fill in **Franchise settings** (name, description, brand color, site icon, link preview image, seller details, legal documents) and create the first branch. The client nginx pulls the page title, Open Graph tags, icons, `robots.txt`, `sitemap.xml` and `site.webmanifest` from the server, so changes show up without a restart.
 
 ### 7. Connect integrations
 
