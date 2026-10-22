@@ -101,8 +101,6 @@ Fill in at least:
 | `S3_ACCESS_KEY` / `S3_SECRET_KEY`          | Credentials for the file storage, any strong values                         |
 | `S3_HOST` / `S3_PUBLIC_HOST`               | S3 domain without scheme                                                    |
 | `VITE_API_BASE_URL`                        | Server URL with scheme, e.g. `https://delivest-server.example.com`          |
-| `ZVONOK_PUBLIC_KEY` / `ZVONOK_CAMPAIGN_ID` | zvonok.com API key and campaign for sign-in by phone call                   |
-| `ZVONOK_WEBHOOK_TOKEN`                     | Any random string, it becomes part of the webhook URL                       |
 
 Optional:
 
@@ -150,10 +148,8 @@ Then open `https://delivest-server.example.com/staff`, sign in, fill in **Franch
 
 ### 7. Connect integrations
 
-- **Zvonok (sign-in by call):** in the zvonok.com campaign set a GET postback to
-  `https://delivest-server.example.com/integrations/zvonok/<ZVONOK_WEBHOOK_TOKEN>`
-  that passes the `call_id` and `phone` query parameters of the confirmed call.
-- **Frontpad (CRM):** enable CRM in the branch settings in the admin, enter the API key and copy the webhook URL shown there (`/integrations/frontpad/<token>`) into Frontpad.
+- **Zvonok (sign-in by call):** in the admin open **Integrations → Sign-in by phone number**, enter the zvonok.com API key and campaign ID, save, and set the shown webhook URL as a GET postback in the campaign with the `call_id` and `phone` parameters of the confirmed call. Shared by all branches.
+- **Frontpad (CRM):** in the admin open **Integrations → Frontpad** for the branch, enter the API key, turn on sending orders and copy the shown webhook URL (`/integrations/frontpad/<token>`) into Frontpad.
 
 ---
 

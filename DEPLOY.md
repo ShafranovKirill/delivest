@@ -70,8 +70,6 @@ echo "S3_SECRET_KEY=$(openssl rand -hex 24)"
 | `S3_SCHEME` | `https://` |
 | `VITE_API_BASE_URL` | `https://delivest-server.example.com` |
 | `VITE_YANDEX_MAPS_API_KEY` | ключ Яндекс Карт, можно пусто |
-| `ZVONOK_PUBLIC_KEY` / `ZVONOK_CAMPAIGN_ID` | из кабинета zvonok.com |
-| `ZVONOK_WEBHOOK_TOKEN` | любая случайная строка: `openssl rand -hex 16` |
 | `APP_TIMEZONE` | `Europe/Moscow` |
 | `ADMIN_LOGIN` / `ADMIN_PASSWORD` | первый админ; если пароль пустой, он сгенерируется |
 | `BASTION_URL` / `BASTION_TOKEN` | адрес бастиона (`wss://...`) и токен агента; если пусто, агент ничего не делает |
@@ -129,10 +127,8 @@ curl -I https://delivest-server.example.com/client/branches
 
 ## 8. Интеграции
 
-- **Zvonok:** в кампании указать GET-постбэк
-  `https://delivest-server.example.com/integrations/zvonok/<ZVONOK_WEBHOOK_TOKEN>`
-  с параметрами `call_id` и `phone` подтверждённого звонка.
-- **Frontpad:** в админке в настройках филиала включить CRM, ввести API-ключ и скопировать показанный там адрес вебхука в Frontpad.
+- **Вход по номеру телефона (Zvonok):** в админке «Интеграции» → «Вход по номеру телефона» ввести API-ключ и ID кампании из кабинета zvonok.com, сохранить и указать показанный адрес вебхука в кампании как GET-постбэк с параметрами `call_id` и `phone` подтверждённого звонка. Настройка общая для всех филиалов.
+- **Frontpad:** в админке «Интеграции» → «Frontpad» для выбранного филиала ввести API-ключ, включить передачу заказов и скопировать показанный адрес вебхука в Frontpad.
 
 ## 9. Бэкапы каждый день
 
