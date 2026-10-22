@@ -148,7 +148,7 @@ Then open `https://delivest-server.example.com/staff`, sign in, fill in **Franch
 
 ### 7. Connect integrations
 
-- **Zvonok (sign-in by call):** in the admin open **Integrations → Sign-in by phone number**, enter the zvonok.com API key and campaign ID, save, and set the shown webhook URL as a GET postback in the campaign with the `call_id` and `phone` parameters of the confirmed call. Shared by all branches.
+- **Zvonok (sign-in by call):** in the admin open **Integrations → Sign-in by phone number**, enter the zvonok.com API key and campaign ID, save, and paste the shown webhook URL as a whole into the postback of the campaign. It already carries the Zvonok macros `{ct_call_id}` and `{ct_phone}`, without them the server cannot tell which call was confirmed. Every postback is written to the staff logs. Shared by all branches.
 - **Frontpad (CRM):** in the admin open **Integrations → Frontpad** for the branch, enter the API key, turn on sending orders and copy the shown webhook URL (`/integrations/frontpad/<token>`) into Frontpad.
 
 ---
