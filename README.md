@@ -194,7 +194,7 @@ With several deployments on one server, repeat the update in each directory.
 
 ## Agent
 
-The `agent` service connects this deployment to the bastion over a websocket at `BASTION_URL/agent/websocket` and registers itself with `BASTION_TOKEN`; the instance id is kept in the `agent_data` volume. Every 30 seconds it reports the containers, their image revisions, the free disk space and whether the API and the site answer through the gateway.
+The `agent` service connects this deployment to the bastion over a websocket at `BASTION_URL/agent/websocket` and registers itself with `BASTION_TOKEN`; the instance id is kept in the `agent_data` volume. Every 30 seconds it reports the containers, their image revisions, the free disk space, the CPU, memory and load of the host, whether the API and the site answer through the gateway, and the orders of the last day that failed to reach the CRM or have been waiting for it for more than 5 minutes. The bastion keeps the load for a month and alerts in Telegram about high load and such orders.
 
 The bastion can run `status`, `update`, `start`, `stop`, `restart`, `logs`, `env_read`, `env_write`, `backup` and `restore`. They act on every service of this deployment except the agent itself, so the agent stays online while the site is stopped or updated. `update` runs `git pull` as the owner of the deployment directory, then `docker compose pull`, `docker compose up -d`, restarts the gateway and prunes dangling images.
 
