@@ -98,6 +98,7 @@ services:
       - PHX_HOST=${PHX_HOST}
       - CLIENT_ORIGIN=${CLIENT_ORIGIN}
       - S3_PUBLIC_HOST=${S3_PUBLIC_HOST}
+      - AGENT_UPDATE_HEALTH_SECONDS=${AGENT_UPDATE_HEALTH_SECONDS:-300}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${PWD}:${PWD}

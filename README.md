@@ -114,6 +114,7 @@ Optional:
 | `VITE_YANDEX_MAPS_API_KEY`       | —                    | Branch map on the customer site                                |
 | `BASTION_URL` / `BASTION_TOKEN`  | —                    | Bastion address (`wss://...`) and token for the agent; empty keeps the agent idle |
 | `INSTANCE_NAME`                  | `PHX_HOST`           | Name of this deployment in the bastion                         |
+| `AGENT_UPDATE_HEALTH_SECONDS`    | `300`                | How long an update waits for the site before it rolls back     |
 
 ### 4. Connect the host nginx
 
@@ -194,11 +195,15 @@ With several deployments on one server, repeat the update in each directory.
 
 ## Agent
 
-The `agent` service connects this deployment to the bastion over a websocket at `BASTION_URL/agent/websocket` and registers itself with `BASTION_TOKEN`; the instance id is kept in the `agent_data` volume. Every 30 seconds it reports the containers, their image revisions, the free disk space, the CPU, memory and load of the host, whether the API and the site answer through the gateway, and the orders of the last day that failed to reach the CRM or have been waiting for it for more than 5 minutes. The bastion keeps the load for a month and alerts in Telegram about high load and about orders that finally failed to reach the CRM.
+The `agent` service connects this deployment to the bastion over a websocket at `BASTION_URL/agent/websocket` and registers itself with `BASTION_TOKEN`; the instance id is kept in the `agent_data` volume. Every 30 seconds it reports the containers with their image revisions and how many times docker restarted them after a crash, its own image and revision, the free disk space, the CPU, memory and load of the host, whether the API and the site answer through the gateway, and the names of the variables from `.env.example` that are missing in `.env` (never their values). One query to postgres adds the orders of the last day that failed to reach the CRM or have been waiting for it for more than 5 minutes, the orders of the last hour with the average for the same hour of the previous 4 weeks, the application errors of the last 5 minutes and hour with the latest messages, and the size of the database. The bastion keeps the load for a month and alerts about high load, orders that finally failed to reach the CRM, an hour without orders when they usually come, bursts of errors, crashing containers and an almost full disk.
 
-The bastion can run `status`, `update`, `start`, `stop`, `restart`, `logs`, `env_read`, `env_write`, `backup` and `restore`. They act on every service of this deployment except the agent itself, so the agent stays online while the site is stopped or updated. `update` runs `git pull` as the owner of the deployment directory, then `docker compose pull`, `docker compose up -d`, restarts the gateway and prunes dangling images.
+The bastion can run `status`, `update`, `rollback`, `agent_update`, `start`, `stop`, `restart`, `logs`, `env_read`, `env_write`, `backup` and `restore`. They act on every service of this deployment except the agent itself, so the agent stays online while the site is stopped or updated.
 
-The bastion can also read and replace the `.env` of the deployment (`env_read`, `env_write`). On write the agent keeps the previous file as `.env.bak`, preserves its owner and mode, then runs `docker compose up -d` and restarts the gateway so every service picks up the new values. The agent itself keeps its old environment until it is restarted by hand (`docker compose up -d agent`).
+`update` first backs up the database to the bastion when the bastion asks for it and stops if the backup fails. Then it tags the running images as `delivest-previous` and remembers the git revision, runs `git pull` as the owner of the deployment directory, `docker compose pull`, `docker compose up -d` and restarts the gateway. After that it waits until every container runs and the API and the site answer twice in a row, for up to `AGENT_UPDATE_HEALTH_SECONDS` (300 by default). If they do not, it brings back the previous images and git revision; otherwise it prunes dangling images. `rollback` does the same return by hand. The database is never rolled back, the backup made before the update is in the bastion.
+
+`agent_update` pulls the agent image and recreates the agent from a short-lived helper container started from that image, so the agent also picks up a changed `.env`.
+
+The bastion can also read and replace the `.env` of the deployment (`env_read`, `env_write`). On write the agent keeps the previous file as `.env.bak`, preserves its owner and mode, then runs `docker compose up -d` and restarts the gateway so every service picks up the new values. The agent itself keeps its old environment until it is updated from the bastion or restarted by hand (`docker compose up -d agent`).
 
 The agent needs the docker socket and the deployment directory mounted at the same path as on the host (`${PWD}:${PWD}`), so run `docker compose` from the deployment directory.
 
