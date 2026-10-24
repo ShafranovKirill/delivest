@@ -17,6 +17,12 @@ RUN mix local.hex --force && mix local.rebar --force
 
 COPY server/mix.exs server/mix.lock ./
 RUN mix deps.get --only prod
+RUN VIX_VERSION=$(sed -n 's/.*"vix": {:hex, :vix, "\([^"]*\)".*/\1/p' mix.lock) && \
+    NIF_VERSION=$(erl -noshell -eval 'io:put_chars(erlang:system_info(nif_version)), halt().') && \
+    ARTEFACT=vix-nif-${NIF_VERSION}-$(uname -m)-linux-gnu-${VIX_VERSION}.tar.gz && \
+    mkdir -p /root/.cache/elixir_make && \
+    curl -fsSL -o /root/.cache/elixir_make/${ARTEFACT} \
+      https://github.com/akash-akya/vix/releases/download/v${VIX_VERSION}/${ARTEFACT}
 RUN mix deps.compile
 
 COPY server/assets assets
