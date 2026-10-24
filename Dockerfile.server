@@ -33,6 +33,12 @@ COPY server/lib lib
 COPY server/src src
 COPY server/config config
 
+RUN TAILWIND_VERSION=$(sed -n '/config :tailwind/,/version/s/.*version: "\([^"]*\)".*/\1/p' config/config.exs) && \
+    TAILWIND_TARGET=linux-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') && \
+    curl -fsSL -o _build/tailwind-${TAILWIND_TARGET}-${TAILWIND_VERSION} \
+      https://github.com/tailwindlabs/tailwindcss/releases/download/v${TAILWIND_VERSION}/tailwindcss-${TAILWIND_TARGET} && \
+    chmod +x _build/tailwind-${TAILWIND_TARGET}-${TAILWIND_VERSION}
+
 RUN mix compile
 RUN mix assets.deploy
 RUN mix phx.digest
