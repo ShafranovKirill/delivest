@@ -21,6 +21,56 @@ Every push to `main` runs the server tests and the client type-check and lint, t
 
 ---
 
+## Local development
+
+Needs Docker, Elixir with Erlang, Node with pnpm and tmux. Only postgres and the S3 storage run in Docker (`server/docker-compose.yml`), the server and the client run in the console with code reloading.
+
+First run:
+
+```bash
+git clone --recursive https://github.com/ShafranovKirill/delivest.git
+cd delivest
+make setup
+```
+
+`make setup` starts postgres and S3, installs the dependencies, creates and migrates the database, creates the buckets, seeds the roles and creates the admin account `admin123` / `AdminSecret123!`. Then run `make seed` for a branch with the example menu and promotions, or sign in to http://localhost:4000/staff and create a branch by hand.
+
+Every day:
+
+```bash
+make dev
+```
+
+It starts postgres and S3 and opens a tmux session `delivest` with the server (`iex -S mix phx.server`) on the left and the client (`pnpm dev`) on the right. Running it again attaches to the same session, `make stop` closes it. Without tmux run `make server` and `make client` in two terminals.
+
+| Address                        | What                         |
+| ------------------------------ | ---------------------------- |
+| http://localhost:3000          | Customer site                |
+| http://localhost:4000/staff    | Staff admin                  |
+| http://localhost:4000/api      | API                          |
+
+The client must run on port 3000, the server accepts requests only from `http://localhost:3000`, so the client stops with an error if the port is busy.
+
+| Command           | What it does                                                       |
+| ----------------- | ------------------------------------------------------------------ |
+| `make infra`      | Start only postgres and S3                                         |
+| `make infra-down` | Stop postgres and S3                                               |
+| `make server`     | Start only the server                                              |
+| `make client`     | Start only the client                                              |
+| `make seed`       | Everything below at once: buckets, roles, admin, menu and promotions |
+| `make roles`      | Seed the system roles                                              |
+| `make admin`      | Create the admin account                                           |
+| `make menu`       | Seed the first branch with the example menu and photos from `server/priv/images` |
+| `make stocks`     | Seed the first branch with the example promotions and photos       |
+| `make db-reset`   | Recreate the database and run `make seed`, **deletes all data**    |
+| `make test`       | Server tests                                                       |
+| `make check`      | Server compile warnings, format and tests, client type-check and lint |
+| `make schema`     | Download the OpenAPI schema from the running server and regenerate the client API types |
+| `make pull`       | Fast-forward this repository and every submodule                   |
+| `make logs`       | Logs of postgres and S3                                            |
+
+---
+
 ## Deployment
 
 Step-by-step guide in Russian for an empty server: [DEPLOY.md](DEPLOY.md).
