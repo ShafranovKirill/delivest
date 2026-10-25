@@ -57,9 +57,10 @@ The client must run on port 3000, the server accepts requests only from `http://
 | `make infra-down` | Stop postgres and S3                                               |
 | `make server`     | Start only the server                                              |
 | `make client`     | Start only the client                                              |
-| `make seed`       | Everything below at once: buckets, roles, admin, menu and promotions |
+| `make seed`       | Everything below at once: buckets, roles, admin, branch, menu and promotions |
 | `make roles`      | Seed the system roles                                              |
 | `make admin`      | Create the admin account                                           |
+| `make branch`     | Fill the first branch info (address, phone, schedule, map) and the franchise settings (name, about, legal details) with example data |
 | `make menu`       | Seed the first branch with the example menu and photos from `server/priv/images` |
 | `make stocks`     | Seed the first branch with the example promotions and photos       |
 | `make db-reset`   | Recreate the database and run `make seed`, **deletes all data**    |
