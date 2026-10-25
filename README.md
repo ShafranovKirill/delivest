@@ -47,7 +47,7 @@ It starts postgres and S3 and opens a tmux session `delivest` with the server (`
 | ------------------------------ | ---------------------------- |
 | http://localhost:3000          | Customer site                |
 | http://localhost:4000/staff    | Staff admin                  |
-| http://localhost:4000/api      | API                          |
+| http://localhost:4000/api/openapi | OpenAPI schema of the client API |
 
 The client must run on port 3000, the server accepts requests only from `http://localhost:3000`, so the client stops with an error if the port is busy.
 
