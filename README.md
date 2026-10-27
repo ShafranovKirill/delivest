@@ -162,7 +162,6 @@ Optional:
 | `S3_BUCKET`                      | `delivest`           | Public bucket for images                                       |
 | `S3_PRIVATE_BUCKET`              | `delivest-private`   | Private bucket, must differ from `S3_BUCKET`                   |
 | `ADMIN_LOGIN` / `ADMIN_PASSWORD` | `admin123` / random  | First admin account created by the setup step                  |
-| `VITE_YANDEX_MAPS_API_KEY`       | —                    | Branch map on the customer site                                |
 | `BASTION_URL` / `BASTION_TOKEN`  | —                    | Bastion address (`wss://...`) and token for the agent; empty keeps the agent idle |
 | `INSTANCE_NAME`                  | `PHX_HOST`           | Name of this deployment in the bastion                         |
 | `AGENT_UPDATE_HEALTH_SECONDS`    | `300`                | How long an update waits for the site before it rolls back     |

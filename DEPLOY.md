@@ -69,7 +69,6 @@ echo "S3_SECRET_KEY=$(openssl rand -hex 24)"
 | `S3_HOST` и `S3_PUBLIC_HOST` | домен хранилища без `https://`: `delivest-s3.example.com` |
 | `S3_SCHEME` | `https://` |
 | `VITE_API_BASE_URL` | `https://delivest-server.example.com` |
-| `VITE_YANDEX_MAPS_API_KEY` | ключ Яндекс Карт, можно пусто |
 | `APP_TIMEZONE` | `Europe/Moscow` |
 | `ADMIN_LOGIN` / `ADMIN_PASSWORD` | первый админ; если пароль пустой, он сгенерируется |
 | `BASTION_URL` / `BASTION_TOKEN` | адрес бастиона (`wss://...`) и токен агента; если пусто, агент ничего не делает |
