@@ -13,7 +13,7 @@ export COMPOSE_IGNORE_ORPHANS := 1
 SESSION := delivest
 COMPOSE := docker compose -p delivest-ex -f server/docker-compose.yml
 
-.PHONY: dev stop infra infra-down setup server client roles admin branch menu stocks seed db-reset test check schema pull logs
+.PHONY: dev stop infra infra-down setup server client roles admin branch menu stocks seed db-reset test yandex-contract check schema pull logs
 
 dev: infra
 	@tmux has-session -t $(SESSION) 2>/dev/null || \
@@ -68,6 +68,9 @@ db-reset: infra
 
 test: infra
 	cd server && mix test
+
+yandex-contract: infra
+	cd server && mix test --only yandex_contract
 
 check: infra
 	cd server && mix compile --warnings-as-errors && mix format --check-formatted && mix test
