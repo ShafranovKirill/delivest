@@ -1,11 +1,13 @@
-name: Build and Push Docker Images
+name: Release
 
 on:
   push:
     branches:
       - "main"
-    tags:
-      - "v*"
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   test-server:
@@ -106,8 +108,36 @@ jobs:
       - run: mix compile --warnings-as-errors
       - run: mix test
 
-  build-and-push:
+  release:
+    name: Tag the release
     needs: [test-server, test-client, test-agent]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      minor: ${{ steps.version.outputs.minor }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Next version
+        id: version
+        run: ./scripts/next-version.sh >> "$GITHUB_OUTPUT"
+
+      - name: Tag and publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          ./scripts/release-notes.sh > notes.md
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+          gh release create "v$VERSION" --title "v$VERSION" --notes-file notes.md
+
+  build-and-push:
+    needs: [release]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -149,9 +179,11 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}${{ matrix.suffix }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ needs.release.outputs.version }}
+            type=raw,value=${{ needs.release.outputs.minor }}
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.version=${{ needs.release.outputs.version }}
 
       - name: Build and push Docker image (${{ matrix.variant }})
         uses: docker/build-push-action@v5
@@ -164,3 +196,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             COMMIT_SHA=${{ github.sha }}
+            APP_VERSION=${{ needs.release.outputs.version }}

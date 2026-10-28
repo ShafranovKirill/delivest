@@ -17,7 +17,13 @@ Only the gateway publishes a port (`127.0.0.1:${GATEWAY_PORT}`). It routes reque
 browser ──https──▶ host nginx (TLS, certbot) ──▶ 127.0.0.1:GATEWAY_PORT ──▶ gateway ──▶ server / client / s3
 ```
 
-Every push to `main` runs the server tests and the client type-check and lint, then builds and pushes both images with the `main` tag. Tags `v*` publish images with the same tag.
+`main` is production. Every push to `main` runs the server, client and agent checks and then releases a new version:
+
+1. `scripts/next-version.sh` picks the next version from the commits since the last `v*` tag: a `!` or `BREAKING CHANGE` bumps the major, a `feat:` bumps the minor, anything else bumps the patch.
+2. The commit is tagged `vX.Y.Z` and a GitHub Release is published with the notes from `scripts/release-notes.sh` (new features and fixes since the last tag).
+3. The server, client and agent images are pushed with the tags `X.Y.Z`, `X.Y` and `latest` and carry the version in the `org.opencontainers.image.version` label. The server also gets it as `APP_VERSION` and shows it at the bottom of the admin sidebar.
+
+The agent reports the version of every running container, and the bastion shows the version of each site next to the newest one in the registry.
 
 ---
 
