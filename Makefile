@@ -34,6 +34,7 @@ infra-down:
 setup: infra
 	cd server && mix deps.get && mix ecto.create && mix ecto.migrate && mix assets.setup
 	cd server && mix delivest.storage_setup && mix delivest.seed_roles && mix delivest.create_admin
+	cd server/assets && npm install
 	cd client && pnpm install
 
 server: infra
