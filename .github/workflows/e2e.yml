@@ -1,0 +1,89 @@
+name: E2E
+
+on:
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "1"
+      DEV_DATABASE: delivest_e2e
+    services:
+      db:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.19.5-otp-28"
+          otp-version: "28.4.2"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.27.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            server/deps
+            server/_build/dev
+          key: ${{ runner.os }}-e2e-mix-${{ hashFiles('server/mix.lock') }}
+
+      - name: Server
+        working-directory: server
+        run: |
+          mix deps.get
+          mix compile
+          npm ci --prefix assets
+          mix ecto.create
+          mix ecto.migrate
+          mix run priv/repo/e2e_seeds.exs
+
+      - name: Client
+        working-directory: client
+        run: pnpm install --frozen-lockfile
+
+      - name: Playwright
+        working-directory: e2e
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+          pnpm typecheck
+          pnpm test
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7
