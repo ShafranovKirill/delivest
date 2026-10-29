@@ -13,7 +13,7 @@ export COMPOSE_IGNORE_ORPHANS := 1
 SESSION := delivest
 COMPOSE := docker compose -p delivest-ex -f server/docker-compose.yml
 
-.PHONY: dev stop infra infra-down setup server client roles admin branch menu stocks seed db-reset test e2e-db e2e yandex-contract check schema pull logs
+.PHONY: dev stop infra infra-down setup server client roles admin branch menu stocks seed db-reset test e2e-db e2e contract check schema pull logs
 
 dev: infra
 	@tmux has-session -t $(SESSION) 2>/dev/null || \
@@ -75,8 +75,9 @@ e2e-db: infra
 e2e: e2e-db
 	cd e2e && pnpm install && pnpm exec playwright install chromium && pnpm test
 
-yandex-contract: infra
-	cd server && mix test --only yandex_contract
+contract: infra
+	@test -n "$(P)" || (echo "usage: make contract P=<provider>" && exit 1)
+	cd server && set -a && { [ ! -f .env.contract ] || . ./.env.contract; } && set +a && mix test --only $(P)_contract
 
 check: infra
 	cd server && mix compile --warnings-as-errors && mix format --check-formatted && mix test
