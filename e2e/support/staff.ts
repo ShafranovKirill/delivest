@@ -16,8 +16,10 @@ export const signIn = async (browser: Browser, login: string) => {
 export const branchPage = (page: Page, path: string) =>
   page.goto(`${adminUrl}/staff/b/${branchSlug}/${path}`)
 
+export const tagged = (number: string) => new RegExp(`#${number}(?!\\d)`)
+
 export const orderCard = (page: Page, number: string) =>
-  page.locator('article', { hasText: `#${number}` })
+  page.locator('article', { hasText: tagged(number) })
 
 export const expectStatus = (card: Locator, status: string) =>
   expect(card.locator('[id^="order-status-"]')).toHaveText(status)

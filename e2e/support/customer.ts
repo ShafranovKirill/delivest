@@ -27,7 +27,7 @@ export const placeOrder = async (page: Page, fulfillment: Fulfillment) => {
   await page.locator('input[name=phone]').fill('+79990001122')
   await page.getByRole('button', { name: 'Оформить заказ' }).click()
 
-  const heading = page.getByText(/^Заказ [A-Z0-9]+$/)
+  const heading = page.getByText(/^Заказ \d+$/)
   await expect(heading).toBeVisible()
   return (await heading.innerText()).replace('Заказ ', '')
 }
