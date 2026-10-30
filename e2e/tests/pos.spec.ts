@@ -2,7 +2,7 @@ import { expect, test } from '../support/test'
 import { adminUrl } from '../support/env'
 import { branchPage, expectStatus, orderCard, tagged } from '../support/staff'
 
-test('the cashier sells for cash, the kitchen cooks and the cashier hands the order out', async ({
+test('the cashier sells for cash, the kitchen cooks and the cashier hands the order out with a receipt', async ({
   page,
   staff,
 }) => {
@@ -37,5 +37,12 @@ test('the cashier sells for cash, the kitchen cooks and the cashier hands the or
 
   const operator = await staff('e2e_operator')
   await branchPage(operator, 'orders?status=completed')
-  await expectStatus(orderCard(operator, number), 'Выполнен')
+  const card = orderCard(operator, number)
+  await expectStatus(card, 'Выполнен')
+  await expect(async () => {
+    await operator.reload()
+    await expect(card.locator('[id^="receipt-"]').first()).toContainText('Пробит', {
+      timeout: 2_000,
+    })
+  }).toPass()
 })

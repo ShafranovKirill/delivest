@@ -29,6 +29,7 @@ export default defineConfig({
         PORT: String(serverPort),
         CLIENT_ORIGIN: `http://localhost:${clientPort}`,
         DEFAULT_LOCALE: 'ru',
+        ATOL_HOST: `http://localhost:${serverPort}/dev/atol/possystem/v5/`,
       },
       reuseExistingServer: !process.env.CI,
       timeout: 240_000,
