@@ -1,0 +1,32 @@
+# Git metadata, including submodule git files.
+**/.git
+.github
+
+# Local environment and secrets; keep templates and tracked Vite build config.
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+!client/.env.production
+
+# Dependencies and generated build output.
+**/node_modules
+**/_build
+**/deps
+**/dist
+**/coverage
+**/cover
+**/.cache
+**/.vite
+**/.eslintcache
+**/*.tsbuildinfo
+**/erl_crash.dump
+**/npm-debug.log*
+**/pnpm-debug.log*
+
+# Browser test results and local editor files.
+e2e
+**/.idea
+**/.vscode
+**/.DS_Store
+**/*~

@@ -108,9 +108,13 @@ jobs:
       - run: mix compile --warnings-as-errors
       - run: mix test
 
+  test-e2e:
+    name: E2E tests
+    uses: ./.github/workflows/e2e.yml
+
   release:
     name: Tag the release
-    needs: [test-server, test-client, test-agent]
+    needs: [test-server, test-client, test-agent, test-e2e]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -186,12 +190,14 @@ jobs:
             org.opencontainers.image.version=${{ needs.release.outputs.version }}
 
       - name: Build and push Docker image (${{ matrix.variant }})
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ matrix.file }}
           platforms: linux/amd64
           push: true
+          cache-from: type=gha,scope=${{ matrix.variant }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.variant }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
