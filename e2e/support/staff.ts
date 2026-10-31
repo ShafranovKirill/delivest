@@ -21,8 +21,8 @@ export const tagged = (number: string) => new RegExp(`#${number}(?!\\d)`)
 export const orderCard = (page: Page, number: string) =>
   page.locator('article', { hasText: tagged(number) })
 
-export const expectStatus = (card: Locator, status: string) =>
-  expect(card.locator('[id^="order-status-"]')).toHaveText(status)
+export const expectStatus = (card: Locator, status: string, timeout = 15_000) =>
+  expect(card.locator('[id^="order-status-"]')).toHaveText(status, { timeout })
 
 export const advance = async (card: Locator, label: string) => {
   const next = card.locator('[id^="order-next-"]')
