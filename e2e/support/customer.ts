@@ -21,7 +21,7 @@ export const placeOrder = async (page: Page, fulfillment: Fulfillment) => {
 
   await page.locator('header').getByRole('button', { name: '590 ₽' }).click()
   await page.getByRole('button', { name: 'К оформлению заказа' }).click()
-  await page.getByRole('button', { name: 'Перейти к оформлению' }).click()
+  await expect(page.getByPlaceholder('Иван')).toBeVisible()
 
   await page.getByPlaceholder('Иван').fill('Тест')
   await page.locator('input[name=phone]').fill('+79990001122')
