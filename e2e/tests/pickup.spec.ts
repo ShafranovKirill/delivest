@@ -23,7 +23,8 @@ test('a pickup order is cooked, shown on the board and handed over at the counte
   const kitchen = await staff('e2e_kitchen')
   await branchPage(kitchen, 'kitchen')
   await kitchen.locator('[id^="ticket-"]', { hasText: tagged(number) }).locator('[id^="ready-"]').click()
-  await expectStatus(card, 'Готов')
+  // The kitchen allows 10 seconds to undo, then Oban processes the scheduled job.
+  await expectStatus(card, 'Готов', 30_000)
   await expect(onBoard('#board-ready')).toBeVisible()
   await expect(onBoard('#board-preparing')).toBeHidden()
 

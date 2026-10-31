@@ -19,7 +19,8 @@ test('a delivery order goes from the customer through the kitchen to the courier
   await branchPage(kitchen, 'kitchen')
   const ticket = kitchen.locator('[id^="ticket-"]', { hasText: tagged(number) })
   await ticket.locator('[id^="ready-"]').click()
-  await expectStatus(card, 'Готов')
+  // The kitchen allows 10 seconds to undo, then Oban processes the scheduled job.
+  await expectStatus(card, 'Готов', 30_000)
 
   const courier = await staff('e2e_courier')
   courier.on('dialog', (dialog) => dialog.accept())
