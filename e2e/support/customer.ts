@@ -22,8 +22,9 @@ export const placeOrder = async (page: Page, fulfillment: Fulfillment) => {
   await page.locator("header").getByRole("button", { name: "590 ₽" }).click();
   await page.getByRole("button", { name: "К оформлению заказа" }).click();
 
+  await expect(page).toHaveURL(/checkout/, { timeout: 30_000 });
   const phoneInput = page.locator("input[name=phone]");
-  await expect(phoneInput).toBeVisible();
+  await expect(phoneInput).toBeVisible({ timeout: 30_000 });
   await phoneInput.fill("+79990001122");
   await page.getByRole("button", { name: "Оформить заказ" }).click();
 
