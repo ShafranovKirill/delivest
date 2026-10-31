@@ -17,7 +17,7 @@ Only the gateway publishes a port (`127.0.0.1:${GATEWAY_PORT}`). It routes reque
 browser ──https──▶ host nginx (TLS, certbot) ──▶ 127.0.0.1:GATEWAY_PORT ──▶ gateway ──▶ server / client / s3
 ```
 
-`main` is production. Every push to `main` runs the server, client and agent checks and then releases a new version:
+`main` is production. Every push to `main` runs the server and agent tests, client type-check and lint, and Playwright E2E tests. Only after all checks pass, it releases a new version:
 
 1. `scripts/next-version.sh` picks the next version from the commits since the last `v*` tag: a `!` or `BREAKING CHANGE` bumps the major, a `feat:` bumps the minor, anything else bumps the patch.
 2. The commit is tagged `vX.Y.Z` and a GitHub Release is published with the notes from `scripts/release-notes.sh` (new features and fixes since the last tag).
