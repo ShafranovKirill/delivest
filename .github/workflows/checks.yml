@@ -25,8 +25,8 @@ jobs:
           submodules: recursive
       - uses: erlef/setup-beam@v1
         with:
-          elixir-version: '1.17.3'
-          otp-version: '27.3'
+          elixir-version: '1.19.5-otp-28'
+          otp-version: '28.4.2'
       - run: mix deps.get
         working-directory: server
       - run: mix format --check-formatted && mix compile --warnings-as-errors && mix test
