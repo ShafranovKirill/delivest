@@ -114,11 +114,13 @@ docker exec -it delivest_server bin/delivest eval "Delivest.Release.setup"
 ## 7. Проверить
 
 ```bash
+curl -fsS https://delivest-server.example.com/health
+curl -fsS https://delivest-server.example.com/ready
 curl -I https://delivest-client.example.com
 curl -I https://delivest-server.example.com/client/branches
 ```
 
-Оба должны ответить `200`. Дальше:
+`/health` отвечает, пока приложение живо. `/ready` дополнительно проверяет базу и применённые миграции и возвращает `503`, пока нода не готова; эту ручку используют агент и Bastion при обновлении. Остальные запросы должны ответить `200`. Дальше:
 
 1. открыть `https://delivest-server.example.com/staff` и войти;
 2. создать филиал, категории и товары;
