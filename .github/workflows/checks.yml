@@ -29,7 +29,12 @@ jobs:
           otp-version: '28.4.2'
       - run: mix deps.get
         working-directory: server
-      - run: mix format --check-formatted && mix compile --warnings-as-errors && mix test
+      - name: Cache dialyzer PLT
+        uses: actions/cache@v4
+        with:
+          path: server/priv/plt
+          key: dialyzer-${{ runner.os }}-${{ hashFiles('server/mix.lock') }}
+      - run: mix format --check-formatted && mix compile --warnings-as-errors && mix credo --strict && mix dialyzer && mix test
         working-directory: server
         env:
           MIX_ENV: test
