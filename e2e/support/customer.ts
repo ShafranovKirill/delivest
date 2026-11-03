@@ -20,7 +20,7 @@ export const placeOrder = async (page: Page, fulfillment: Fulfillment, mobile = 
   await chooseFulfillment(page, fulfillment);
 
   const cart = mobile ? page : page.locator("header");
-  await cart.getByRole("button", { name: "590 ₽", exact: true }).click();
+  await cart.getByRole("button", { name: "590 ₽" }).click();
   await page.getByRole("button", { name: "К оформлению заказа" }).click();
 
   if (mobile) {
