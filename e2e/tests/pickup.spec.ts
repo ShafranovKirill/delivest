@@ -7,7 +7,8 @@ test('a pickup order is cooked, shown on the board and handed over at the counte
   page,
   staff,
 }) => {
-  const number = await placeOrder(page, 'pickup')
+  await page.setViewportSize({ width: 390, height: 844 })
+  const number = await placeOrder(page, 'pickup', true)
 
   const operator = await staff('e2e_operator')
   await branchPage(operator, 'orders')

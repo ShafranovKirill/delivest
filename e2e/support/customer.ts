@@ -7,27 +7,44 @@ const chooseFulfillment = async (page: Page, fulfillment: Fulfillment) => {
     await page.getByText("Заберу из пиццерии").click();
   } else {
     await page.getByText("Указать адрес доставки").click();
-    await page.getByPlaceholder("Улица").fill("Тверская");
-    await page.getByPlaceholder("Дом").fill("7");
+    await page.getByPlaceholder("Город, улица, дом").fill("Москва, Тверская, 7");
   }
 
-  await page.getByRole("button", { name: "Заказать сюда" }).click();
+  const confirmLabel = fulfillment === "delivery" ? "Подтвердить адрес" : "Заказать сюда";
+  await page.getByRole("button", { name: confirmLabel }).click();
 };
 
-export const placeOrder = async (page: Page, fulfillment: Fulfillment) => {
+export const placeOrder = async (page: Page, fulfillment: Fulfillment, mobile = false) => {
   await page.goto("/");
   await page.getByRole("button", { name: "590 ₽" }).click();
   await chooseFulfillment(page, fulfillment);
 
-  await page.locator("header").getByRole("button", { name: "590 ₽" }).click();
+  const cart = mobile ? page : page.locator("header");
+  await cart.getByRole("button", { name: "590 ₽", exact: true }).click();
   await page.getByRole("button", { name: "К оформлению заказа" }).click();
+
+  if (mobile) {
+    await expect(page.getByRole("button", { name: "Другое время" })).toBeVisible();
+    await page.getByRole("button", { name: "1 товар" }).click();
+    const composition = page.getByRole("heading", { name: "Состав заказа" }).locator("..");
+    await expect(composition.getByText("Маргарита")).toBeVisible();
+  }
 
   const phoneInput = page.locator("input[name=phone]");
   await expect(phoneInput).toBeVisible();
+  await page.getByRole("button", { name: "Оформить заказ" }).click();
+  const phoneError = page.getByText("Введите номер телефона полностью");
+  await expect(phoneError).toBeVisible();
+  await expect(phoneInput).toBeFocused();
   await phoneInput.fill("+79990001122");
+  await expect(phoneError).toBeHidden();
   await page.getByRole("button", { name: "Оформить заказ" }).click();
 
   const heading = page.getByText(/^Заказ \d+$/);
   await expect(heading).toBeVisible();
-  return (await heading.innerText()).replace("Заказ ", "");
+  const orderHeading = await heading.innerText();
+  await expect(page).toHaveURL(/\/checkout\/order\/[^/]+$/);
+  await page.reload();
+  await expect(heading).toHaveText(orderHeading);
+  return orderHeading.replace("Заказ ", "");
 };
