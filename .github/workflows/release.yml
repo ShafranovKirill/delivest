@@ -93,8 +93,8 @@ jobs:
 
       - uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.3"
+          elixir-version: "1.19.5-otp-28"
+          otp-version: "28.4.2"
 
       - uses: actions/cache@v4
         with:
@@ -188,6 +188,7 @@ jobs:
             type=raw,value=latest
           labels: |
             org.opencontainers.image.version=${{ needs.release.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
 
       - name: Build and push Docker image (${{ matrix.variant }})
         uses: docker/build-push-action@v6
