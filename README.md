@@ -263,20 +263,13 @@ The bastion can also read and replace the `.env` of the deployment (`env_read`, 
 
 The agent needs the docker socket and the deployment directory mounted at the same path as on the host (`${PWD}:${PWD}`), so run `docker compose` from the deployment directory.
 
-## Resetting the database
+## Database baseline
 
-Migrations were squashed into the final schema before the first production release. A database created with the old migrations must be recreated, which **deletes all data**:
+Upgrade existing installations to `v1.2.6` before installing a release with the baseline migrations. At startup the first baseline migration checks for the full `v1.2.6` migration history and its tables. The baseline migrations are then recorded as applied, preserving the previous migration records, schema and data. An installation that has not finished the earlier migrations must complete the upgrade through `v1.2.6` first.
 
-```bash
-docker compose down
-docker volume rm ${COMPOSE_PROJECT_NAME:-delivest}_postgres_prod_data
-docker compose up -d
-docker exec -it ${COMPOSE_PROJECT_NAME:-delivest}_server bin/delivest eval "Delivest.Release.setup"
-```
+A fresh installation builds the same schema from nine migrations organized by module. A cross-module foreign key is created in the migration that runs after both of its tables are available. The old release can still run against an upgraded database with its old migration records. Use a baseline-aware release for databases created from scratch with the baseline.
 
-Uploaded images live in the separate `s3_data` volume and are kept.
-
-For local development: `cd server && mix ecto.reset && mix delivest.create_admin`.
+An administrator can populate missing role presets from **Staff → Roles → Create Base Roles**. The button preserves existing roles and staff assignments. Staff who retry fiscal receipts or issue refund receipts need the corresponding finance permission. The Accountant preset includes both permissions.
 
 ---
 
