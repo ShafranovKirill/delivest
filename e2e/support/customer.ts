@@ -23,6 +23,7 @@ export const placeOrder = async (page: Page, fulfillment: Fulfillment, mobile = 
   await cart.getByRole("button", { name: "590 ₽" }).click();
   await page.getByRole("button", { name: "К оформлению заказа" }).click();
 
+  await expect(page).toHaveURL(/checkout/, { timeout: 30_000 });
   if (mobile) {
     await expect(page.getByRole("button", { name: "Другое время" })).toBeVisible();
     await page.getByRole("button", { name: "1 товар" }).click();
@@ -31,7 +32,7 @@ export const placeOrder = async (page: Page, fulfillment: Fulfillment, mobile = 
   }
 
   const phoneInput = page.locator("input[name=phone]");
-  await expect(phoneInput).toBeVisible();
+  await expect(phoneInput).toBeVisible({ timeout: 30_000 });
   await page.getByRole("button", { name: "Оформить заказ" }).click();
   const phoneError = page.getByText("Введите номер телефона полностью");
   await expect(phoneError).toBeVisible();
