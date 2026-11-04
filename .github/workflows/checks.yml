@@ -38,6 +38,28 @@ jobs:
         working-directory: server
         env:
           MIX_ENV: test
+  agent:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.19.5-otp-28'
+          otp-version: '28.4.2'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            agent/deps
+            agent/_build/test
+          key: ${{ runner.os }}-agent-mix-${{ hashFiles('agent/mix.lock') }}
+      - run: mix deps.get
+        working-directory: agent
+      - run: mix format --check-formatted && mix compile --warnings-as-errors && mix test
+        working-directory: agent
+        env:
+          MIX_ENV: test
   client:
     runs-on: ubuntu-24.04
     steps:
