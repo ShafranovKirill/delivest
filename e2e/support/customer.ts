@@ -7,7 +7,7 @@ const chooseFulfillment = async (page: Page, fulfillment: Fulfillment) => {
     await page.getByText("Заберу из пиццерии").click();
   } else {
     await page.getByText("Указать адрес доставки").click();
-    await page.getByPlaceholder("Город, улица, дом").fill("Москва, Тверская, 7");
+    await page.getByLabel("Город, улица, дом").fill("Москва, Тверская, 7");
   }
 
   const confirmLabel = fulfillment === "delivery" ? "Подтвердить адрес" : "Заказать сюда";
