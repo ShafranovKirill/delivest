@@ -35,7 +35,7 @@ export default defineConfig({
       timeout: 240_000,
     },
     {
-      command: 'pnpm exec vite --strictPort',
+      command: `pnpm build && pnpm exec vite preview --port ${clientPort} --strictPort`,
       cwd: '../client',
       url: `http://localhost:${clientPort}`,
       env: {
