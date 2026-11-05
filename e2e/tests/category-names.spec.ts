@@ -45,16 +45,62 @@ test('long category name fits mobile button and heading', async ({ page }) => {
   expect(heading.lines).toBeGreaterThan(1)
 })
 
-test('long category name fits desktop dropdown and active More label', async ({ page }) => {
+test('desktop category bar keeps complete names and moves the remainder into More on resize', async ({ page }) => {
   await page.setViewportSize({ width: 900, height: 844 })
-  await mockCategories(page, [...Array.from({ length: 8 }, (_, index) => `Категория ${index}`), longName])
+  const names = [
+    'Многокомпонентные наборы',
+    'Свежеприготовленные новинки',
+    'Свежезапечённые роллы',
+    'Свежеприготовленные десерты',
+    'Прохладительные напитки',
+    'Дополнительные ингредиенты',
+    'Тридцатитрёхсантиметровая пицца',
+    longName,
+  ]
+  await mockCategories(page, names)
   await page.goto('/e2e')
-  const more = page.locator('main .sticky .group')
+  const nav = page.getByTestId('desktop-category-nav')
+  const visible = nav.locator(':scope > button')
+  const more = page.getByTestId('desktop-category-more')
   await expect(more).toBeVisible()
+  await expect.poll(() => visible.count()).toBeGreaterThan(0)
+  const narrowCount = await visible.count()
+  expect(narrowCount).toBeLessThan(names.length)
+  await expect(more.getByRole('button')).toHaveText('Ещё')
+
+  const checkLayout = async (width: number) => {
+    const count = await visible.count()
+    expect(await visible.allTextContents()).toEqual(names.slice(0, count))
+    expect(await more.locator('.overflow-y-auto > div').allTextContents()).toEqual(names.slice(count))
+    const geometry = await nav.evaluate((element) => {
+      const style = getComputedStyle(element)
+      const right = element.getBoundingClientRect().right - parseFloat(style.paddingRight)
+      const buttons = [...element.querySelectorAll(':scope > button')]
+      return {
+        buttonsFit: buttons.every((button) => {
+          const bounds = button.getBoundingClientRect()
+          return bounds.right <= right + 1 && button.scrollWidth <= button.clientWidth + 1
+        }),
+        moreFits: element.querySelector('[data-testid="desktop-category-more"]')!.getBoundingClientRect().right <= right + 1,
+        pageFits: document.documentElement.scrollWidth <= window.innerWidth,
+      }
+    })
+    expect(geometry).toEqual({ buttonsFit: true, moreFits: true, pageFits: true })
+    expect(await page.evaluate(() => window.innerWidth)).toBe(width)
+  }
+
+  await checkLayout(900)
+  await page.setViewportSize({ width: 1280, height: 844 })
+  await expect.poll(() => visible.count()).toBeGreaterThan(narrowCount)
+  await checkLayout(1280)
+  await page.setViewportSize({ width: 900, height: 844 })
+  await expect.poll(() => visible.count()).toBe(narrowCount)
+  await checkLayout(900)
+
   await more.hover()
   const item = more.getByText(longName)
   await expect(item).toBeVisible()
-  const dropdownText = await textFits(page, 'main .sticky .group .overflow-y-auto > div:last-child p')
+  const dropdownText = await textFits(page, '[data-testid="desktop-category-more"] .overflow-y-auto > div:last-child p')
   expect(dropdownText.fits).toBe(true)
   expect(dropdownText.lines).toBeGreaterThan(1)
   const fitsDropdown = await item.evaluate((element) => {
@@ -67,13 +113,18 @@ test('long category name fits desktop dropdown and active More label', async ({ 
     )
   })
   expect(fitsDropdown).toBe(true)
+  const scrollBefore = await page.evaluate(() => window.scrollY)
   await item.click()
   const moreButton = more.getByRole('button')
-  await expect(moreButton).toContainText(longName)
-  const text = await textFits(page, 'main .sticky .group button p')
-  expect(text.fits).toBe(true)
-  expect(text.lines).toBeGreaterThan(1)
-  const buttonBox = await moreButton.boundingBox()
-  expect(buttonBox).not.toBeNull()
-  expect(buttonBox!.x + buttonBox!.width).toBeLessThanOrEqual(900)
+  await expect(moreButton).toHaveText('Ещё')
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrollBefore)
+})
+
+test('desktop category bar hides More when every category fits', async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 844 })
+  await mockCategories(page, ['Пицца', 'Роллы'])
+  await page.goto('/e2e')
+  const nav = page.getByTestId('desktop-category-nav')
+  await expect(nav.locator(':scope > button')).toHaveCount(2)
+  await expect(page.getByTestId('desktop-category-more')).toHaveCount(0)
 })
