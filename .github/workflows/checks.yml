@@ -38,6 +38,13 @@ jobs:
         working-directory: server
         env:
           MIX_ENV: test
+      - name: Check OpenAPI snapshot
+        working-directory: server
+        env:
+          MIX_ENV: test
+        run: |
+          mix run -e 'File.write!("/tmp/delivest-openapi.json", Jason.encode!(DelivestWeb.OpenApi.spec()))'
+          diff -u <(jq -S . ../client/src/api/docs/swagger.json) <(jq -S . /tmp/delivest-openapi.json)
   agent:
     runs-on: ubuntu-24.04
     steps:
@@ -74,3 +81,6 @@ jobs:
           node-version: 22.22.2
       - run: pnpm install --frozen-lockfile && pnpm test:auth && pnpm test:regression && pnpm build && pnpm exec eslint .
         working-directory: client
+      - name: Check generated API types
+        working-directory: client
+        run: pnpm schema:generate && pnpm exec prettier --write src/api/types.ts && git diff --exit-code -- src/api/types.ts

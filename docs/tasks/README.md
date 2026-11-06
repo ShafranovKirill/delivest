@@ -13,3 +13,5 @@
 ## Доказательства и границы
 
 [Аудит в commit 73f5458](https://github.com/ShafranovKirill/delivest/blob/73f5458/docs/audits/README.md) и [валидация](https://github.com/ShafranovKirill/delivest/blob/73f5458/docs/audits/2026-11-06-validation.md) доступны только в ветке аудита; [PR №16](https://github.com/ShafranovKirill/delivest/pull/16) был открыт при подготовке плана. Не копировать его файлы и gitlink клиента в эту ветку. Gitlinks `develop` на момент планирования: agent `9f75a632d4560504b06eb3c8e6d02f3dc72c2262`, client `cde8e9e87542172d7005b1d72c29e9a12fca8840`, server `4fce7b3572a04f4c938c300873432f51a0280c66`. Client `89b7e05` относится к [PR №13](https://github.com/ShafranovKirill/delivest-web/pull/13), не считать доставленным. Исторические числа тестов и локального benchmark приведены только в архиве источника.
+
+Текущий результат S3 и оставшиеся gates находятся в [S3 checkpoint](S3_CHECKPOINT.md). S2 PR merged в develop.
