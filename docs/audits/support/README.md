@@ -5,9 +5,9 @@
 From the `server/` directory, use a fresh partition for each run:
 
 ```sh
-MIX_ENV=test MIX_TEST_PARTITION=_capacity_bench_<unique_suffix> mix ecto.create
-MIX_ENV=test MIX_TEST_PARTITION=_capacity_bench_<unique_suffix> mix ecto.migrate
-MIX_ENV=test MIX_TEST_PARTITION=_capacity_bench_<unique_suffix> mix run ../docs/audits/support/order-create-bench.exs
+MIX_ENV=test MIX_TEST_PARTITION=_capacity_bench_local_20261106_01 mix ecto.create
+MIX_ENV=test MIX_TEST_PARTITION=_capacity_bench_local_20261106_01 mix ecto.migrate
+MIX_ENV=test MIX_TEST_PARTITION=_capacity_bench_local_20261106_01 mix run ../docs/audits/support/order-create-bench.exs
 ```
 
 The partition suffix becomes part of the `delivest_test...` database name from `server/config/test.exs`. The script does not drop, reset, or migrate a non-test database. Each run inserts test branches, products, carts, and orders into its partition; use a fresh partition rather than rerunning into a populated one. `TEST_DB_HOST` and `TEST_DB_PORT` are optional connection settings from test config. No credentials or production connection string are embedded in this harness. Configure those variables only for an isolated test PostgreSQL instance.
