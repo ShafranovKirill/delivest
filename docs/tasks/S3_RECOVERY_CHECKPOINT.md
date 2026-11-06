@@ -88,7 +88,7 @@ Rollback миграций 21 и 20 на данных без новых цикл�
 
 Главный агент повторил `mix precommit` на окончательной реализации: **1426 tests, 0 failures, 7 excluded**, seed `804460`, max-cases 8, 62,5 с. Formatter, warnings-as-errors и strict Credo прошли. Финальный Dialyzer прошёл за 16,44 с, 2 прежних suppressed findings. Логи `/tmp/delivest-s3r-main-release.log` и `/tmp/delivest-s3r-main-release-dialyzer.log`. SQL после прогона в отдельной БД `delivest_tests3r_main_release`: orders/domain_events/integration_requests/oban_jobs/branches/order_counters — по 0 строк.
 
-Runtime server commit `36bc0cb`, итоговый server после исправления тестовой изоляции `c61e63b`, client `f45352d`. [Server PR №23](https://github.com/ShafranovKirill/delivest-ex/pull/23), [client PR №16](https://github.com/ShafranovKirill/delivest-web/pull/16) направлены в develop. [Root PR №22](https://github.com/ShafranovKirill/delivest/pull/22) закрепляет gitlinks, ADR, harness и результаты. Статус удалённых checks проверяется на этих PR; незавершённые checks не означают успешную проверку.
+Runtime server commit `36bc0cb`, server после исправления тестовой изоляции `c61e63b`, итоговый server с E2E fixture `c810151`, client `f45352d`. [Server PR №23](https://github.com/ShafranovKirill/delivest-ex/pull/23), [client PR №16](https://github.com/ShafranovKirill/delivest-web/pull/16) направлены в develop. [Root PR №22](https://github.com/ShafranovKirill/delivest/pull/22) закрепляет gitlinks, ADR, harness и результаты. Статус удалённых checks проверяется на этих PR; незавершённые checks не означают успешную проверку.
 
 Финальный browser gate на свежей БД `delivest_s3r_e2e_20261106_02`: `pnpm typecheck` и полный `CI=1 ... pnpm exec playwright test` — **27 passed (2,9 мин)**, без retries/failures. Самовывоз с табло прошёл за 20,1 с. Лог `/tmp/delivest-s3r-main-e2e-final.log`. Источники проверки — server `36bc0cb`, client `f45352d`; итоговый root сохраняет эти runtime-исходники и follow-up изоляции теста `c61e63b`. Код готов к review в develop в указанных границах; production rollout не выполнялся.
 
@@ -103,3 +103,11 @@ Runtime server commit `36bc0cb`, итоговый server после исправ
 После исправления главный агент снова выполнил полный `mix test --seed 53878` на свежей БД `delivest_tests3r_ci_seed_fixed`: **1426 tests, 0 failures, 7 excluded**, 54,1 с, лог `/tmp/delivest-s3r-main-ci-seed-fixed.log`. Итоговый backend commit `c61e63b` включает только дополнительную изоляцию и assertion существующего теста поверх `36bc0cb`.
 
 После CI follow-up удалены ещё 3 БД этой задачи (ci_seed, ci_seed_fixed, zvonok), активных соединений не было. Всего очищено 25 временных БД; результаты и логи сохранены.
+
+## CI follow-up: ближайший слот около полуночи
+
+На root `00cd5eb` общий server CI прошёл полностью, client и agent тоже прошли. Повторный [E2E run](https://github.com/ShafranovKirill/delivest/actions/runs/42285030879) дал 26/27: доставка осталась в accepted. Trace показал `cook_by` 7 ноября 00:45 при действии примерно в 23:05 Москвы: ближайший слот был через ~100 минут, а kitchen lead фикстуры составлял 90. Поэтому SendWorker корректно планировался на будущее. Это отдельный случай от ранее доказанной публикации до commit; runtime-реализация на предыдущем E2E run уже прошла 27/27.
+
+`placeOrder` не выбирает время вручную. При недоступном ASAP компонент использует первый доступный слот. Для flow-сценариев круглосуточной E2E-фикстуры lead изменён на допустимые 1440 минут, чтобы ближайший слот был готов к немедленной отправке на кухню независимо от перехода даты. Production default 90 и production-настройки не меняются. Отложенный запуск отдельно проверяет `test/delivest/oms/kitchen_test.exs:64` с lead 90 и заказом через 120 минут. Формат seed-файла и diff проверены; свежая БД создана и заполнена успешно. Локальный полный повтор: `/tmp/delivest-s3r-main-e2e-night.log`; окончательные remote checks находятся в root PR.
+
+Итоговый server gitlink `c810151` добавляет только тестовую фикстуру поверх `c61e63b`; client остаётся `f45352d`. Production runtime остаётся реализацией `36bc0cb`.
