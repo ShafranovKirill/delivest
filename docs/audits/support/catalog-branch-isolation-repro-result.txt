@@ -1,0 +1,14 @@
+Command: MIX_ENV=test MIX_TEST_PARTITION=_catalog_audit_20261106_v3 mix run ../docs/audits/support/catalog-branch-isolation-repro.exs
+Database: delivest_test_catalog_audit_20261106_v3 (fresh test partition; dropped after the run)
+Result: 3 tests, 0 failures
+
+Observed evidence:
+- branch A category preload included a product related only to branch B, with the shared category related to both branches.
+- a staff member attached to branch B resumed a product's manual stop and removed the row originally created for branch A.
+- a staff editor authorized only for one branch updated the shared product row; the other branch's menu cache entry remained present.
+
+Sanitized ExUnit summary: 3 tests, 0 failures. No warnings or errors were emitted.
+
+The root agent independently reran the same reproduction in a new isolated test partition and confirmed all three evidence assertions; its raw output is `/tmp/delivest-catalog-root-repro.log`.
+
+The tests assert the observed buggy behavior so the reproduction passes against the reviewed code. They are audit evidence, not regression expectations for a fixed implementation.
