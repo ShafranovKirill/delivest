@@ -1,20 +1,15 @@
 # Передача сессии
 
-## Checkpoint на 2026-11-06
+## S1 checkpoint — 2026-11-06
 
-- Ветка планирования: `codex/refactor-task-plan` от `origin/develop` `727b4927f3c3af694dfcb1abfb07ef438d8de3b9`.
-- Архив двух ТЗ, план и карточки подготовлены; **рефакторинг не реализован**. Следующее действие — короткий общий [T00 baseline/triage](phases/T00.md), затем доменный блок S1; подробная F-карта составляется just in time.
-- Требуется проверить статус [PR аудита №16](https://github.com/ShafranovKirill/delivest/pull/16) и выбранные SHA перед кодовыми изменениями. Указанные в источнике suite counts исторические.
-- Последний проверенный кодовый PR, открытые миграции, текущие тесты: отсутствуют в этом плане; заполнить по факту после T00. Нельзя трактовать пустоту как успешную проверку.
+**S1 реализован и проверен локально; server PR №19 открыт, merge и rollout ещё не выполнены.** См. [подробный S1 checkpoint](S1_CHECKPOINT.md), [ADR ownership](ADR-S1-CATALOG-OWNERSHIP.md), [coverage](COVERAGE.md). Статус D01–D04, D06, D15, R06/R07 — `implemented-local`; R02 остаётся S3. T02 и T07 в целом открыты. Client/agent не менялись.
 
-## Когда продолжать в новом чате
+- Начальные SHA: root `727b492`, server `760dcf6`; root `codex/refactor-s1` fast-forward до плановой базы `8b87d13`, server `codex/refactor-s1` содержит `a4958af` (catalog), `640b0ea` (pricing) и `f4fc69de8dcf2d9a1c46d6b5a5c1cea0b3d05c88` (test isolation). [server PR №19](https://github.com/ShafranovKirill/delivest-ex/pull/19) открыт от `develop`; root commit и PR ещё не созданы. Gitlinks исходного `origin/develop`: server `4fce7b3`, client `cde8e9e`, agent `9f75a63`.
+- Главный агент просмотрел S1 diff и независимо запустил full suite на fresh `MIX_TEST_PARTITION=s1_20261106_main_review`: повтор seed `532770` — **1346 tests, 0 failures, 7 excluded**, 56.1 s; `/tmp/delivest-s1-main-review-repeat.log`. Первый запуск — 1344/1 из-за DB checkout timeout в ClientLive.Show setup; конкурирующие async fixtures с одинаковым уникальным именем `Main` обнаружены как сильная гипотеза, но `pg_locks` во время ошибки не сняты. Fixtures переведены на уникальные имена; повтор прошёл. Лог первого запуска `/tmp/delivest-s1-main-review.log`.
+- После full suite внесена только правка UI alert `id`/Tailwind/test selector по `server/AGENTS.md`: два целевых LiveView теста 2/0, `MIX_ENV=test mix compile --warnings-as-errors` exit 0, `mix format --check-formatted` exit 0. До неё полный локальный worker `mix precommit` прошёл 1344/0 (7 excluded), dev и test Dialyzer прошли. Первый worker precommit 1344/1 на timing-sensitive CRM throttle, отдельно throttle 6/0; оба факта сохранены в checkpoint.
+- После проверок очищены все десять временных S1 test partition БД, включая независимую `_main_review`; стандартная БД не сбрасывалась.
+- Миграции 12–14 требуют read-only [preflight](support/s1-stop-conflicts.sql) на целевой БД и координированного cutover без старых writers. Rollback останавливается при cross-branch stop/CRM ID collision без удаления данных. Order bench: 36→32 SQL/заказ (−11.1%), p50 21.48→21.10 ms, p95 47.72→42.19 ms; cart mutation 8→9 SQL ради version stamp. CPU и SQL attribution не измерялись.
 
-Продолжать блок в том же чате через несколько небольших коммитов и PR, пока сохраняется общий доменный контекст. Передать сессию при существенном росте контекста, смене домена или завершении крупного gate. PR сам по себе не требует reset. Не перезапускать посреди миграции, операции или восстановления с неизвестным исходом; сначала получить известное состояние и сохранить план отката. Новый чат продолжает checkpoint, без повторного полного аудита.
+## Следующее действие
 
-## Prompt для новой сессии
-
-```text
-Продолжи блок S1 Delivest после общего T00. Прочитай AGENTS.md, docs/tasks/README.md, SESSION_PLAN.md и короткий SESSION_HANDOFF.md; затем только нужные строки COVERAGE.md, разделы sources и целевые файлы. Легко сверь branch/SHA/status и сохрани чужие изменения. Выполни несколько связанных задач T01/T05/D06/D15 в одном каталожном контексте: небольшие коммиты, проверяемые PR, целевые тесты после значимых изменений, полный релевантный suite на gate. Подтверди дефект на выбранном SHA, согласуй ADR до миграции, зафиксируй rollback. Обновляй MODULE_CONTEXT.md и handoff реальными командами/результатами. Не считай исторический аудит текущими тестами и не объявляй план реализацией.
-```
-
-После T00 и каждого важного gate заменить блок, SHA/PR, реальные проверки, открытые решения и точный следующий шаг. Отчёты держать краткими: пути/строки, решение и результаты. Если T00 ещё не выполнен, начать именно с него; next S1 — после baseline. Ссылки на результаты не должны содержать секретов.
+Главный агент завершает root gitlink/docs commit и root PR; [server PR №19](https://github.com/ShafranovKirill/delivest-ex/pull/19) открыт, remote CI нужно проверить в PR. Затем rollout планируется отдельно. После S1 следующий доменный блок — **S2 identity/ACL/frontend**, с C01 из отдельного PR №13 и ранним O05 privacy/finance triage. Перед новым блоком сверить текущие SHA/PR/status; начать с [SESSION_PLAN](SESSION_PLAN.md) и нужных строк [COVERAGE](COVERAGE.md), без повторного чтения всего архива.
