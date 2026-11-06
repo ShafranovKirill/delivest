@@ -1,5 +1,13 @@
 # Передача сессии
 
+## S3 checkpoint — 2026-11-06
+
+Реализованы D07/D10/D13, public checkout replay/cart revision, изоляция очередей и API drift gate. Полный server 1389/0 (7 excluded), follow-up 42/0, Playwright 27/27, client auth 7/7 и regression 26/26, agent 91/0. [S3 checkpoint](S3_CHECKPOINT.md) содержит SHA, команды, результаты, миграцию и границу приёмки.
+
+Открыты [server PR №22](https://github.com/ShafranovKirill/delivest-ex/pull/22), [client PR №15](https://github.com/ShafranovKirill/delivest-web/pull/15), [root PR №21](https://github.com/ShafranovKirill/delivest/pull/21). Сквозные R01/R03/R04/R08 остаются partial. Следующее действие — remote CI/review текущих PR, затем отдельный S3 checkpoint по kill/restart/unknown outcome всех подписчиков, aggregate ordering, очередям под нагрузкой и mobile compatibility. R05 имеет [ADR](ADR-S3-PAYMENT-INITIALIZATION.md).
+
+S2 PR server №21/client №14/root №20 merged в develop.
+
 ## S2 checkpoint — 2026-11-06
 
 **S2 реализован и принят локально; PR открыты, remote CI/review и merge ожидаются.** Подробные решения, SHA, команды, реальные результаты и ранние падения — [S2 checkpoint](S2_CHECKPOINT.md). Root delivery: [root PR №20](https://github.com/ShafranovKirill/delivest/pull/20). S1 уже merged в develop; production rollout не выполнялся в этой сессии.

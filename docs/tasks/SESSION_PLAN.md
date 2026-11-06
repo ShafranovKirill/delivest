@@ -1,6 +1,6 @@
 # Доменные блоки работы
 
-**Следующий шаг:** проверить S2 remote CI/review и merge [root PR №20](https://github.com/ShafranovKirill/delivest/pull/20) после submodule PR; merge submodule PR, затем root PR. S1 уже merged, rollout отдельно. S2 D05/D08/C01–C10 реализованы локально; решения и реальные gates в [S2 checkpoint](S2_CHECKPOINT.md). Затем **S3**. Одна сессия ведёт несколько связанных задач одного доменного блока с небольшими коммитами и проверяемыми PR. Объём S3 велик: продолжать до безопасной границы, фиксируя фактическую готовность; независимые критичные privacy/financial исправления не откладывать ради порядка блоков.
+**Следующий шаг:** remote CI/review текущего S3 checkpoint, затем закрытие оставшихся сквозных gates S3. D07/D10/D13, keyed checkout и cart revision реализованы. R01/R03/R04/R08 partial, границы и доказательства в [S3 checkpoint](S3_CHECKPOINT.md). S2 merged в develop. Одна сессия ведёт связанные задачи до проверяемой границы.
 
 | Блок | Общий контекст и primary ownership | Gate блока |
 | --- | --- | --- |
