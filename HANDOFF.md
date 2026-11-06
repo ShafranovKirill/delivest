@@ -1,5 +1,9 @@
 # Delivest
 
+## 2026-11-06 · S3 recovery и совместимость
+
+Семь подписчиков проверены остановкой и повтором, добавлены durable delivery/CRM command ledgers и операторское восстановление. Три прогона очередей уложились в локальные пороги; API v1 закреплён frozen fixture и mobile ADR. Итоговый server precommit: 1427/0, 7 excluded. Полный Playwright 27/27 прошёл. Доказательства, миграции 18–22 и ограничения — [recovery checkpoint](docs/tasks/S3_RECOVERY_CHECKPOINT.md). R01 остаётся partial; production SLA, live sandbox и native device QA не считаются выполненными.
+
 ## 2026-11-06 · S3 orders/money/queues
 
 D07/D10/D13 и public checkout key/revision реализованы, очереди разделены, OpenAPI drift включён в CI. [S3 checkpoint](docs/tasks/S3_CHECKPOINT.md) содержит проверки и remaining gates R01/R03/R04/R08. S2 merged в develop.

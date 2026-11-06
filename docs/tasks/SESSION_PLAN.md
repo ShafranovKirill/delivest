@@ -1,6 +1,6 @@
 # Доменные блоки работы
 
-**Следующий шаг:** remote CI/review текущего S3 checkpoint, затем закрытие оставшихся сквозных gates S3. D07/D10/D13, keyed checkout и cart revision реализованы. R01/R03/R04/R08 partial, границы и доказательства в [S3 checkpoint](S3_CHECKPOINT.md). S2 merged в develop. Одна сессия ведёт связанные задачи до проверяемой границы.
+**Следующий шаг:** review и CI S3 recovery checkpoint, затем оставшийся R01 ingress/use-case inventory. R03/R04/R08 реализованы и проверены локально: [recovery checkpoint](S3_RECOVERY_CHECKPOINT.md). Production SLA, live provider sandbox и native device QA остаются отдельными release gates. S2 и первый S3 checkpoint merged в develop.
 
 | Блок | Общий контекст и primary ownership | Gate блока |
 | --- | --- | --- |

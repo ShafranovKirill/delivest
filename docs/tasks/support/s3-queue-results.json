@@ -1,0 +1,1002 @@
+{
+  "profile": {
+    "queues": {
+      "default": 5,
+      "events": 10,
+      "notifications": 2,
+      "polling": 2,
+      "maintenance": 1,
+      "crm": 2,
+      "fiscal": 2
+    },
+    "branches": 5,
+    "control_ms": 30000,
+    "baseline_ms": 120000,
+    "burst_ms": 30000,
+    "drain_ms": 60000,
+    "burst_factor": 5,
+    "maintenance_jobs": 120,
+    "critical_p95_baseline_ms": 2000,
+    "critical_p95_burst_ms": 10000,
+    "maintenance_delta_p95_ms": 2000,
+    "jobs_per_logical_order": 6,
+    "workload_kind": "synthetic mock jobs per logical order; no HTTP checkout",
+    "critical_mock_latency_ms": 30,
+    "maintenance_mock_latency_ms": 1500,
+    "repo_pool_size": 20
+  },
+  "scope": "local Oban/Postgres producer-consumer gate; no production SLA or full N01 claim",
+  "started_at": "2026-11-06T19:04:30.996479Z",
+  "completed_at": "2026-11-06T19:15:15.641329Z",
+  "server_sha": "076f0a626ba1dae7c1fb5e1de2a2c2d8f22b205e",
+  "runs": [
+    {
+      "run": 1,
+      "started_at": "2026-11-06T19:08:06.152089Z",
+      "database": "s3r_queue_1793991870_1",
+      "gates_passed": true,
+      "drain": {
+        "remaining": 0,
+        "drained": true,
+        "elapsed_ms": 33936
+      },
+      "db_queue_ms": {
+        "p95": 0.997,
+        "p50": 0.352,
+        "p99": 2.552
+      },
+      "elapsed_ms": 214131,
+      "phases": {
+        "baseline": {
+          "states": {
+            "cancelled": 4,
+            "completed": 596
+          },
+          "errors": 12,
+          "completed": 596,
+          "jobs": 600,
+          "retries": 12,
+          "eligible_wait_ms": {
+            "p95": 952,
+            "p50": 515,
+            "p99": 1006
+          },
+          "runtime_ms": {
+            "p95": 33.05,
+            "p50": 32.142,
+            "p99": 33.609
+          }
+        },
+        "burst": {
+          "states": {
+            "cancelled": 5,
+            "completed": 745
+          },
+          "errors": 15,
+          "completed": 745,
+          "jobs": 750,
+          "retries": 15,
+          "eligible_wait_ms": {
+            "p95": 883,
+            "p50": 434,
+            "p99": 961
+          },
+          "runtime_ms": {
+            "p95": 33.664,
+            "p50": 32.256,
+            "p99": 34.107
+          }
+        },
+        "control": {
+          "states": {
+            "cancelled": 1,
+            "completed": 149
+          },
+          "errors": 3,
+          "completed": 149,
+          "jobs": 150,
+          "retries": 3,
+          "eligible_wait_ms": {
+            "p95": 912,
+            "p50": 515,
+            "p99": 1001
+          },
+          "runtime_ms": {
+            "p95": 34.441,
+            "p50": 32.529,
+            "p99": 76.946
+          }
+        },
+        "maintenance": {
+          "states": {
+            "completed": 120
+          },
+          "errors": 1,
+          "completed": 120,
+          "jobs": 120,
+          "retries": 1,
+          "eligible_wait_ms": {
+            "p95": null,
+            "p50": null,
+            "p99": null
+          },
+          "runtime_ms": {
+            "p95": 1534.256,
+            "p50": 1503.321,
+            "p99": 1562.628
+          }
+        }
+      },
+      "expected_effects": 1620,
+      "known_effects": 1610,
+      "unknown_effects": 10,
+      "actual_control_ms": 30001,
+      "actual_baseline_ms": 120001,
+      "actual_burst_ms": 30007,
+      "resources_before": {
+        "beam_memory_bytes": 81612952,
+        "beam_processes": 211,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 5801,
+        "beam_wall_clock_ms": 4273,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "resources_control": {
+        "beam_memory_bytes": 86843976,
+        "beam_processes": 211,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 6572,
+        "beam_wall_clock_ms": 34283,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "resources_baseline": {
+        "beam_memory_bytes": 86672256,
+        "beam_processes": 212,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 10362,
+        "beam_wall_clock_ms": 154419,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "resources_burst": {
+        "beam_memory_bytes": 86655360,
+        "beam_processes": 211,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 12676,
+        "beam_wall_clock_ms": 184426,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "resources_after": {
+        "beam_memory_bytes": 89297632,
+        "beam_processes": 210,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 13270,
+        "beam_wall_clock_ms": 218369,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "logical_effects": 1620,
+      "duplicate_effects": 0,
+      "oldest_remaining_age_seconds": 0,
+      "gates": {
+        "drain": true,
+        "baseline_p95": true,
+        "burst_p95": true,
+        "logical_effects": true,
+        "duplicate_effects": true,
+        "maintenance_delta_p95": true,
+        "actual_retries": true,
+        "worker_crash_recovered": true,
+        "full_windows": true,
+        "per_queue_baseline_p95": true,
+        "per_queue_burst_p95": true,
+        "per_queue_maintenance_delta_p95": true
+      },
+      "per_queue_wait_upper_bound_ms": {
+        "baseline": {
+          "crm": {
+            "count": 100,
+            "p50": 509.317,
+            "p95": 934.769,
+            "p99": 1011.964,
+            "max": 1022.342
+          },
+          "default": {
+            "count": 100,
+            "p50": 501.676,
+            "p95": 940.539,
+            "p99": 1001.921,
+            "max": 1016.225
+          },
+          "events": {
+            "count": 100,
+            "p50": 498.691,
+            "p95": 951.091,
+            "p99": 999.571,
+            "max": 1009.815
+          },
+          "fiscal": {
+            "count": 100,
+            "p50": 507.711,
+            "p95": 953.648,
+            "p99": 998.452,
+            "max": 1004.711
+          },
+          "notifications": {
+            "count": 100,
+            "p50": 500.033,
+            "p95": 938.024,
+            "p99": 991.32,
+            "max": 1006.07
+          },
+          "polling": {
+            "count": 100,
+            "p50": 510.871,
+            "p95": 957.287,
+            "p99": 1004.85,
+            "max": 1007.67
+          }
+        },
+        "burst": {
+          "crm": {
+            "count": 125,
+            "p50": 396.826,
+            "p95": 859.522,
+            "p99": 921.577,
+            "max": 976.222
+          },
+          "default": {
+            "count": 125,
+            "p50": 449.214,
+            "p95": 902.2,
+            "p99": 946.784,
+            "max": 981.821
+          },
+          "events": {
+            "count": 125,
+            "p50": 426.98,
+            "p95": 901.304,
+            "p99": 944.181,
+            "max": 977.453
+          },
+          "fiscal": {
+            "count": 125,
+            "p50": 425.06,
+            "p95": 855.59,
+            "p99": 914.691,
+            "max": 944.379
+          },
+          "notifications": {
+            "count": 125,
+            "p50": 425.735,
+            "p95": 863.527,
+            "p99": 901.683,
+            "max": 948.351
+          },
+          "polling": {
+            "count": 125,
+            "p50": 430.843,
+            "p95": 862.685,
+            "p99": 914.688,
+            "max": 942.375
+          }
+        },
+        "control": {
+          "crm": {
+            "count": 25,
+            "p50": 489.976,
+            "p95": 899.075,
+            "p99": 1001.18,
+            "max": 1031.349
+          },
+          "default": {
+            "count": 25,
+            "p50": 497.052,
+            "p95": 909.814,
+            "p99": 972.539,
+            "max": 991.144
+          },
+          "events": {
+            "count": 25,
+            "p50": 490.658,
+            "p95": 898.852,
+            "p99": 966.58,
+            "max": 986.14
+          },
+          "fiscal": {
+            "count": 25,
+            "p50": 487.367,
+            "p95": 896.569,
+            "p99": 961.954,
+            "max": 980.785
+          },
+          "notifications": {
+            "count": 25,
+            "p50": 494.252,
+            "p95": 900.459,
+            "p99": 969.89,
+            "max": 989.745
+          },
+          "polling": {
+            "count": 25,
+            "p50": 493.087,
+            "p95": 900.77,
+            "p99": 969.913,
+            "max": 989.866
+          }
+        },
+        "maintenance": {
+          "maintenance": {
+            "count": 120,
+            "p50": 90271.909,
+            "p95": 171683.146,
+            "p99": 178943.84,
+            "max": 180753.28
+          }
+        }
+      }
+    },
+    {
+      "run": 2,
+      "started_at": "2026-11-06T19:11:40.713997Z",
+      "database": "s3r_queue_1793992086_2",
+      "gates_passed": true,
+      "drain": {
+        "remaining": 0,
+        "drained": true,
+        "elapsed_ms": 33430
+      },
+      "db_queue_ms": {
+        "p95": 0.72,
+        "p50": 0.328,
+        "p99": 1.91
+      },
+      "elapsed_ms": 213625,
+      "phases": {
+        "baseline": {
+          "states": {
+            "cancelled": 4,
+            "completed": 596
+          },
+          "errors": 12,
+          "completed": 596,
+          "jobs": 600,
+          "retries": 12,
+          "eligible_wait_ms": {
+            "p95": 986,
+            "p50": 515,
+            "p99": 1009
+          },
+          "runtime_ms": {
+            "p95": 33.031,
+            "p50": 32.024,
+            "p99": 33.472
+          }
+        },
+        "burst": {
+          "states": {
+            "cancelled": 5,
+            "completed": 745
+          },
+          "errors": 15,
+          "completed": 745,
+          "jobs": 750,
+          "retries": 15,
+          "eligible_wait_ms": {
+            "p95": 892,
+            "p50": 442,
+            "p99": 944
+          },
+          "runtime_ms": {
+            "p95": 33.371,
+            "p50": 32.234,
+            "p99": 37.997
+          }
+        },
+        "control": {
+          "states": {
+            "cancelled": 1,
+            "completed": 149
+          },
+          "errors": 3,
+          "completed": 149,
+          "jobs": 150,
+          "retries": 3,
+          "eligible_wait_ms": {
+            "p95": 963,
+            "p50": 543,
+            "p99": 1017
+          },
+          "runtime_ms": {
+            "p95": 33.709,
+            "p50": 32.315,
+            "p99": 36.7
+          }
+        },
+        "maintenance": {
+          "states": {
+            "completed": 120
+          },
+          "errors": 1,
+          "completed": 120,
+          "jobs": 120,
+          "retries": 1,
+          "eligible_wait_ms": {
+            "p95": null,
+            "p50": null,
+            "p99": null
+          },
+          "runtime_ms": {
+            "p95": 1506.756,
+            "p50": 1503.068,
+            "p99": 1522.704
+          }
+        }
+      },
+      "expected_effects": 1620,
+      "known_effects": 1610,
+      "unknown_effects": 10,
+      "actual_control_ms": 30001,
+      "actual_baseline_ms": 120001,
+      "actual_burst_ms": 30005,
+      "resources_before": {
+        "beam_memory_bytes": 90848688,
+        "beam_processes": 212,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 13736,
+        "beam_wall_clock_ms": 219344,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 2,
+        "pg_connections": 21
+      },
+      "resources_control": {
+        "beam_memory_bytes": 91914856,
+        "beam_processes": 212,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 14561,
+        "beam_wall_clock_ms": 249351,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "resources_baseline": {
+        "beam_memory_bytes": 92145848,
+        "beam_processes": 213,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 18719,
+        "beam_wall_clock_ms": 369494,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "resources_burst": {
+        "beam_memory_bytes": 91942400,
+        "beam_processes": 211,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 21121,
+        "beam_wall_clock_ms": 399499,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "resources_after": {
+        "beam_memory_bytes": 94453304,
+        "beam_processes": 210,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 21726,
+        "beam_wall_clock_ms": 432934,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "logical_effects": 1620,
+      "duplicate_effects": 0,
+      "oldest_remaining_age_seconds": 0,
+      "gates": {
+        "drain": true,
+        "baseline_p95": true,
+        "burst_p95": true,
+        "logical_effects": true,
+        "duplicate_effects": true,
+        "maintenance_delta_p95": true,
+        "actual_retries": true,
+        "worker_crash_recovered": true,
+        "full_windows": true,
+        "per_queue_baseline_p95": true,
+        "per_queue_burst_p95": true,
+        "per_queue_maintenance_delta_p95": true
+      },
+      "per_queue_wait_upper_bound_ms": {
+        "baseline": {
+          "crm": {
+            "count": 100,
+            "p50": 528.391,
+            "p95": 979.043,
+            "p99": 1005.986,
+            "max": 1008.27
+          },
+          "default": {
+            "count": 100,
+            "p50": 533.335,
+            "p95": 986.437,
+            "p99": 1009.849,
+            "max": 1015.584
+          },
+          "events": {
+            "count": 100,
+            "p50": 525.184,
+            "p95": 980.269,
+            "p99": 1003.88,
+            "max": 1007.415
+          },
+          "fiscal": {
+            "count": 100,
+            "p50": 523.581,
+            "p95": 976.385,
+            "p99": 1006.492,
+            "max": 1007.882
+          },
+          "notifications": {
+            "count": 100,
+            "p50": 504.488,
+            "p95": 970.009,
+            "p99": 1008.362,
+            "max": 1013.083
+          },
+          "polling": {
+            "count": 100,
+            "p50": 525.694,
+            "p95": 981.158,
+            "p99": 1008.18,
+            "max": 1011.041
+          }
+        },
+        "burst": {
+          "crm": {
+            "count": 125,
+            "p50": 421.489,
+            "p95": 853.192,
+            "p99": 912.536,
+            "max": 945.712
+          },
+          "default": {
+            "count": 125,
+            "p50": 461.644,
+            "p95": 916.956,
+            "p99": 962.014,
+            "max": 968.833
+          },
+          "events": {
+            "count": 125,
+            "p50": 454.608,
+            "p95": 915.855,
+            "p99": 959.653,
+            "max": 966.089
+          },
+          "fiscal": {
+            "count": 125,
+            "p50": 447.371,
+            "p95": 862.803,
+            "p99": 909.037,
+            "max": 913.869
+          },
+          "notifications": {
+            "count": 125,
+            "p50": 439.701,
+            "p95": 854.317,
+            "p99": 902.406,
+            "max": 918.29
+          },
+          "polling": {
+            "count": 125,
+            "p50": 446.485,
+            "p95": 869.783,
+            "p99": 912.182,
+            "max": 939.405
+          }
+        },
+        "control": {
+          "crm": {
+            "count": 25,
+            "p50": 542.287,
+            "p95": 955.073,
+            "p99": 1023.395,
+            "max": 1043.818
+          },
+          "default": {
+            "count": 25,
+            "p50": 550.53,
+            "p95": 960.597,
+            "p99": 990.991,
+            "max": 999.006
+          },
+          "events": {
+            "count": 25,
+            "p50": 540.006,
+            "p95": 956.578,
+            "p99": 987.214,
+            "max": 995.274
+          },
+          "fiscal": {
+            "count": 25,
+            "p50": 541.731,
+            "p95": 955.361,
+            "p99": 982.676,
+            "max": 989.977
+          },
+          "notifications": {
+            "count": 25,
+            "p50": 543.789,
+            "p95": 956.734,
+            "p99": 988.853,
+            "max": 997.903
+          },
+          "polling": {
+            "count": 25,
+            "p50": 543.385,
+            "p95": 955.301,
+            "p99": 986.57,
+            "max": 994.973
+          }
+        },
+        "maintenance": {
+          "maintenance": {
+            "count": 120,
+            "p50": 90163.462,
+            "p95": 171224.342,
+            "p99": 178433.283,
+            "max": 180234.87
+          }
+        }
+      }
+    },
+    {
+      "run": 3,
+      "started_at": "2026-11-06T19:15:15.593069Z",
+      "database": "s3r_queue_1793992300_3",
+      "gates_passed": true,
+      "drain": {
+        "remaining": 0,
+        "drained": true,
+        "elapsed_ms": 33697
+      },
+      "db_queue_ms": {
+        "p95": 0.897,
+        "p50": 0.331,
+        "p99": 1.722
+      },
+      "elapsed_ms": 213902,
+      "phases": {
+        "baseline": {
+          "states": {
+            "cancelled": 4,
+            "completed": 596
+          },
+          "errors": 12,
+          "completed": 596,
+          "jobs": 600,
+          "retries": 12,
+          "eligible_wait_ms": {
+            "p95": 970,
+            "p50": 524,
+            "p99": 1004
+          },
+          "runtime_ms": {
+            "p95": 33.114,
+            "p50": 32.095,
+            "p99": 33.817
+          }
+        },
+        "burst": {
+          "states": {
+            "cancelled": 5,
+            "completed": 745
+          },
+          "errors": 15,
+          "completed": 745,
+          "jobs": 750,
+          "retries": 15,
+          "eligible_wait_ms": {
+            "p95": 915,
+            "p50": 441,
+            "p99": 945
+          },
+          "runtime_ms": {
+            "p95": 33.876,
+            "p50": 32.231,
+            "p99": 41.242
+          }
+        },
+        "control": {
+          "states": {
+            "cancelled": 1,
+            "completed": 149
+          },
+          "errors": 3,
+          "completed": 149,
+          "jobs": 150,
+          "retries": 3,
+          "eligible_wait_ms": {
+            "p95": 891,
+            "p50": 473,
+            "p99": 1003
+          },
+          "runtime_ms": {
+            "p95": 33.283,
+            "p50": 32.065,
+            "p99": 33.902
+          }
+        },
+        "maintenance": {
+          "states": {
+            "completed": 120
+          },
+          "errors": 1,
+          "completed": 120,
+          "jobs": 120,
+          "retries": 1,
+          "eligible_wait_ms": {
+            "p95": null,
+            "p50": null,
+            "p99": null
+          },
+          "runtime_ms": {
+            "p95": 1524.602,
+            "p50": 1503.499,
+            "p99": 1568.439
+          }
+        }
+      },
+      "expected_effects": 1620,
+      "known_effects": 1610,
+      "unknown_effects": 10,
+      "actual_control_ms": 30001,
+      "actual_baseline_ms": 120001,
+      "actual_burst_ms": 30007,
+      "resources_before": {
+        "beam_memory_bytes": 97035032,
+        "beam_processes": 212,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 22306,
+        "beam_wall_clock_ms": 433945,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 3,
+        "pg_connections": 21
+      },
+      "resources_control": {
+        "beam_memory_bytes": 97931472,
+        "beam_processes": 212,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 23239,
+        "beam_wall_clock_ms": 463953,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "resources_baseline": {
+        "beam_memory_bytes": 97026680,
+        "beam_processes": 213,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 26423,
+        "beam_wall_clock_ms": 584104,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "resources_burst": {
+        "beam_memory_bytes": 96719976,
+        "beam_processes": 211,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 28820,
+        "beam_wall_clock_ms": 614111,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "resources_after": {
+        "beam_memory_bytes": 96836288,
+        "beam_processes": 210,
+        "cpu_run_queue": 0,
+        "beam_runtime_ms": 29413,
+        "beam_wall_clock_ms": 647813,
+        "pg_version": "16.14",
+        "repo_pool_size": 20,
+        "pg_active_connections": 1,
+        "pg_connections": 21
+      },
+      "logical_effects": 1620,
+      "duplicate_effects": 0,
+      "oldest_remaining_age_seconds": 0,
+      "gates": {
+        "drain": true,
+        "baseline_p95": true,
+        "burst_p95": true,
+        "logical_effects": true,
+        "duplicate_effects": true,
+        "maintenance_delta_p95": true,
+        "actual_retries": true,
+        "worker_crash_recovered": true,
+        "full_windows": true,
+        "per_queue_baseline_p95": true,
+        "per_queue_burst_p95": true,
+        "per_queue_maintenance_delta_p95": true
+      },
+      "per_queue_wait_upper_bound_ms": {
+        "baseline": {
+          "crm": {
+            "count": 100,
+            "p50": 512.724,
+            "p95": 975.844,
+            "p99": 999.638,
+            "max": 1003.591
+          },
+          "default": {
+            "count": 100,
+            "p50": 530.069,
+            "p95": 971.897,
+            "p99": 1004.757,
+            "max": 1005.849
+          },
+          "events": {
+            "count": 100,
+            "p50": 519.692,
+            "p95": 962.949,
+            "p99": 993.794,
+            "max": 1002.655
+          },
+          "fiscal": {
+            "count": 100,
+            "p50": 516.453,
+            "p95": 965.446,
+            "p99": 996.839,
+            "max": 1012.579
+          },
+          "notifications": {
+            "count": 100,
+            "p50": 514.891,
+            "p95": 965.395,
+            "p99": 997.238,
+            "max": 1005.549
+          },
+          "polling": {
+            "count": 100,
+            "p50": 511.813,
+            "p95": 968.58,
+            "p99": 1001.036,
+            "max": 1004.615
+          }
+        },
+        "burst": {
+          "crm": {
+            "count": 125,
+            "p50": 411.656,
+            "p95": 875.138,
+            "p99": 957.095,
+            "max": 972.703
+          },
+          "default": {
+            "count": 125,
+            "p50": 446.303,
+            "p95": 918.937,
+            "p99": 969.504,
+            "max": 1028.714
+          },
+          "events": {
+            "count": 125,
+            "p50": 439.333,
+            "p95": 921.136,
+            "p99": 964.855,
+            "max": 1028.066
+          },
+          "fiscal": {
+            "count": 125,
+            "p50": 441.15,
+            "p95": 873.661,
+            "p99": 933.749,
+            "max": 943.419
+          },
+          "notifications": {
+            "count": 125,
+            "p50": 405.275,
+            "p95": 868.272,
+            "p99": 925.818,
+            "max": 938.946
+          },
+          "polling": {
+            "count": 125,
+            "p50": 434.864,
+            "p95": 869.852,
+            "p99": 922.897,
+            "max": 940.772
+          }
+        },
+        "control": {
+          "crm": {
+            "count": 25,
+            "p50": 467.236,
+            "p95": 883.852,
+            "p99": 994.894,
+            "max": 1028.157
+          },
+          "default": {
+            "count": 25,
+            "p50": 473.358,
+            "p95": 890.945,
+            "p99": 974.003,
+            "max": 998.762
+          },
+          "events": {
+            "count": 25,
+            "p50": 472.011,
+            "p95": 881.173,
+            "p99": 967.973,
+            "max": 993.712
+          },
+          "fiscal": {
+            "count": 25,
+            "p50": 465.295,
+            "p95": 883.106,
+            "p99": 967.226,
+            "max": 992.201
+          },
+          "notifications": {
+            "count": 25,
+            "p50": 470.664,
+            "p95": 884.187,
+            "p99": 974.565,
+            "max": 1001.703
+          },
+          "polling": {
+            "count": 25,
+            "p50": 473.421,
+            "p95": 882.402,
+            "p99": 972.387,
+            "max": 999.199
+          }
+        },
+        "maintenance": {
+          "maintenance": {
+            "count": 120,
+            "p50": 90146.723,
+            "p95": 171594.622,
+            "p99": 178797.801,
+            "max": 180597.027
+          }
+        }
+      }
+    }
+  ],
+  "git_sha": "37d824b60e27d7d4cd43249965c79c3cdbd37b4d",
+  "server_dirty_diff_sha256": "28123f1ca4f75e9e213658308b50c4b06b331a603960e76b1552ed13fa55486f",
+  "platform": {
+    "otp": "28",
+    "schedulers": 4,
+    "elixir": "1.19.5",
+    "cpu_model": "model name\t: AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+    "mem_total_kb": "MemTotal:       32132604 kB"
+  },
+  "evidence_note": "Three full-window local repetitions. Fixed profile metadata copied from the executed harness; no production capacity claim.",
+  "per_queue_wait_upper_bound_method": "Posthoc from each fresh run database oban_jobs: initial inserted_at to first attempt end (errors[1].at) for retries, else initial attempted_at; clipped at zero. First error completion includes worker runtime, hence is conservative upper bound on first eligible wait. Percentile_cont p50/p95/p99 per queue and phase. Jobs were immediately available at insert; retries excluded from first-attempt wait."
+}
