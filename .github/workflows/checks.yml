@@ -71,6 +71,6 @@ jobs:
           version: 10.27.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: pnpm install --frozen-lockfile && pnpm build && pnpm exec eslint .
+          node-version: 22.22.2
+      - run: pnpm install --frozen-lockfile && pnpm test:auth && pnpm test:regression && pnpm build && pnpm exec eslint .
         working-directory: client

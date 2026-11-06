@@ -25,7 +25,7 @@ export default defineConfig({
       cwd: '../server',
       url: `http://localhost:${serverPort}/staff/auth/login`,
       env: {
-        DEV_DATABASE: 'delivest_e2e',
+        DEV_DATABASE: process.env.DEV_DATABASE || 'delivest_e2e',
         PORT: String(serverPort),
         CLIENT_ORIGIN: `http://localhost:${clientPort}`,
         DEFAULT_LOCALE: 'ru',
