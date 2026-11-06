@@ -141,3 +141,15 @@ Root `6ed67f5` прошёл все четыре CI checks, включая 27/27 
 Итоговый независимый `mix precommit --seed 334325` после усиления loyalty gate: **1427 tests, 0 failures, 7 excluded**, 93,4 с (async 39,8; sync 53,6). Formatter, compile warnings-as-errors и strict Credo прошли. Свежая БД `delivest_tests3r_loyalty_ack_final`, лог `/tmp/delivest-s3r-main-loyalty-ack-final.log`. Итоговый server gitlink `b692344`; client `f45352d`. Runtime-код сохранён с `36bc0cb`; последующие изменения — тестовая изоляция, E2E-фикстура и проверки ACK.
 
 SQL-проверка после последнего полного прогона: orders/domain_events/integration_requests/oban_jobs/branches/order_counters — по 0 строк. Ещё три БД проверены на отсутствие подключений и удалены; всего очищено 33 явно идентифицированные временные БД этой задачи. Итоговый lib diff от `36bc0cb` пуст.
+
+## Детерминированные проверки конкретной доставки и периода
+
+Следующий standalone server run на `b692344` дал **1427 tests, 2 failures**, seed `215285`: новый тест сделал неверный вывод из общего `snoozed` батча; старый pagination test попал точно на московскую полночь. [Run](https://github.com/ShafranovKirill/delivest-ex/actions/runs/42292727996), лог `/tmp/delivest-s3r-server-ci-ack-failed.log`.
+
+Источник порядка найден: Oban Basic engine сортирует выбранные ID внутри CTE, но outer SELECT с JOIN не гарантирует порядок возвращаемых jobs. Поэтому общий счётчик snoozed не доказывает отсрочку конкретного loyalty subscriber. Это также показывает, почему прежний helper «drain available один раз» не гарантировал завершение completion: зависимость могла остаться scheduled. Новая проверка прямо вызывает конкретную completion delivery до predecessors, проверяет её `{:snooze, _}` и нулевой баланс, затем ACK, начисление и replay. Bounded manual-clock helper сохранён.
+
+Pagination fixture двигала первый inserted_at на минуту назад, затем создавала второй заказ и открывала default `period=today`. В 21:00 UTC наступает новая московская дата, поэтому первый заказ корректно исключался фильтром. Три URL этого pagination test используют поддержанный `period=week`, сохраняя все проверки страниц и сортировки. Production filter не менялся.
+
+Targeted loyalty/OrdersLive с seed `215285` — **37/0**. Итоговый независимый `mix precommit --seed 215285`: **1427 tests, 0 failures, 7 excluded**, 96,4 с (async 42,2; sync 54,1). Форматирование, warnings-as-errors и strict Credo прошли. Свежая БД `delivest_tests3r_final_deterministic`, лог `/tmp/delivest-s3r-main-final-deterministic.log`. Итоговый backend gitlink `7b4aa6a`, client `f45352d`; lib runtime diff от `36bc0cb` по-прежнему пуст.
+
+После итогового прогона проверенные таблицы снова пусты. Две последние БД без активных подключений удалены; суммарно очищено 35 явно идентифицированных временных БД этой задачи.
