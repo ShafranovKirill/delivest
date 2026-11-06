@@ -6,7 +6,7 @@
 
 S1 уже merged: [server PR №19](https://github.com/ShafranovKirill/delivest-ex/pull/19) и [root PR №18](https://github.com/ShafranovKirill/delivest/pull/18), remote checks обоих PR успешны. Это подтверждает merge, но не production rollout.
 
-Scope S2: D05/D08, C01–C10 и ранний triage O05. Полный offline, RN, смена схемы хранения токенов и deployment не входят в этот блок. Открыты [server PR №21](https://github.com/ShafranovKirill/delivest-ex/pull/21) и [client PR №14](https://github.com/ShafranovKirill/delivest-web/pull/14); root delivery готовится.
+Scope S2: D05/D08, C01–C10 и ранний triage O05. Полный offline, RN, смена схемы хранения токенов и deployment не входят в этот блок. Открыты [server PR №21](https://github.com/ShafranovKirill/delivest-ex/pull/21) и [client PR №14](https://github.com/ShafranovKirill/delivest-web/pull/14); [root PR №20](https://github.com/ShafranovKirill/delivest/pull/20) открыт.
 
 ## C01 и исходный PR
 
@@ -58,7 +58,7 @@ Client head первоначального client gate `8a2fdb9` (пять ко�
 - Независимые `pnpm test:auth` — **7/7**, `pnpm test:regression` — **15/15**, `pnpm build`, `pnpm exec eslint .`, `git diff --check` — exit 0. Логи `/tmp/delivest-s2-main-client-{auth,regression,build,eslint}.log`.
 - Worker browser gate `CI=1 DEV_DATABASE=delivest_s2_e2e_20261106`: существующие checkout и S2 UI **11/11**, `/tmp/delivest-s2-e2e-clean.log`. Первые новые тесты имели неверные UI selectors, исправлены. Отдельный повтор под старым preview использовал перезаписанный build с другим API origin; это выяснено по trace, финальный gate запускал fresh CI webservers и правильный origin.
 - Независимый root `e2e/pnpm typecheck` — exit 0, `/tmp/delivest-s2-main-e2e-typecheck.log`.
-- Browser/Phoenix C01 identity scenario после marker migration прошёл у worker: A → logout → B, history/active/detail/address и delayed socket token. C03 дополнительный browser сценарий и WebPush lifecycle follow-up ещё проверяются; финальный общий gate ниже будет записан после завершения.
+- Browser/Phoenix C01 identity scenario после marker migration прошёл у worker: A → logout → B, history/active/detail/address и delayed socket token. C03 дополнительный browser сценарий и WebPush lifecycle follow-up проверены в финальном gate ниже.
 
 Production-provider проверки и deployment не выполнялись.
 
@@ -73,3 +73,7 @@ Client final head `655d365`. Перед auth boundary устанавливает
 **Локальная приёмка S2 завершена: код готов к review/merge.** D05/D08/C01–C10 — implemented-local; O05 early triage выполнен, основной S5 открыт. Remote CI/review, merge и rollout фиксируются отдельно.
 
 После завершения всех прогонов удалены шесть созданных S2 БД: worker, main_review, main_final, identity_main_final, migration_probe и dedicated E2E. Перед удалением активных соединений не было; стандартные dev/test БД и локальные пользовательские стенды не затронуты. Все логи `/tmp/delivest-s2-*` сохранены.
+
+## Delivery и remote CI
+
+[root PR №20](https://github.com/ShafranovKirill/delivest/pull/20) содержит gitlinks server `58e8436` и client `655d365`, CI и browser regressions. Server PR №21 прошёл remote Build/Test/Lint; client repository отдельных checks не публикует, client gates запускаются root workflow. Текущий root CI/review статус смотреть в PR. Merge: server/client в develop, затем root; deployment отдельно.
