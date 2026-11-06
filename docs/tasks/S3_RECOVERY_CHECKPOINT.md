@@ -66,7 +66,7 @@ Rollback миграций 21 и 20 на данных без новых цикл�
 
 Для возврата приложения сохранять расширенную схему, данные команд и записи доставок. Сначала остановить новые writers и обработать либо явно сверить оставшиеся внешние операции. Сборка для отката должна понимать новые циклы бонусов. Обычный запуск старого reader после появления нескольких циклов на заказ нарушает его прежнее предположение об уникальности записи начисления. Проверка production rollout и live sandbox остаётся release gate из main.
 
-## Финальный локальный gate
+## Локальный gate до браузерного follow-up
 
 `MIX_ENV=test MIX_TEST_PARTITION=s3r_main_precommit TEST_DB_HOST=127.0.0.1 ERL_FLAGS='+S 4:4' mix precommit` на финальных исходниках: **1422 tests, 0 failures, 7 excluded**, 58,8 с. Formatter, compile warnings-as-errors и strict Credo прошли. Лог `/tmp/delivest-s3r-main-precommit.log`. Финальный Dialyzer прошёл, 2 прежних suppressed findings, лог `/tmp/delivest-s3r-main-dialyzer-final.log`. SQL после suite: orders/domain_events/integration_requests/oban_jobs/branches/order_counters — по 0 строк. Проверка sibling harness formatter и semantic diff live OpenAPI со snapshot прошли. Повторная генерация client types byte-identical; auth 7/7, regression 26/26, build и ESLint прошли ранее на тех же изменениях.
 
@@ -79,3 +79,15 @@ Rollback миграций 21 и 20 на данных без новых цикл�
 ## Браузерная интеграция
 
 Первый итоговый Playwright дал **26 passed, 1 failed**; pickup упал повторно. БД уже хранила `preparing`, но LiveView продолжал показывать `accepted`. Kitchen subscriber вызывал вложенный status change, который публиковал уведомление до commit внешней транзакции Delivery. Отдельное соединение LiveView читало прежнее состояние; повторного уведомления после commit не было. Этот прогон не считается успешным. Исправление сохраняет атомарность ledger и откладывает уведомление до успешного commit, перечитывая актуальный заказ. Лог исходного сбоя `/tmp/delivest-s3r-main-e2e.log`.
+
+Публикация перечитывает актуальную строку заказа под короткой блокировкой и отправляет только локальные PubSub сообщения. Внешнего HTTP под этой дополнительной блокировкой нет. Возврат API сохраняет исходный результат перехода. Если процесс остановлен между commit ledger и отправкой уведомления, повтор уже выполненной доставки должен заново отправить безопасную инвалидацию состояния, сохраняя запрет повторного эффекта. Socket остаётся сигналом: после reconnect клиент восстанавливает состояние через REST. Дополнительные чтения уведомлений не входят в исторический SQL baseline S1; production профиль критического пути нужно перемерить перед capacity-приёмкой.
+
+Первый полный прогон исправления уведомлений: **1426 tests, 28 failures, 7 excluded**, лог `/tmp/delivest-s3r-main-precommit-final.log`. Причина — возврат `Notifier.publish` потерял прежний preload associations, используемый CRM и аудитом. Исправление сохраняет исходные scalar-поля результата и прежние force-preloaded связи; опубликованный payload по-прежнему берётся из текущей строки БД. Этот промежуточный прогон не считается успешным.
+
+## Итоговый gate после исправления уведомлений
+
+Главный агент повторил `mix precommit` на окончательной реализации: **1426 tests, 0 failures, 7 excluded**, seed `804460`, max-cases 8, 62,5 с. Formatter, warnings-as-errors и strict Credo прошли. Финальный Dialyzer прошёл за 16,44 с, 2 прежних suppressed findings. Логи `/tmp/delivest-s3r-main-release.log` и `/tmp/delivest-s3r-main-release-dialyzer.log`. SQL после прогона в отдельной БД `delivest_tests3r_main_release`: orders/domain_events/integration_requests/oban_jobs/branches/order_counters — по 0 строк.
+
+Итоговый server commit `36bc0cb`, client `f45352d`. [Server PR №23](https://github.com/ShafranovKirill/delivest-ex/pull/23), [client PR №16](https://github.com/ShafranovKirill/delivest-web/pull/16) направлены в develop. Корневой PR закрепляет gitlinks, ADR, harness и результаты. Статус удалённых checks проверяется на этих PR; незавершённые checks не означают успешную проверку.
+
+Финальный browser gate на свежей БД `delivest_s3r_e2e_20261106_02`: `pnpm typecheck` и полный `CI=1 ... pnpm exec playwright test` — **27 passed (2,9 мин)**, без retries/failures. Самовывоз с табло прошёл за 20,1 с. Лог `/tmp/delivest-s3r-main-e2e-final.log`. Источники проверки — server `36bc0cb`, client `f45352d`; итоговый root закрепляет именно эти SHA. Код готов к review в develop в указанных границах; production rollout не выполнялся.
