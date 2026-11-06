@@ -129,3 +129,15 @@ Runtime server commit `36bc0cb`, server после исправления тес
 Нагрузочный harness явно закрепляет прежние DBConnection параметры 50/1000 мс и пишет их в metadata. Новая терпимость SQL Sandbox не переносится в нагрузочный профиль; workload, Oban-пороги и сохранённые сырые результаты не менялись. Формат harness и diff проверены. Повтор benchmark не требовался: явно закреплены параметры уже измеренного профиля.
 
 После последнего полного прогона orders/domain_events/integration_requests/oban_jobs/branches/order_counters — по 0 строк. Четыре последние БД проверены на отсутствие подключений и удалены. Всего в этой задаче удалено 30 явно идентифицированных временных БД, стандартные dev/test не затрагивались.
+
+## Loyalty completion: явное ожидание durable ACK
+
+Root `6ed67f5` прошёл все четыре CI checks, включая 27/27 Playwright. Отдельный server run на тех же исходниках дал 1426/1, seed `334325`: в paying-with-stars тесте balance был 0 вместо ожидаемых 20. [Run](https://github.com/ShafranovKirill/delivest-ex/actions/runs/42290103381), лог `/tmp/delivest-s3r-server-ci-isolated-failed.log`. Независимый полный локальный повтор того же seed без изменений прошёл **1426/0**, 96,1 с, лог `/tmp/delivest-s3r-main-loyalty-ci.log`. Точный механизм этого единичного баланса по прежнему CI-логу не установлен; успешный повтор сам по себе не считается объяснением.
+
+Проверка усилена в test-only helper: после переходов статуса он ограниченно обрабатывает и scheduled зависимости (до 10 проходов ручных часов Oban) и требует durable ACK всех status_changed/loyalty доставок заказа до проверки баланса. При неуспехе выводит sequence/type/to/status, order points_earned/points_spent/client_id, записи начисления и настройки loyalty. Ожидаемый баланс 20 сохранён. Модуль переведён в sync из-за изменения общего branch Cachex; это исправление изоляции, а не доказанная причина прежнего нулевого баланса.
+
+Новый регрессионный сценарий намеренно ставит completion перед предыдущими loyalty jobs. Первый проход обязан дать snooze и отсутствие начисления. После доставки зависимостей начисляются ровно 10 звёзд; повтор обработчика сохраняет 10 и единственную проводку. Targeted loyalty/local recovery — **35/0**, strict Credo и формат прошли. Production начисление, backoff и очередь не менялись этим follow-up.
+
+Итоговый независимый `mix precommit --seed 334325` после усиления loyalty gate: **1427 tests, 0 failures, 7 excluded**, 93,4 с (async 39,8; sync 53,6). Formatter, compile warnings-as-errors и strict Credo прошли. Свежая БД `delivest_tests3r_loyalty_ack_final`, лог `/tmp/delivest-s3r-main-loyalty-ack-final.log`. Итоговый server gitlink `b692344`; client `f45352d`. Runtime-код сохранён с `36bc0cb`; последующие изменения — тестовая изоляция, E2E-фикстура и проверки ACK.
+
+SQL-проверка после последнего полного прогона: orders/domain_events/integration_requests/oban_jobs/branches/order_counters — по 0 строк. Ещё три БД проверены на отсутствие подключений и удалены; всего очищено 33 явно идентифицированные временные БД этой задачи. Итоговый lib diff от `36bc0cb` пуст.
