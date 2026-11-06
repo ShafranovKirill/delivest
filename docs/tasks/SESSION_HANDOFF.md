@@ -21,3 +21,7 @@ S2 PR server №21/client №14/root №20 merged в develop.
 ## Следующее действие
 
 Полный Playwright **27/27** прошёл (admin/POS/checkout и новые identity/UI), итоговые логи в checkpoint. Проверить remote CI/review и merge server/client PR в develop, после них [root PR №20](https://github.com/ShafranovKirill/delivest/pull/20). Rollout отдельно из main после release gates. Следующий основной доменный блок — **S3 orders/money/events/queues**; D07/R02 и финансовые требования не закрыты работой S2. См. [SESSION_PLAN](SESSION_PLAN.md), [COVERAGE](COVERAGE.md), [MODULE_CONTEXT](MODULE_CONTEXT.md).
+
+## S4 checkpoint — 2026-11-07
+
+D09/D11/D12/D14/O09 и основа F06 реализованы локально. [S4 checkpoint](S4_CHECKPOINT.md) содержит бюджеты, проверки и оставшиеся sandbox сценарии. Следующий основной блок по плану — S5.
