@@ -4,7 +4,7 @@ type Fulfillment = "delivery" | "pickup";
 
 const chooseFulfillment = async (page: Page, fulfillment: Fulfillment) => {
   if (fulfillment === "pickup") {
-    await page.getByText("Заберу из пиццерии").click();
+    await page.getByText("Заберу самостоятельно").click();
   } else {
     await page.getByText("Указать адрес доставки").click();
     await page.getByLabel("Город, улица, дом").fill("Москва, Тверская, 7");
