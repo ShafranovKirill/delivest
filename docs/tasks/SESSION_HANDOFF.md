@@ -1,5 +1,11 @@
 # Передача сессии
 
+## S3 recovery checkpoint — 2026-11-06
+
+Продолжение выбранных пользователем gates: kill/restart семи зарегистрированных подписчиков, очереди под нагрузкой и мобильная совместимость. Backend precommit на финальных исходниках: **1422 tests, 0 failures, 7 excluded**. Три полных нагрузочных прогона прошли локальные пороги, P95 базы 952–986 мс, опустошение до 33,94 с. Реальные провайдеры и native устройства не проверялись.
+
+[Recovery checkpoint](S3_RECOVERY_CHECKPOINT.md) содержит доказательства, профиль, ограничения, миграции 18–22 и обязательную остановку старых writers/consumers перед upgrade. R03/R04/R08 implemented-local; R01 остаётся partial. Предыдущие server №22/client №15/root №21 merged в develop. Продолжение поставляется отдельными PR `codex/s3-recovery-contracts`.
+
 ## S3 checkpoint — 2026-11-06
 
 Реализованы D07/D10/D13, public checkout replay/cart revision, изоляция очередей и API drift gate. Полный server 1389/0 (7 excluded), follow-up 42/0, Playwright 27/27, client auth 7/7 и regression 26/26, agent 91/0. [S3 checkpoint](S3_CHECKPOINT.md) содержит SHA, команды, результаты, миграцию и границу приёмки.
