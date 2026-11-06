@@ -72,6 +72,8 @@ defmodule S3QueueLoad do
   @baseline_ms 120_000
   @burst_ms 30_000
   @drain_ms 60_000
+  @repo_queue_target_ms 50
+  @repo_queue_interval_ms 1_000
 
   def run do
     {:ok, _} = Application.ensure_all_started(:oban)
@@ -100,6 +102,8 @@ defmodule S3QueueLoad do
       critical_mock_latency_ms: 30,
       maintenance_mock_latency_ms: 1_500,
       repo_pool_size: 20,
+      repo_queue_target_ms: @repo_queue_target_ms,
+      repo_queue_interval_ms: @repo_queue_interval_ms,
       queues: Map.new(@queues),
       maintenance_jobs: 120,
       critical_p95_baseline_ms: 2_000,
@@ -143,6 +147,8 @@ defmodule S3QueueLoad do
       |> Keyword.put(:database, db)
       |> Keyword.put(:pool, DBConnection.ConnectionPool)
       |> Keyword.put(:pool_size, 20)
+      |> Keyword.put(:queue_target, @repo_queue_target_ms)
+      |> Keyword.put(:queue_interval, @repo_queue_interval_ms)
 
     case Ecto.Adapters.Postgres.storage_up(config) do
       :ok -> :ok
@@ -351,6 +357,8 @@ defmodule S3QueueLoad do
       beam_wall_clock_ms: :erlang.statistics(:wall_clock) |> elem(0),
       pg_version: Delivest.Repo.query!("SHOW server_version").rows |> hd() |> hd(),
       repo_pool_size: 20,
+      repo_queue_target_ms: @repo_queue_target_ms,
+      repo_queue_interval_ms: @repo_queue_interval_ms,
       pg_active_connections:
         Delivest.Repo.query!(
           "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND state = 'active'"

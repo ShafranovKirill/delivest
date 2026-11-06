@@ -111,3 +111,21 @@ Runtime server commit `36bc0cb`, server после исправления тес
 `placeOrder` не выбирает время вручную. При недоступном ASAP компонент использует первый доступный слот. Для flow-сценариев круглосуточной E2E-фикстуры lead изменён на допустимые 1440 минут, чтобы ближайший слот был готов к немедленной отправке на кухню независимо от перехода даты. Production default 90 и production-настройки не меняются. Отложенный запуск отдельно проверяет `test/delivest/oms/kitchen_test.exs:64` с lead 90 и заказом через 120 минут. Формат seed-файла и diff проверены; свежая БД создана и заполнена успешно. Локальный полный повтор: `/tmp/delivest-s3r-main-e2e-night.log`; окончательные remote checks находятся в root PR.
 
 Итоговый server gitlink `c810151` добавляет только тестовую фикстуру поверх `c61e63b`; client остаётся `f45352d`. Production runtime остаётся реализацией `36bc0cb`.
+
+## CI follow-up: очередь разделяемого sandbox-соединения
+
+На root `e4a6311` Playwright прошёл 27/27, client/agent прошли, отдельный server PR CI прошёл. Общий server format/compile/Credo/Dialyzer прошёл, полный suite дал **1426 tests, 1 failure, 7 excluded**, seed `860613`. [Неуспешный run](https://github.com/ShafranovKirill/delivest/actions/runs/42286691928), лог `/tmp/delivest-s3r-root-ci-night-failed.log`. Старый CourierLive.OperatorTest держал активную LiveView, пока test-процесс выполнял очередные переходы и Delivery jobs. LiveView перечитывала список через то же разделяемое Sandbox connection. DBConnection отказал checkout через 107 мс; признаков SQL deadlock или истечения 15-секундного query timeout нет.
+
+В `config/test.exs` для Sandbox задано ограниченное окно `queue_target: 1000`, `queue_interval: 1000`: разрешить нормальную сериализацию test/LiveView bursts. Production Repo и очереди Oban не меняются. Состояния и assertions тестов сохранены, 15-секундный query timeout сохраняется. Это настройка тестового shared connection, а не ослабление порогов нагрузочного стенда.
+
+Ночной локальный browser gate с E2E fixture `c810151`: **27/27 passed**, 2,4 мин, свежая БД `delivest_s3r_e2e_20261106_03`, лог `/tmp/delivest-s3r-main-e2e-night.log`. После завершения и проверки отсутствия подключений эта БД удалена.
+
+Повтор главного агента после настройки sandbox дал **1426 tests, 1 failure**, уже в PromotionsTest setup: INSERT products отменён клиентом после ожидания. Лог `/tmp/delivest-s3r-main-ci-pool.log`. Локальный PostgreSQL stderr подтвердил отмену INSERT products в 20:28:56 UTC; тестовый код не содержит pg_cancel_backend/terminate_backend или isolate-tag, поэтому добавлять exclude-isolate не стали.
+
+Найден конкретный конфликт фикстур: четыре async promo-модуля создают глобально уникальный product slug `cola`, три из них также `pizza`. Эти имена используются в DSL и формах. Пока sandbox-транзакция другого кейса не завершена, одинаковый INSERT ждёт уникальный индекс. Четыре модуля переведены в последовательный режим, DSL и assertions сохранены. Targeted promo+courier: **57/0**. Production catalog и уникальность не менялись.
+
+Итоговый независимый `mix precommit --seed 860613`: **1426 tests, 0 failures, 7 excluded**, 88,0 с (async 37,7; sync 50,3). Formatter, warnings-as-errors и strict Credo прошли. Свежая БД `delivest_tests3r_ci_promo_final`, лог `/tmp/delivest-s3r-main-ci-promo-final.log`. Backend gitlink `2d8095d` включает test-only исправления поверх runtime `36bc0cb` и E2E fixture `c810151`.
+
+Нагрузочный harness явно закрепляет прежние DBConnection параметры 50/1000 мс и пишет их в metadata. Новая терпимость SQL Sandbox не переносится в нагрузочный профиль; workload, Oban-пороги и сохранённые сырые результаты не менялись. Формат harness и diff проверены. Повтор benchmark не требовался: явно закреплены параметры уже измеренного профиля.
+
+После последнего полного прогона orders/domain_events/integration_requests/oban_jobs/branches/order_counters — по 0 строк. Четыре последние БД проверены на отсутствие подключений и удалены. Всего в этой задаче удалено 30 явно идентифицированных временных БД, стандартные dev/test не затрагивались.
