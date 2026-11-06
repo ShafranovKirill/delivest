@@ -76,4 +76,10 @@ Client final head `655d365`. Перед auth boundary устанавливает
 
 ## Delivery и remote CI
 
-[root PR №20](https://github.com/ShafranovKirill/delivest/pull/20) содержит gitlinks server `58e8436` и client `655d365`, CI и browser regressions. Server PR №21 прошёл remote Build/Test/Lint; client repository отдельных checks не публикует, client gates запускаются root workflow. Текущий root CI/review статус смотреть в PR. Merge: server/client в develop, затем root; deployment отдельно.
+[root PR №20](https://github.com/ShafranovKirill/delivest/pull/20) содержит gitlinks server `b24501d` и client `655d365`, CI и browser regressions. Server PR №21 прошёл remote Build/Test/Lint на первоначальном head; новый test-only follow-up перепроверяется CI. Client repository отдельных checks не публикует, client gates запускаются root workflow. Текущий root CI/review статус смотреть в PR. Merge: server/client в develop, затем root; deployment отдельно.
+
+### Root CI: воспроизведение и исправление fixture collision
+
+Root run `42239023240` на `eb17af9` прошёл client/agent и Playwright, но server завершился **1366/1** (seed `695615`, max_cases 8). `PushControllerTest` упал на `clients__phone__uk`: прежняя client factory при sequence 112 генерировала тот же телефон, что и фиксированные checkout fixtures. Main воспроизвёл **то же падение** в отдельной CI-review БД с `ERL_FLAGS='+S 4:4' ... mix test --seed 695615 --max-cases 8`, `/tmp/delivest-s2-main-ci-repro.log`; точный concurrency origin не заявляется.
+
+Test-only server commit `b24501d` меняет factory phone на отдельный валидный диапазон `+7888` + семь цифр sequence. Production constraints/поведение не менялись. На том же seed/config main repeat — **1366/0 (7 excluded)**, 91.0 s, `/tmp/delivest-s2-main-ci-fixed.log`; worker exact repeat **1366/0**, затем `mix precommit` **1366/0**, Credo 0 issues, seed `286989`, `/tmp/delivest-s2-worker-ci-{seed695615,precommit}.log`. Дополнительные CI-review/CI-worker БД также удалены после завершения прогонов; всего создано и очищено восемь S2 test DB. Новый root/server CI запускается на этом fix.
