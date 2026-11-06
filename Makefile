@@ -7,6 +7,7 @@ export DB_PORT := 5432
 export S3_ACCESS_KEY := athena_admin
 export S3_SECRET_KEY := StrongS3Password!
 export S3_BUCKET := delivest
+export S3_PRIVATE_BUCKET ?= delivest-private
 export S3_PORT := 8333
 export COMPOSE_IGNORE_ORPHANS := 1
 
@@ -25,7 +26,7 @@ stop:
 	-tmux kill-session -t $(SESSION)
 
 infra:
-	@$(COMPOSE) up -d --no-build postgres s3 2> >(grep -v 'No services to build' >&2)
+	@$(COMPOSE) up -d --build postgres s3 agent 2> >(grep -v 'No services to build' >&2)
 	@until docker exec delivest-postgres pg_isready -U $(DB_USER) >/dev/null 2>&1; do sleep 1; done
 
 infra-down:
