@@ -1,0 +1,15 @@
+Order-create benchmark — sanitized result
+Date: 2026-11-06
+Partition: delivest_test_capacity_bench_v5_20261106
+Mode: test environment, five local branches, pickup/cash, no external providers
+Warmup orders: 50
+Measured orders: 250 (250 succeeded)
+Concurrency: 10
+Elapsed: 0.642 s
+Latency: p50 22.62 ms; p95 46.67 ms
+Repo queries: 9,000 total; 36 per order
+Repo query time: 5,241.67 ms aggregate
+Repo queue time: 174.45 ms aggregate
+Persisted at end: 300 orders; 5 branches
+
+Telemetry query_time and queue_time were converted from Erlang native units to milliseconds before reporting. Result is a short local test-database run. It excludes real HTTP/provider latency, production DB/network topology, sustained load, and multi-node behavior; do not extrapolate it into a capacity ceiling.
