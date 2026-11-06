@@ -55,3 +55,7 @@ D07/D10/D13 реализованы. R02 реализован для public check
 ## Коммиты
 
 Server `dfe003d` включает D07 `b31dbed`, D13 `b3f814d`, checkout `e4d19b1` и D10 `4e7fac9`. Client `ff711bb` включает API snapshot/types и передачу key/revision.
+
+## PR
+
+Открыты [server PR №22](https://github.com/ShafranovKirill/delivest-ex/pull/22), [client PR №15](https://github.com/ShafranovKirill/delivest-web/pull/15) и [root PR №21](https://github.com/ShafranovKirill/delivest/pull/21). Remote CI фиксируется отдельно от локальных результатов. Merge order — server/client, затем root. Приёмка сквозных требований остаётся в следующем S3 checkpoint.
