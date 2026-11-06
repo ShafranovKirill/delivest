@@ -29,7 +29,7 @@ The agent reports the version of every running container, and the bastion shows 
 
 ## Local development
 
-Needs Docker, Elixir with Erlang, Node with pnpm and tmux. Only postgres and the S3 storage run in Docker (`server/docker-compose.yml`), the server and the client run in the console with code reloading.
+Needs Docker, Elixir with Erlang, Node with pnpm and tmux. Postgres, S3 storage and the backup agent run in Docker (`server/docker-compose.yml`); the server and client run in the console with code reloading. `make infra` builds and starts the local agent. Keep `server/.instance-backups` on the host: it carries backup jobs and archives shared with the Phoenix process. The local Seaweed image is pinned to the same version as production, and `make infra` updates it before backups are used. Restart the local Phoenix process after updating the backup setup; `make dev` only attaches to an existing tmux session and does not restart it.
 
 First run:
 
@@ -274,6 +274,12 @@ An administrator can populate missing role presets from **Staff → Roles → Cr
 ---
 
 ## Backups
+
+Administrators can use **Staff → Franchise → Full instance backup** to create and download a `.tar` archive of the entire PostgreSQL database and SeaweedFS storage, then restore it with an explicit full replacement confirmation. The site disconnects during restore; sign in afterward with staff credentials from the source archive. Branch and franchise ZIP snapshots are a separate legacy format and cannot be imported here. Source and target application releases must be compatible, and target migrations must include those recorded in the archive; start and migrate a fresh target before uploading. The source and target must use the same SeaweedFS image ID and bucket names. The target deployment environment remains in place. Jobs and archives live in the shared `instance_backups` volume in production or `server/.instance-backups` during local development. The default upload limit is 20 GiB (`INSTANCE_BACKUP_MAX_ARCHIVE` in bytes). Unsafe interrupted jobs keep the application stopped for operator review. The previous database and a directory copy of the previous storage contents remain as recovery artifacts after replacement. Completed jobs and archives also remain in the shared volume; remove them according to a retention policy after verifying the restored site to avoid filling the disk. The CLI fallback is `scripts/full-backup` (`--replace` for import, `--leave-stopped` for cutover export).
+
+For single-node SeaweedFS restores, the agent rebuilds only the master's election and membership state from its complete volume mirror. It keeps the volume counter, topology ID, growth state, all filer and volume data, and the original archive. A missing or incomplete mirror rejects the restore before changing the target.
+
+### Bastion database backups
 
 When the deployment is connected to the bastion, the bastion makes a database backup every day at 00:00 UTC and keeps the last 7 in its own storage. The agent runs `pg_dump -Fc` inside the `postgres` container without the `app_logs` data and uploads the file to the bastion over HTTPS. Uploaded images are not included.
 

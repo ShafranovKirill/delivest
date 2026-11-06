@@ -30,6 +30,10 @@ services:
       - .env
     environment:
       - DATABASE_URL=ecto://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}
+      - INSTANCE_BACKUP_DIR=/instance-backups
+      - INSTANCE_BACKUP_MANAGED=true
+    volumes:
+      - instance_backups:/instance-backups
     depends_on:
       - postgres
       - s3
@@ -94,6 +98,7 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME:-delivest}_agent
     restart: always
     environment:
+      - INSTANCE_BACKUP_DIR=/instance-backups
       - BASTION_URL=${BASTION_URL:-}
       - BASTION_TOKEN=${BASTION_TOKEN:-}
       - INSTANCE_NAME=${INSTANCE_NAME:-}
@@ -105,6 +110,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${PWD}:${PWD}
       - agent_data:/data
+      - instance_backups:/instance-backups
     networks:
       - delivest-network
 
@@ -116,3 +122,4 @@ volumes:
   postgres_prod_data:
   s3_data:
   agent_data:
+  instance_backups:

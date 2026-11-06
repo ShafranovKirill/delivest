@@ -17,6 +17,10 @@
 **/coverage
 **/cover
 **/.cache
+**/.instance-backups
+**/.delivest-recovery-*
+**/.delivest-full-*.tar
+**/.delivest-operation.lock
 **/.vite
 **/.eslintcache
 **/*.tsbuildinfo
