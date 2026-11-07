@@ -1,5 +1,9 @@
 # Доменные блоки работы
 
+S5 локальная реализация и открытые gates: [S5 checkpoint](S5_CHECKPOINT.md).
+До закрытия блока нужны remote CI/review, изолированные load/restore,
+pilot/soak и аудит секретов.
+
 **Следующий шаг:** remote CI/review текущего S3 checkpoint, затем закрытие оставшихся сквозных gates S3. D07/D10/D13, keyed checkout и cart revision реализованы. R01/R03/R04/R08 partial, границы и доказательства в [S3 checkpoint](S3_CHECKPOINT.md). S2 merged в develop. Одна сессия ведёт связанные задачи до проверяемой границы.
 
 | Блок | Общий контекст и primary ownership | Gate блока |

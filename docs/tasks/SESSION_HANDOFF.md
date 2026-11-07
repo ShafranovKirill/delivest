@@ -1,5 +1,14 @@
 # Передача сессии
 
+## S5 checkpoint — 2026-11-07
+
+Текущий результат: [S5 checkpoint](S5_CHECKPOINT.md). Agent flock/backup,
+release DAG/manifest, main/develop CI, safe nginx access log, bounded
+loyalty expiry и media retry реализованы локально. Server `9304708` в
+[PR №25](https://github.com/ShafranovKirill/delivest-ex/pull/25), agent
+`962df0d` в [PR №6](https://github.com/ShafranovKirill/delivest-agent/pull/6).
+Root remote CI, load/restore, pilot/soak, secret audit/rotation остаются.
+
 ## S3 checkpoint — 2026-11-06
 
 Реализованы D07/D10/D13, public checkout replay/cart revision, изоляция очередей и API drift gate. Полный server 1389/0 (7 excluded), follow-up 42/0, Playwright 27/27, client auth 7/7 и regression 26/26, agent 91/0. [S3 checkpoint](S3_CHECKPOINT.md) содержит SHA, команды, результаты, миграцию и границу приёмки.

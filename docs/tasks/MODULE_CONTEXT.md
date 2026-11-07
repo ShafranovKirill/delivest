@@ -8,7 +8,7 @@
 | S2 | `server/lib/delivest/identity/{client_auth,phone_confirmations}.ex`; `server/lib/delivest/oms/{orders,orders/create,orders/notifier}.ex`; `server/lib/delivest_web/channels/orders_channel.ex`; `client/src/modules/{auth,cart,fulfillment,pwa,order}` | [S2 checkpoint](S2_CHECKPOINT.md): server b24501d/client 655d365, local accepted; remote CI/merge separately |
 | S3 | `server/lib/delivest/oms/orders/create.ex`; `server/lib/delivest/payments/online.ex`; `server/lib/delivest/couriers/cash.ex`; `server/lib/delivest/events.ex`; `server/lib/delivest/integrations/yookassa/reconciliation.ex` | [S3 checkpoint](S3_CHECKPOINT.md); Oms.Checkout → Create key/replay + CartGuard revision; Cash locked settlement; expiry per-device Oban; explicit incomplete reconciliation. |
 | S4 | `server/lib/delivest/integrations/{crm/reconciliation,rkeeper/poller,yandex_eda/stop_list,yandex_eda/order_address}.ex`, `server/lib/delivest/analytics.ex` | [S4 checkpoint](S4_CHECKPOINT.md). Ограниченные бюджеты intake и отчётов, отдельный опрос r_keeper, возможности адаптеров и аудит сверки. |
-| S5 | `agent/lib/delivest_agent/{operation_lock,backup_jobs}.ex`; `agent/test/delivest_agent/backup_jobs_test.exs`; root `.github/workflows/{checks,e2e,release}.yml` | pending |
+| S5 | `agent/lib/delivest_agent/{operation_lock,backup_jobs}.ex`; `server/lib/delivest/{loyalty,media}.ex`; root `.github/workflows/{checks,e2e,release}.yml`, `deploy/nginx` | [S5 checkpoint](S5_CHECKPOINT.md): agent 962df0d/PR6, server 9304708/PR25, root local; load/restore/external gates pending. |
 
 ## S2 — контекст для продолжения
 
