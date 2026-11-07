@@ -7,7 +7,10 @@ release DAG/manifest, main/develop CI, safe nginx access log, bounded
 loyalty expiry и media retry реализованы локально. Server `9304708` в
 [PR №25](https://github.com/ShafranovKirill/delivest-ex/pull/25), agent
 `962df0d` в [PR №6](https://github.com/ShafranovKirill/delivest-agent/pull/6).
-Root remote CI, load/restore, pilot/soak, secret audit/rotation остаются.
+Root [draft PR №24](https://github.com/ShafranovKirill/delivest/pull/24):
+E2E прошёл, Checks client/agent/static прошли, server ещё выполняется.
+Изолированный restore drill прошёл; frozen load, pilot/soak,
+secret audit/rotation остаются.
 
 ## S3 checkpoint — 2026-11-06
 
