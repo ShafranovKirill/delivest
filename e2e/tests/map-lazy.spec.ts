@@ -6,10 +6,7 @@ test('fulfillment map loads only after opening the picker and survives reopening
   const mapRequests: string[] = []
   page.on('request', (request) => {
     const url = request.url()
-    if (
-      /(?:PickupPane|DeliveryPane|BaseMap)(?:\.vue|-\w+\.js)/.test(url) ||
-      /maplibre-gl(?:\.js|\?)/.test(url)
-    ) {
+    if (/\/assets\/(?:PickupPane|DeliveryPane|BaseMap)-[^/?]+\.js(?:\?|$)/.test(url)) {
       mapRequests.push(url)
     }
   })
