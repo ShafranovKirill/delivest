@@ -1,6 +1,11 @@
 # Доменные блоки работы
 
-**Следующий шаг:** remote CI/review текущего S3 checkpoint, затем закрытие оставшихся сквозных gates S3. D07/D10/D13, keyed checkout и cart revision реализованы. R01/R03/R04/R08 partial, границы и доказательства в [S3 checkpoint](S3_CHECKPOINT.md). S2 merged в develop. Одна сессия ведёт связанные задачи до проверяемой границы.
+S5 локальная реализация и открытые gates: [S5 checkpoint](S5_CHECKPOINT.md).
+Код S5 прошёл локальные проверки, remote Checks/E2E, короткий frozen
+exploratory load и изолированный restore drill. До полного закрытия
+нужны N02 soak/repeats, N04 fault/pilot и аудит секретов.
+
+**Следующий шаг:** доставить S5 root [draft PR №24](https://github.com/ShafranovKirill/delivest/pull/24) в develop после итогового review, затем провести аудит пробелов всего рефактора и закрывать оставшиеся gates, включая N02 soak, N04 fault/pilot и runtime secret audit. S5 не закрыт целиком; [checkpoint](S5_CHECKPOINT.md). Исторический S3 и его сквозные gates сохранены в [S3 checkpoint](S3_CHECKPOINT.md).
 
 | Блок | Общий контекст и primary ownership | Gate блока |
 | --- | --- | --- |

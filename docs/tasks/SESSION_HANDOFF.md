@@ -1,5 +1,18 @@
 # Передача сессии
 
+## S5 checkpoint — 2026-11-07
+
+Текущий результат: [S5 checkpoint](S5_CHECKPOINT.md). Agent flock/backup,
+release DAG/manifest, main/develop CI, safe nginx access log, bounded
+loyalty expiry и media retry реализованы локально. Server `9304708` в
+[PR №25](https://github.com/ShafranovKirill/delivest-ex/pull/25)
+merged в develop; agent `962df0d` в
+[PR №6](https://github.com/ShafranovKirill/delivest-agent/pull/6)
+merged в develop. Root [draft PR №24](https://github.com/ShafranovKirill/delivest/pull/24):
+Checks и E2E SUCCESS на frozen harness `16a150b`. Изолированный
+restore drill и короткие load 100/500/1000 прошли; полный N02 soak,
+N04 fault/pilot и runtime secret audit/rotation остаются.
+
 ## S3 checkpoint — 2026-11-06
 
 Реализованы D07/D10/D13, public checkout replay/cart revision, изоляция очередей и API drift gate. Полный server 1389/0 (7 excluded), follow-up 42/0, Playwright 27/27, client auth 7/7 и regression 26/26, agent 91/0. [S3 checkpoint](S3_CHECKPOINT.md) содержит SHA, команды, результаты, миграцию и границу приёмки.
@@ -21,3 +34,7 @@ S2 PR server №21/client №14/root №20 merged в develop.
 ## Следующее действие
 
 Полный Playwright **27/27** прошёл (admin/POS/checkout и новые identity/UI), итоговые логи в checkpoint. Проверить remote CI/review и merge server/client PR в develop, после них [root PR №20](https://github.com/ShafranovKirill/delivest/pull/20). Rollout отдельно из main после release gates. Следующий основной доменный блок — **S3 orders/money/events/queues**; D07/R02 и финансовые требования не закрыты работой S2. См. [SESSION_PLAN](SESSION_PLAN.md), [COVERAGE](COVERAGE.md), [MODULE_CONTEXT](MODULE_CONTEXT.md).
+
+## S4 checkpoint — 2026-11-07
+
+D09/D11/D12/D14/O09 и основа F06 реализованы локально. [S4 checkpoint](S4_CHECKPOINT.md) содержит бюджеты, проверки и оставшиеся sandbox сценарии. Следующий основной блок по плану — S5.
