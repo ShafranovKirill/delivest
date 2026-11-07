@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-import {readFileSync, writeFileSync} from 'node:fs';
+import {readFileSync, writeFileSync, realpathSync} from 'node:fs';
 import {randomUUID} from 'node:crypto';
 import {performance} from 'node:perf_hooks';
 import {loadavg, freemem, totalmem} from 'node:os';
 import {execFileSync} from 'node:child_process';
 import {readFileSync as readProcFile, readlinkSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {classify, summarize, gate} from './metrics.mjs';
 
 export function guard({run, url, database, env, fixture}) {
@@ -12,6 +13,8 @@ export function guard({run, url, database, env, fixture}) {
   const target = new URL(url);
   if (!['127.0.0.1', 'localhost', '[::1]'].includes(target.hostname) || target.protocol !== 'http:' || target.port !== '4200')
     throw Error('S5 target must be HTTP loopback port 4200');
+  if (target.pathname !== '/' || target.search || target.hash || target.username || target.password)
+    throw Error('S5 URL must be the bare loopback origin');
   if (!/^delivest_s5_load[a-z0-9_]*$/.test(database || '') || !['dev', 'test'].includes(env))
     throw Error('S5 requires MIX_ENV=dev/test and DEV_DATABASE=delivest_s5_load*');
   if (!fixture?.branches || fixture.branches.length !== 5 || fixture.branches.some(b => b.products?.length !== 200))
@@ -30,7 +33,8 @@ export function verifyLocalServer(database, fixture, env) {
   if (!variables.includes(`DEV_DATABASE=${database}`) || !variables.includes(`MIX_ENV=${env}`))
     throw Error('Loopback:4200 server does not use the requested dev database');
   const cwd = readlinkSync(`/proc/${pid}/cwd`);
-  if (!cwd.endsWith('/delivest/server')) throw Error('Loopback:4200 process is outside this server checkout');
+  const expected = realpathSync(fileURLToPath(new URL('../../server/', import.meta.url)));
+  if (realpathSync(cwd) !== expected) throw Error('Loopback:4200 process is outside this server checkout');
   const sql = `SELECT count(*) FROM branches WHERE id IN (${fixture.branches.map(b => `'${b.id}'`).join(',')})`;
   const result = execFileSync('psql', ['-h', '127.0.0.1', '-U', 'postgres', '-d', database, '-Atc', sql],
     {encoding: 'utf8', env: {...process.env, PGPASSWORD: 'postgres'}}).trim();

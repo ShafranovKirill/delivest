@@ -9,7 +9,10 @@ test('requires explicit run and isolated loopback target', () => {
   assert.doesNotThrow(() => guard(safe));
   for (const change of [{run: false}, {url: 'http://localhost:4000'},
     {url: 'https://127.0.0.1:4200'}, {url: 'http://example.com:4200'},
+    {url: 'http://127.0.0.1:4200/client'}, {url: 'http://user@127.0.0.1:4200'},
     {database: 'delivest'}, {env: 'prod'}, {fixture: {branches: []}}]) {
     assert.throws(() => guard({...safe, ...change}));
   }
+  assert.throws(() => guard({...safe, fixture: {branches: fixture.branches.map((b, i) =>
+    i ? b : {...b, products: ['bad', ...b.products.slice(1)]})}}));
 });
