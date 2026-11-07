@@ -7,7 +7,7 @@
 | D01–D04 | Владелец Product/Category/Modifier/Tag/Client, installation-global и branch права; конфликтующие shared rows и cache invalidation. ADR до миграции T01. |
 | D05–D09 | Capability импорта и sync; правила конкурентного settlement; владельцы телефонных данных и статистики. До соответствующего PR T02. |
 | C01–C05 | Источник identity/session, адрес и согласие, branch cart, quote lifetime и авторизация. До PR T03. |
-| R01/R08 | Границы домена и версия API для web/RN; схема OpenAPI и совместимость. До изменения контрактов; RN приложение вне текущего scope. |
+| R01/R08 | Границы домена и версия API для web/RN: текущий unversioned HTTP API считается v1, OrdersChannel additive `v: 1`, unknown v → HTTP resync. Breaking version только по отдельному решению владельца; RN lifecycle вне scope. [ADR](ADR-API-COMPATIBILITY.md). |
 | R02/R06/R07 | Базовые метрики, единый расчёт цены, version/cache invalidation. Перед оптимизацией измерить исходное. |
 | R03/R04/R05 | Durable effect и очередь; отдельно способ async payment, idempotency, unknown outcome и совместимость checkout API. R05 только отдельный ADR/PR. |
 | N01–N04/O06/O07 | Порог активных сессий и ресурсов production, критерии latency/error/backlog, масштабирование и аварийные проверки. Согласовать до нагрузочного прогона. |
