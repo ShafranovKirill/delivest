@@ -23,7 +23,8 @@ archive="$work/full.tar"
 cleanup() {
   local status=$?
   if [[ $status -ne 0 ]]; then
-    local evidence="/tmp/delivest-s5-drill-failure-$(basename "$work").log"
+    local evidence
+    evidence="/tmp/delivest-s5-drill-failure-$(basename "$work").log"
     { dc ps; dc logs --tail 100; } > "$evidence" 2>&1 || true
     echo "drill failed; Compose evidence: $evidence" >&2
   fi
