@@ -1,40 +1,23 @@
-# Передача сессии
+# Передача сессии — 2026-11-07
 
-## S5 checkpoint — 2026-11-07
+## Код и поставка
 
-Текущий результат: [S5 checkpoint](S5_CHECKPOINT.md). Agent flock/backup,
-release DAG/manifest, main/develop CI, safe nginx access log, bounded
-loyalty expiry и media retry реализованы локально. Server `9304708` в
-[PR №25](https://github.com/ShafranovKirill/delivest-ex/pull/25)
-merged в develop; agent `962df0d` в
-[PR №6](https://github.com/ShafranovKirill/delivest-agent/pull/6)
-merged в develop. Root [draft PR №24](https://github.com/ShafranovKirill/delivest/pull/24):
-Checks и E2E SUCCESS на frozen harness `16a150b`. Изолированный
-restore drill и короткие load 100/500/1000 прошли; полный N02 soak,
-N04 fault/pilot и runtime secret audit/rotation остаются.
+Кодовый объём S1–S5 реализован; базовые изменения уже в `develop`. S5 server PR №25, agent PR №6 и root PR №24 merged; его финальные remote Checks `42342496724` и E2E `42342496753` — SUCCESS. Production rollout не проводился. Подробности — [S5 checkpoint](S5_CHECKPOINT.md).
 
-## S3 checkpoint — 2026-11-06
+Completion объединяет пакетные операции из трёх LiveView, версионирует события канала заказов и добавляет durable порядок/ручное восстановление доставки и CRM command ledger. Финальный кодовый root `a5429ac78e7baa56500dbd23793a096a60b1dc11`, server `2ae31664f38b22daacb500f595d606db195fd648`, client `634ec436f7ba993f38f156b5d65960810a08d3dc`. Поставка через [server PR №26](https://github.com/ShafranovKirill/delivest-ex/pull/26), [client PR №17](https://github.com/ShafranovKirill/delivest-web/pull/17), [root PR №25](https://github.com/ShafranovKirill/delivest/pull/25). Merge в `develop` проводить после успешных Checks/E2E и review финального SHA.
 
-Реализованы D07/D10/D13, public checkout replay/cart revision, изоляция очередей и API drift gate. Полный server 1389/0 (7 excluded), follow-up 42/0, Playwright 27/27, client auth 7/7 и regression 26/26, agent 91/0. [S3 checkpoint](S3_CHECKPOINT.md) содержит SHA, команды, результаты, миграцию и границу приёмки.
+Локально: server полный `mix precommit` **1447/0 (7 excluded)**, независимый повтор проблемного seed **37/0**; client auth **7/7**, regression **30/30**, build/ESLint; production-preview map reopen **1/1**. Сравнимый checkout микропрофиль после batch — **28 SQL/заказ** против 36 до batch. Короткий frozen load 100/500/1000 прошёл без ошибок; [raw результаты](../runbooks/load-results-2026-11-07-completion.md). Эти проверки не доказывают production capacity и внешние provider outcomes. Подробная история тестов, исходные ошибки CI и ограничения — [аудит завершения](REFACTOR_COMPLETION.md); статусы ID — [реестр](COVERAGE.md).
 
-Открыты [server PR №22](https://github.com/ShafranovKirill/delivest-ex/pull/22), [client PR №15](https://github.com/ShafranovKirill/delivest-web/pull/15), [root PR №21](https://github.com/ShafranovKirill/delivest/pull/21). Сквозные R01/R03/R04/R08 остаются partial. Следующее действие — remote CI/review текущих PR, затем отдельный S3 checkpoint по kill/restart/unknown outcome всех подписчиков, aggregate ordering, очередям под нагрузкой и mobile compatibility. R05 имеет [ADR](ADR-S3-PAYMENT-INITIALIZATION.md).
+## Следующие действия
 
-S2 PR server №21/client №14/root №20 merged в develop.
+1. Проверить итоговые Checks/E2E и review в root PR №25 на финальном SHA; затем завершить merge server/client/root PR в `develop` в указанном порядке.
+2. Отдельно провести provider sandbox unknown outcomes, ручную проверку screen reader, runtime secret inventory/rotation, полный N02 mixed-profile/soak и N04 fault/pilot. Короткий load и restore drill эти gates не закрывают.
+3. Production выпускать из `main` после release gate. F01–F10 и RN-приложение остаются отдельной работой. R05 — [ADR](ADR-S3-PAYMENT-INITIALIZATION.md), обязательного async rewrite нет.
 
-## S2 checkpoint — 2026-11-06
+## Архивные checkpoints
 
-**S2 реализован и принят локально; PR открыты, remote CI/review и merge ожидаются.** Подробные решения, SHA, команды, реальные результаты и ранние падения — [S2 checkpoint](S2_CHECKPOINT.md). Root delivery: [root PR №20](https://github.com/ShafranovKirill/delivest/pull/20). S1 уже merged в develop; production rollout не выполнялся в этой сессии.
-
-- Server `b24501d`, [PR №21](https://github.com/ShafranovKirill/delivest-ex/pull/21): D05 ACL, D08 DB-level phone/session serialization, C01 order origin/REST/events и WebPush cleanup. Независимый final suite **1366/0 (7 excluded)** с seed 695615/max-cases 8 после исправления CI factory collision; format/compile/Credo/test Dialyzer прошли. Worker precommit также **1366/0**, seed 286989.
-- Client `655d365`, [PR №14](https://github.com/ShafranovKirill/delivest-web/pull/14): C01–C10; независимые auth **7/7**, regression **25/25**, build/ESLint прошли. Auth PR13 не merged: его код cherry-picked. Full offline/RN и token storage redesign не включены.
-- Новая миграция `20261210000015`: явный guest_session_access, conservative legacy backfill. Старый заказ с linked client требует входа клиента, поскольку historical guest/auth origin неразличим. Три legacy случая реально проверены в отдельной БД; main подтвердил SQL. Rollout требует завершить старые readers; downgrade возвращает прежний OR privacy риск.
-- Owner-less address/checkout storage удаляется, выбор надо повторить; гостевой выбор текущей вкладки сохраняется при первом login. WebPush смена личности fail-closed: persistent block, legacy worker handshake/fallback, старые endpoints/notifications очищаются, ошибки видимы.
-- O05 early triage выполнен; действительность исходных секретов, runtime logs/redaction и ротация не подтверждены. Основной S5 остаётся открыт. Live-provider WebPush/CRM проверки, ручной screen reader и deployment не запускались.
-
-## Следующее действие
-
-Полный Playwright **27/27** прошёл (admin/POS/checkout и новые identity/UI), итоговые логи в checkpoint. Проверить remote CI/review и merge server/client PR в develop, после них [root PR №20](https://github.com/ShafranovKirill/delivest/pull/20). Rollout отдельно из main после release gates. Следующий основной доменный блок — **S3 orders/money/events/queues**; D07/R02 и финансовые требования не закрыты работой S2. См. [SESSION_PLAN](SESSION_PLAN.md), [COVERAGE](COVERAGE.md), [MODULE_CONTEXT](MODULE_CONTEXT.md).
-
-## S4 checkpoint — 2026-11-07
-
-D09/D11/D12/D14/O09 и основа F06 реализованы локально. [S4 checkpoint](S4_CHECKPOINT.md) содержит бюджеты, проверки и оставшиеся sandbox сценарии. Следующий основной блок по плану — S5.
+- [S1](S1_CHECKPOINT.md): каталог, филиалы, pricing и versioned cache; исторический профиль checkout 36→32 SQL/заказ.
+- [S2](S2_CHECKPOINT.md): auth/ACL, приватность клиента, checkout state и WebPush.
+- [S3](S3_CHECKPOINT.md): заказ, деньги, outbox и API contract; исходные сквозные R01/R03/R04/R08.
+- [S4](S4_CHECKPOINT.md): интеграции, бюджеты, диагностика и аналитика.
+- [S5](S5_CHECKPOINT.md): ops, CI, backup, release и короткий exploratory load.

@@ -1,11 +1,8 @@
 # Доменные блоки работы
 
-S5 локальная реализация и открытые gates: [S5 checkpoint](S5_CHECKPOINT.md).
-Код S5 прошёл локальные проверки, remote Checks/E2E, короткий frozen
-exploratory load и изолированный restore drill. До полного закрытия
-нужны N02 soak/repeats, N04 fault/pilot и аудит секретов.
+Кодовый объём S1–S5 реализован; базовые изменения в `develop`. [Аудит завершения](REFACTOR_COMPLETION.md) отделяет проверенный код от внешних и эксплуатационных gates. Completion root `a5429ac` с server `2ae3166` и client `634ec43` поставляется через [PR №25](https://github.com/ShafranovKirill/delivest/pull/25) после успешных Checks/E2E и review; server/client PR №26/№17. Локально server `mix precommit` 1447/0, client auth/regression/build/lint, сравнимый SQL микропрофиль 28 SQL/заказ и короткий load 100/500/1000 прошли. Короткий load и restore drill из [S5 checkpoint](S5_CHECKPOINT.md) не закрывают N02 soak, N04 fault/pilot и runtime secret audit.
 
-**Следующий шаг:** доставить S5 root [draft PR №24](https://github.com/ShafranovKirill/delivest/pull/24) в develop после итогового review, затем провести аудит пробелов всего рефактора и закрывать оставшиеся gates, включая N02 soak, N04 fault/pilot и runtime secret audit. S5 не закрыт целиком; [checkpoint](S5_CHECKPOINT.md). Исторический S3 и его сквозные gates сохранены в [S3 checkpoint](S3_CHECKPOINT.md).
+**Следующий шаг:** проверить итоговые PR checks и review, завершить поставку в `develop`, затем провести оставшиеся provider, accessibility, security и production gates. R05 остаётся ADR без обязательного async rewrite. F01–F10 — отдельная продуктовая серия. Исторический S3 и сквозные gates описаны в [S3 checkpoint](S3_CHECKPOINT.md).
 
 | Блок | Общий контекст и primary ownership | Gate блока |
 | --- | --- | --- |

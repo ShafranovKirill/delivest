@@ -1,11 +1,13 @@
 # S5 checkpoint — 2026-11-07
 
-Локальный результат на ветке `codex/refactor-s5`. Это checkpoint кода и
-проверок, не production rollout. Root [draft PR №24](https://github.com/ShafranovKirill/delivest/pull/24),
+Локальный результат ветки `codex/refactor-s5`. Это checkpoint кода и
+проверок, не production rollout. Root [PR №24](https://github.com/ShafranovKirill/delivest/pull/24),
 agent commit `962df0d` в [PR №6](https://github.com/ShafranovKirill/delivest-agent/pull/6)
 merged в develop (`21b321f`), server commit `9304708` в
 [PR №25](https://github.com/ShafranovKirill/delivest-ex/pull/25)
-merged в develop (`26f7b3b`). Root PR №24 остаётся draft.
+merged в develop (`26f7b3b`). Root PR №24 затем merged в develop (`f85fa05`);
+его финальные remote Checks `42342496724` и E2E `42342496753` — SUCCESS.
+Это результат S5 SHA; отдельная ветка completion проверяется заново.
 
 ## Реализовано
 
@@ -17,8 +19,9 @@ merged в develop (`26f7b3b`). Root PR №24 остаётся draft.
   Алиасы трёх образов не атомарны; при сбое alias tag/release не создаются.
 - O04: checks для main/develop push/PR и workflow_call: server, agent,
   client, OpenAPI snapshot, API types, shell/actionlint/nginx/gitlinks.
-  E2E reusable. Root PR №24: Checks 42341766511 и E2E
-  42341766537 на frozen load harness SHA `16a150b` завершились SUCCESS.
+  E2E reusable. Root PR №24: финальные Checks 42342496724 и E2E
+  42342496753 завершились SUCCESS. Более ранние Checks 42341766511 и E2E
+  42341766537 на frozen load harness SHA `16a150b` также SUCCESS.
   Предыдущие Checks 42338720512 и E2E 42338720441 также SUCCESS.
 - O05: nginx access log использует `$uri` без query; synthetic marker тест
   проходит. Error log ограничен уровнем crit; критические сообщения могут
