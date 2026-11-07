@@ -1,10 +1,11 @@
 # Доменные блоки работы
 
 S5 локальная реализация и открытые gates: [S5 checkpoint](S5_CHECKPOINT.md).
-До закрытия блока нужны финальный remote CI/review, frozen load,
-pilot/soak и аудит секретов. Изолированный restore drill пройден.
+Код S5 прошёл локальные проверки, remote Checks/E2E, короткий frozen
+exploratory load и изолированный restore drill. До полного закрытия
+нужны N02 soak/repeats, N04 fault/pilot и аудит секретов.
 
-**Следующий шаг:** завершить S5 remote CI/review и frozen load, затем определить pilot/soak/fault и runtime secret audit. S5 код локально проверен, но блок не закрыт; подробности в [S5 checkpoint](S5_CHECKPOINT.md). Исторический S3 и его сквозные gates сохранены в [S3 checkpoint](S3_CHECKPOINT.md).
+**Следующий шаг:** доставить S5 root [draft PR №24](https://github.com/ShafranovKirill/delivest/pull/24) в develop после итогового review, затем провести аудит пробелов всего рефактора и закрывать оставшиеся gates, включая N02 soak, N04 fault/pilot и runtime secret audit. S5 не закрыт целиком; [checkpoint](S5_CHECKPOINT.md). Исторический S3 и его сквозные gates сохранены в [S3 checkpoint](S3_CHECKPOINT.md).
 
 | Блок | Общий контекст и primary ownership | Gate блока |
 | --- | --- | --- |

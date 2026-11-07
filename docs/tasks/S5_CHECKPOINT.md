@@ -2,8 +2,10 @@
 
 Локальный результат на ветке `codex/refactor-s5`. Это checkpoint кода и
 проверок, не production rollout. Root [draft PR №24](https://github.com/ShafranovKirill/delivest/pull/24),
-agent commit `962df0d` в [PR №6](https://github.com/ShafranovKirill/delivest-agent/pull/6),
-server commit `9304708` в [PR №25](https://github.com/ShafranovKirill/delivest-ex/pull/25).
+agent commit `962df0d` в [PR №6](https://github.com/ShafranovKirill/delivest-agent/pull/6)
+merged в develop (`21b321f`), server commit `9304708` в
+[PR №25](https://github.com/ShafranovKirill/delivest-ex/pull/25)
+merged в develop (`26f7b3b`). Root PR №24 остаётся draft.
 
 ## Реализовано
 
@@ -15,8 +17,9 @@ server commit `9304708` в [PR №25](https://github.com/ShafranovKirill/delives
   Алиасы трёх образов не атомарны; при сбое alias tag/release не создаются.
 - O04: checks для main/develop push/PR и workflow_call: server, agent,
   client, OpenAPI snapshot, API types, shell/actionlint/nginx/gitlinks.
-  E2E reusable. Root PR №24: E2E run 42338720441 прошёл; в Checks
-  42338720512 client/agent/static прошли, server ещё выполняется.
+  E2E reusable. Root PR №24: Checks 42341766511 и E2E
+  42341766537 на frozen load harness SHA `16a150b` завершились SUCCESS.
+  Предыдущие Checks 42338720512 и E2E 42338720441 также SUCCESS.
 - O05: nginx access log использует `$uri` без query; synthetic marker тест
   проходит. Error log ограничен уровнем crit; критические сообщения могут
   содержать URL. Ротация старых логов, runtime secret audit и RN secure
@@ -56,16 +59,28 @@ server commit `9304708` в [PR №25](https://github.com/ShafranovKirill/delives
   DEV_DATABASE=delivest_s5_e2e pnpm exec playwright test` — 27/27,
   `/tmp/delivest-s5-e2e-verified.log`. Первые попытки exit 130/1 были
   остановлены на промежуточном коде и proxy environment; финальный прогон
-  завершён. Load preliminary 100 sessions/120 s выполняется отдельно;
-  frozen run и результаты ещё ожидаются.
+  завершён.
+- Exploratory load на frozen root `16a150b`: 100/500/1000 сессий по
+  120 с, 50 guest pickup/cash orders/min, 0 technical/4xx/429 во всех
+  ступенях. Requests: 1333/6107/12056; p95 menu:
+  41.58/62.26/70.60 мс, cart: 47.32/82.79/84.86 мс, order:
+  70.99/88.46/90.70 мс. Все согласованные короткие exploratory gates
+  пройдены. Полные условия, raw evidence и ограничения:
+  [load results](../runbooks/load-results-2026-11-07.md).
 
 ## Открытые gates
 
 O06 — одиночная нода описана, распределённые cache/limiter не реализованы.
-O07 и N01–N04 требуют frozen измерений, fault и pilot/soak на изолированной
-среде. Согласованные p95: menu 200 мс, cart 300 мс, order 500 мс;
-technical errors <0.1%. Load scope пока guest/pickup/cash, 5 branches,
-200 products с modifiers/promos; остальные смеси не проверены.
+O07 и N01/N03 получили короткий exploratory профиль с успешными gates,
+но production capacity не доказана. Согласованные p95: menu 200 мс,
+cart 300 мс, order 500 мс; technical errors <0.1%. Load scope:
+guest/pickup/cash, 5 branches, 1000 products, из них 100 с modifier
+choices, 15 promos. Cart/order выбрали plain products, modifier checkout
+не проверен. N02 требует 5 мин warmup, 30 мин stable, 5 мин spike,
+≥2 ч soak и три повтора; N04 — fault recovery и pilot. Генератор и
+Phoenix работали на одном хосте в dev runtime, cache был тёплым.
+SQL snapshots грубые по 5 с и включают drain/background; точное число
+SQL на HTTP request, pool saturation и стабильность backlog не доказаны.
 O05 требует реального аудита секретов и ротации.
 O08 map/profile измерения и production backlog не проведены. Серверный
 concurrent expiry regression использует SQL sandbox и не доказывает гонку

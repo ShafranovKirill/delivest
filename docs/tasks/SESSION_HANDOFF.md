@@ -5,12 +5,13 @@
 Текущий результат: [S5 checkpoint](S5_CHECKPOINT.md). Agent flock/backup,
 release DAG/manifest, main/develop CI, safe nginx access log, bounded
 loyalty expiry и media retry реализованы локально. Server `9304708` в
-[PR №25](https://github.com/ShafranovKirill/delivest-ex/pull/25), agent
-`962df0d` в [PR №6](https://github.com/ShafranovKirill/delivest-agent/pull/6).
-Root [draft PR №24](https://github.com/ShafranovKirill/delivest/pull/24):
-E2E прошёл, Checks client/agent/static прошли, server ещё выполняется.
-Изолированный restore drill прошёл; frozen load, pilot/soak,
-secret audit/rotation остаются.
+[PR №25](https://github.com/ShafranovKirill/delivest-ex/pull/25)
+merged в develop; agent `962df0d` в
+[PR №6](https://github.com/ShafranovKirill/delivest-agent/pull/6)
+merged в develop. Root [draft PR №24](https://github.com/ShafranovKirill/delivest/pull/24):
+Checks и E2E SUCCESS на frozen harness `16a150b`. Изолированный
+restore drill и короткие load 100/500/1000 прошли; полный N02 soak,
+N04 fault/pilot и runtime secret audit/rotation остаются.
 
 ## S3 checkpoint — 2026-11-06
 
