@@ -1,15 +1,15 @@
 # S5 checkpoint — 2026-11-07
 
 Локальный результат на ветке `codex/refactor-s5`. Это checkpoint кода и
-проверок, не production rollout. Root и server PR/remote CI и review
-указываются после публикации. Agent commit `962df0d` в [PR №6](https://github.com/ShafranovKirill/delivest-agent/pull/6);
-server commit `9304708` локальный.
+проверок, не production rollout. Root [draft PR №24](https://github.com/ShafranovKirill/delivest/pull/24),
+agent commit `962df0d` в [PR №6](https://github.com/ShafranovKirill/delivest-agent/pull/6),
+server commit `9304708` в [PR №25](https://github.com/ShafranovKirill/delivest-server/pull/25).
 
 ## Реализовано
 
 - O01/O02: агент заменяет legacy directory lock на flock и исправляет
-  восстановление claimed backup job. Его отдельные tests и restore drill
-  фиксируются после завершения независимой проверки.
+  восстановление claimed backup job. Legacy lock-каталог требует ручной
+  проверки перед удалением; обычный lock-файл удалять нельзя.
 - O03: выпуск проверяет reusable checks/e2e, строит три candidate образа,
   проверяет digest и manifest до alias и публикует tag/release последними.
   Алиасы трёх образов не атомарны; при сбое alias tag/release не создаются.
@@ -26,6 +26,17 @@ server commit `9304708` локальный.
 
 ## Проверки
 
+- Agent: `mix format --check-formatted`, `MIX_ENV=test mix compile
+  --warnings-as-errors` — exit 0; `MIX_ENV=test mix test` — 96/0,
+  `/tmp/delivest-s5-agent-test.log`. Независимый targeted прогон — 37/0;
+  после замечания ревью отдельный BackupJobs targeted — 10/0,
+  `/tmp/delivest-s5-agent-backup-followup.log`.
+- Restore drill: `scripts/restore-drill.sh --run` — exit 0,
+  `/tmp/delivest-s5-restore-drill.log`, всего 92 с. Export 24 с, import
+  14 с. Проверены PostgreSQL и байты публичного/закрытого S3 объекта по
+  цепочке before → observed mutated → restored; повреждённый tar отклонён
+  до изменения DB/объекта. Drill без server и HTTP, на отдельном Compose
+  project/томах; сервисы и тома удалены после прогона.
 - Server: `MIX_TEST_PARTITION=s5ops TEST_DB_HOST=127.0.0.1 mix test
   test/delivest/loyalty_test.exs test/delivest/media/thumbnails_test.exs` —
   28/0. `mix precommit` с теми же env — 1421/0, 7 excluded;
@@ -43,8 +54,7 @@ server commit `9304708` локальный.
   DEV_DATABASE=delivest_s5_e2e pnpm exec playwright test` — 27/27,
   `/tmp/delivest-s5-e2e-verified.log`. Первые попытки exit 130/1 были
   остановлены на промежуточном коде и proxy environment; финальный прогон
-  завершён. Agent fault/restore/load результаты добавить после независимой
-  проверки.
+  завершён. Load результаты ожидаются от отдельного исполнителя.
 
 ## Открытые gates
 
