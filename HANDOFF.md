@@ -1,5 +1,13 @@
 # Delivest
 
+## 2026-11-06 · S3 orders/money/queues
+
+D07/D10/D13 и public checkout key/revision реализованы, очереди разделены, OpenAPI drift включён в CI. [S3 checkpoint](docs/tasks/S3_CHECKPOINT.md) содержит проверки и remaining gates R01/R03/R04/R08. S2 merged в develop.
+
+## 2026-11-06 · S2 identity/ACL/frontend
+
+S2 реализован и проверен локально: [checkpoint](docs/tasks/S2_CHECKPOINT.md), [короткий handoff](docs/tasks/SESSION_HANDOFF.md). Server PR №21 и client PR №14 открыты; [root PR №20](https://github.com/ShafranovKirill/delivest/pull/20) связывает их gitlinks и browser/CI gates. В миграции 15 старые заказы с client_id требуют входа связанного клиента. Следующий основной блок — S3; rollout выполняется отдельно.
+
 ## 2026-11-04 · Исправления по ревью
 
 - Ручной откат Bastion читает Compose сохранённой ревизии после её восстановления. Проверка миграций обращается к запущенному PostgreSQL напрямую через Docker, поэтому сломанный текущий Compose ей не мешает.
