@@ -57,23 +57,28 @@ test('cart mutation error is visible and retry succeeds', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Перейти в каталог' })).toBeVisible()
 })
 
-test('pending delivery quote cannot authorize checkout', async ({ page }) => {
+test('pending delivery quote blocks address confirmation until the quote is fresh', async ({ page }) => {
   let release!: () => void
   const gate = new Promise<void>((resolve) => { release = resolve })
   await page.route('**/client/delivery/quote**', async (route) => {
     await gate
-    await route.continue()
+    await route.fulfill({ json: { data: {
+      status: 'ok', price: 10000, min_order: 0, free_from: null, minutes: 35,
+    } } })
   })
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/e2e')
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByText('Указать адрес доставки').click()
   await page.getByLabel('Город, улица, дом').fill('Москва, Тверская, 7')
-  await page.getByRole('button', { name: 'Подтвердить адрес' }).click()
+  const confirm = page.getByRole('button', { name: 'Подтвердить адрес' })
+  await expect(confirm).toBeDisabled()
+  await expect(page.getByTestId('delivery-quote-caption')).toContainText('Проверяем стоимость доставки')
+  release()
+  await expect(confirm).toBeEnabled()
+  await confirm.click()
   await page.getByRole('button', { name: '590 ₽' }).click()
   const checkout = page.getByRole('button', { name: 'К оформлению заказа' })
-  await expect(checkout).toBeDisabled()
-  release()
   await expect(checkout).toBeEnabled()
 })
 
