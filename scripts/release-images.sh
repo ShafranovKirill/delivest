@@ -8,7 +8,8 @@ mode=${1:?usage: release-images.sh verify|alias}
 test "$(git rev-parse HEAD)" = "$SHA"
 
 digest_of() {
-  docker buildx imagetools inspect "$1" | awk '/^Digest:/ {print $2; exit}'
+  # Read all output so inspect cannot fail with SIGPIPE under pipefail.
+  docker buildx imagetools inspect "$1" | awk '/^Digest:/ && !found {digest = $2; found = 1} END {if (found) print digest; else exit 1}'
 }
 
 for variant in server client agent; do

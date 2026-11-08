@@ -14,7 +14,16 @@ mkdir "$tmp/bin"
 cat > "$tmp/bin/docker" <<'SH'
 #!/usr/bin/env bash
 if [[ $1 == buildx && $2 == imagetools && $3 == inspect ]]; then
-  printf 'Digest: %s\n' "$EXPECTED_DIGEST"
+  if [[ ${INSPECT_FAIL:-} == 1 ]]; then
+    printf 'inspect failed\n' >&2
+    exit 42
+  fi
+  if [[ ${INSPECT_NO_DIGEST:-} != 1 ]]; then
+    printf 'Digest: %s\n' "$EXPECTED_DIGEST"
+  fi
+  if [[ ${INSPECT_TAIL_BYTES:-0} -gt 0 ]]; then
+    head -c "$INSPECT_TAIL_BYTES" /dev/zero | tr '\0' x
+  fi
 elif [[ $1 == buildx && $2 == imagetools && $3 == create ]]; then
   printf 'create\n' >> "$CALLS"
 else
@@ -29,6 +38,11 @@ for variant in server client agent; do
 done
 "$root/scripts/release-images.sh" verify
 jq -e --arg digest "$digest" '.images.server == $digest and .images.client == $digest and .images.agent == $digest' release-manifest.json >/dev/null
+INSPECT_TAIL_BYTES=8388608 "$root/scripts/release-images.sh" verify
+for failure in INSPECT_FAIL INSPECT_NO_DIGEST; do
+  if env "$failure=1" "$root/scripts/release-images.sh" alias; then exit 1; fi
+  test ! -e "$CALLS"
+done
 "$root/scripts/release-images.sh" alias
 test "$(wc -l < "$CALLS")" -eq 9
 rm "$CALLS" agent.digest
