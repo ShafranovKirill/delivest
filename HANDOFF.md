@@ -16,19 +16,19 @@
 
 ## Git
 
-- Root/server `codex/f01-marketing-policies`; server F01 пока uncommitted, index общий — коммитит координатор после проверки.
-- Client `codex/f01-notifications`: 3e08c77, 5d1dda5, 9f60b3a; clean, ещё не push.
-- Agent `codex/f01-optional-deliveries`: 27c94f1; clean, ещё не push. Restore отменяет optional_feature jobs, сохраняет core.
-- Зависимая основа уже готова, CI зелёный, не merged: root #34 / server #30 / agent #7. Base server7176fa5 / agent1395fe0 / rootd922829. Новые F01 PR ещё не созданы.
+- Root/server `codex/f01-marketing-policies`; server F01 `7865c5d`, clean и push подтверждён, PR https://github.com/ShafranovKirill/delivest-ex/pull/31 готов к ревью.
+- Client `codex/f01-notifications`: 3e08c77, 5d1dda5, 9f60b3a; clean, push подтверждён, PR https://github.com/ShafranovKirill/delivest-web/pull/20.
+- Agent `codex/f01-optional-deliveries`: 27c94f1; clean, push подтверждён, PR https://github.com/ShafranovKirill/delivest-agent/pull/8. Restore отменяет optional_feature jobs, сохраняет core.
+- Зависимая основа уже готова, CI зелёный, не merged: root #34 / server #30 / agent #7. Base server7176fa5 / agent1395fe0 / rootd922829. F01 PR включают эту ещё не слитую основу; интеграция только после ревью владельца.
 
 ## Проверки и оставшиеся шаги
 
-- Root `mix precommit` fresh f01accept2_20261110: **1535 tests, 0 failures, 7 excluded**, compile warnings-as-errors / format / strict Credo зелёные. Лог /tmp/delivest-f01-final-precommit2-20261110.log. Первый прогон1530/20fail был загрязнён unboxed NotificationsConcurrency fixture; cleanup исправлен, повторный свежий прогон зелёный.
+- Root финальный `mix precommit` fresh f01accept3_20261110: **1536 tests, 0 failures, 7 excluded**, compile warnings-as-errors / format / strict Credo зелёные. Лог /tmp/delivest-f01-final-precommit3-20261110.log. Dialyzer passed (2 прежних предупреждения штатно исключены, unnecessary skips0); /tmp/delivest-f01-final-dialyzer-20261110.log. Первый прогон1530/20fail был загрязнён unboxed NotificationsConcurrency fixture; cleanup исправлен, оба повторных свежих прогона зелёные.
 - Root agent integration + full_backup targeted **25/25**, /tmp/delivest-f01-final-agent-20261110.log. Root client auth7/7 + push10/10; worker typecheck/build зелёные.
 - Independent high review: финансовые owner/source fences, frozen cohorts, pause/resume, Report cleaning/comparison locks, manual impact guard, generic disabled role permissions — без открытых замечаний. Reviewer также независимо Report+Notifications15/15 fresh DB. DB finance/completion races2/2 входят в default CI.
 - Ручной browser test на изолированной test DB: пять шагов → сохранённый черновик, Back сохраняет сообщение, RU/EN, dark contrast, исключения без UUID. UI worker6/6 regressions, scoped compile/format clean. Временный сервер localhost4402, MIX_TEST_PARTITION=f01visual20261110, unified exec84959 (TTY, остановить двумя Ctrl-C).
-- **Сейчас f01_ui_finish делает последний bounded comparison picker pager:** список сравнения раньше ограничивался первыми50, нужен доступ к следующим страницам с сохранением выбранных до10. Ownership только MarketingLive+UI tests/locales; остальные production файлы frozen. После него targeted UI + окончательный precommit на НОВОЙ fresh test DB, затем diff review, коммит server, push всех веток, root gitlinks+commit, PR и CI. Не забыть завершить/остановить временный сервер.
-- Все миграции/проверки строго MIX_ENV=test TEST_DB_HOST=127.0.0.1 MIX_TEST_PARTITION=новое_имя. Старые default/worker partitions могли иметь drift; не использовать и не латать вручную. Migration24/25 свежий up/down/up проверен после source epochs; schema больше не меняется.
+- Comparison picker pager завершён: следующие страницы по50, выбор сохраняется, тест52политики+скрытая область; UI7/7. Независимые ревью закрыли все найденные замечания. На момент этого коммита остаются root gitlinks/PR и remote CI; проверять актуальный статус на PR перед интеграцией. Временный сервер4402 остановить после ручной проверки.
+- Все миграции/проверки строго MIX_ENV=test TEST_DB_HOST=127.0.0.1 MIX_TEST_PARTITION=новое_имя. Старые default/worker partitions могли иметь drift; не использовать и не латать вручную. Root независимо проверил финальные migration24/25 up/down/up в f01schemafinal20261110; OpenAPI JSON совпадает с client snapshot. Schema заморожена.
 
 ## Источники
 

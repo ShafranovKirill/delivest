@@ -1,4 +1,4 @@
-# F01 — оставшийся объём и приёмка
+# F01 — контракты и приёмка реализации
 
 Основа: PR root #34 / server #30 / agent #7. Продолжение отдельно: root/server `codex/f01-marketing-policies`, client `codex/f01-notifications`. Владелец разрешил реализацию и коммиты; merge значительной фичи и production отдельно.
 
@@ -18,11 +18,14 @@
 
 ## Доказательства до завершения
 
-- [ ] Изоляция франшизы/филиалов и клиентов; скрытые функции/права; выключенный модуль не создаёт задач и необязательных данных.
-- [ ] Независимые DB connections: конкурентная выдача даёт ровно один код/ledger entry; completed-order race не выдаёт устаревшую мотивацию.
-- [ ] All-current/future-only, исключения, пауза/повторный запуск, новый цикл, истёкшая мотивация, stale segment edit/impact.
-- [ ] No provider/no consent/permission denied честны; нет live sends и выдуманного delivered. Unknown external outcome не повторяется вслепую.
-- [ ] Device A dismiss не скрывает B; просмотр не dismiss; expiry/current-cycle; поздний ответ после logout/branch switch не меняет новую identity.
-- [ ] Отчёт показывает факты и явное окно атрибуции, не обещает прирост; агрегаты не удваивают выручку. Полная воронка F04 отдельно.
-- [ ] Новый UI: мастер политики, редактирование/состояния/отчёт, каналы клиента, карточки + активный заказ, существующие языки/темы.
-- [ ] Целевые проверки, миграции fresh/down-up, независимое ревью; обязательный server precommit и клиентские проверки на итоговых SHA, затем PR/CI. Незапущенное не считать успешным.
+- [x] Изоляция франшизы/филиалов и клиентов; скрытые функции/права; выключенный модуль не создаёт задач и необязательных данных.
+- [x] Независимые DB connections: конкурентная выдача даёт ровно один код/ledger entry; completed-order race не выдаёт устаревшую мотивацию.
+- [x] All-current/future-only, исключения, пауза/повторный запуск, новый цикл, истёкшая мотивация, stale segment edit/impact.
+- [x] No provider/no consent/permission denied честны; нет live sends и выдуманного delivered. Unknown external outcome не повторяется вслепую.
+- [x] Device A dismiss не скрывает B; просмотр не dismiss; expiry/current-cycle; поздний ответ после logout/branch switch не меняет новую identity.
+- [x] Отчёт показывает факты и явное окно атрибуции, не обещает прирост; агрегаты не удваивают выручку. Полная воронка F04 отдельно.
+- [x] Новый UI: мастер политики, редактирование черновиков/состояния/отчёт, каналы клиента, карточки + активный заказ, существующие языки/темы.
+- [x] Целевые проверки, миграции fresh/down-up, независимое ревью; финальный server precommit1536/0, Dialyzer, клиентские проверки, agent25/25 и OpenAPI snapshot.
+- [ ] Remote CI и ревью владельца перед интеграцией в develop. Актуальный статус — на PR; production отдельно.
+
+PR реализации: [server #31](https://github.com/ShafranovKirill/delivest-ex/pull/31), [client #20](https://github.com/ShafranovKirill/delivest-web/pull/20), [agent #8](https://github.com/ShafranovKirill/delivest-agent/pull/8). SMS-провайдер намеренно не подключён; historical bonus usage неизвестен без allocation в существующем ledger. Production capacity не измерялась.
