@@ -23,7 +23,7 @@
 
 ## Источники и продолжение
 
-- Актуальное Notion ТЗ: https://app.notion.com/p/41031ec95e4481b5b776d0e5d9b09657, сверено 2026-11-10; последние решения 7–8 ноября приоритетнее первоначального списка. Локально `docs/tasks/notion-current/features-spec.md`, нужные разделы после строки 480.
+- Актуальное Notion ТЗ: https://app.notion.com/p/41031ec95e4481b5b776d0e5d9b09657, обновлено 2026-11-10 через notion-knowledge-capture: добавлены решения владельца про completed-only, каналы/согласия/SMS, карточки, оркестратор и роли. Это решения, не статус готовности. Локальный `docs/tasks/notion-current/features-spec.md` содержит прежний экспорт (разделы после строки 480); новые уточнения здесь и в F01_ACCEPTANCE имеют приоритет.
 - Основа: `docs/tasks/ADR-BACKGROUND-ORCHESTRATION.md`, `server/docs/background-features.md`, `server/docs/tasks/segments.md`.
 - Исследование `f01_map` завершено. Работают `f01_policies` (server Marketing/Promo/Loyalty/Features DAG/Segments impact/staff UI/все server routes, migration24) и `f01_notifications` (server Notifications/consents/API, migration25; client ветка `codex/f01-notifications`, каналы и карточки). Нельзя редактировать файлы другого worker. Корневой контракт: idempotent notice intents в транзакции выдачи, callback Marketing.notification_current?; flags+generic Background only; DAG lock order canonical. Контракты согласуют напрямую. Не повторять общий аудит.
 - История предыдущей работы сохранена в `docs/tasks/archive/HANDOFF-2026-11-10-foundation.md`.
