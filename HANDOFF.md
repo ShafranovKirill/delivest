@@ -16,8 +16,8 @@
 
 ## Git
 
-- Root/server `codex/f01-marketing-policies`; server F01 `7865c5d`, clean и push подтверждён, PR https://github.com/ShafranovKirill/delivest-ex/pull/31 готов к ревью.
-- Client `codex/f01-notifications`: 3e08c77, 5d1dda5, 9f60b3a; clean, push подтверждён, PR https://github.com/ShafranovKirill/delivest-web/pull/20.
+- Root/server `codex/f01-marketing-policies`; server F01 `7865c5d` + CI fixture fix `591030c`, clean и push подтверждён, PR https://github.com/ShafranovKirill/delivest-ex/pull/31 готов к ревью.
+- Client `codex/f01-notifications`: 3e08c77, 5d1dda5, 9f60b3a, canonical generated types `0f0d8ca`; clean, push подтверждён, PR https://github.com/ShafranovKirill/delivest-web/pull/20.
 - Agent `codex/f01-optional-deliveries`: 27c94f1; clean, push подтверждён, PR https://github.com/ShafranovKirill/delivest-agent/pull/8. Restore отменяет optional_feature jobs, сохраняет core.
 - Зависимая основа уже готова, CI зелёный, не merged: root #34 / server #30 / agent #7. Base server7176fa5 / agent1395fe0 / rootd922829. F01 PR включают эту ещё не слитую основу; интеграция только после ревью владельца.
 
@@ -26,8 +26,9 @@
 - Root финальный `mix precommit` fresh f01accept3_20261110: **1536 tests, 0 failures, 7 excluded**, compile warnings-as-errors / format / strict Credo зелёные. Лог /tmp/delivest-f01-final-precommit3-20261110.log. Dialyzer passed (2 прежних предупреждения штатно исключены, unnecessary skips0); /tmp/delivest-f01-final-dialyzer-20261110.log. Первый прогон1530/20fail был загрязнён unboxed NotificationsConcurrency fixture; cleanup исправлен, оба повторных свежих прогона зелёные.
 - Root agent integration + full_backup targeted **25/25**, /tmp/delivest-f01-final-agent-20261110.log. Root client auth7/7 + push10/10; worker typecheck/build зелёные.
 - Independent high review: финансовые owner/source fences, frozen cohorts, pause/resume, Report cleaning/comparison locks, manual impact guard, generic disabled role permissions — без открытых замечаний. Reviewer также независимо Report+Notifications15/15 fresh DB. DB finance/completion races2/2 входят в default CI.
-- Ручной browser test на изолированной test DB: пять шагов → сохранённый черновик, Back сохраняет сообщение, RU/EN, dark contrast, исключения без UUID. UI worker6/6 regressions, scoped compile/format clean. Временный сервер localhost4402, MIX_TEST_PARTITION=f01visual20261110, unified exec84959 (TTY, остановить двумя Ctrl-C).
-- Comparison picker pager завершён: следующие страницы по50, выбор сохраняется, тест52политики+скрытая область; UI7/7. Независимые ревью закрыли все найденные замечания. На момент этого коммита остаются root gitlinks/PR и remote CI; проверять актуальный статус на PR перед интеграцией. Временный сервер4402 остановить после ручной проверки.
+- Ручной browser test на изолированной test DB: пять шагов → сохранённый черновик, Back сохраняет сообщение, RU/EN, dark contrast, исключения без UUID. UI worker7/7 regressions, scoped compile/format clean. Временный сервер4402 остановлен после проверки; customer sends не выполнялись.
+- Comparison picker pager завершён: следующие страницы по50, выбор сохраняется, тест52политики+скрытая область; UI7/7. Независимые ревью закрыли все найденные замечания. Общий PR https://github.com/ShafranovKirill/delivest/pull/35; актуальный remote CI проверять на нём перед интеграцией.
+- Первый remote CI: root server/agent/static/Playwright прошли, client упал на несовпадении повторной генерации типов; standalone server упал на старом ZvonokTest без Sandbox. Исправлены `0f0d8ca` (только canonical generated types, повторная генерация идентична) и `591030c` (только ExUnit.Case→DataCase, targeted5/0 и13/0). Финальный повтор precommit в f01accept4_20261110 и remote CI на новых gitlinks ещё идут на момент коммита; логи /tmp/delivest-f01-final-precommit4-20261110.log.
 - Все миграции/проверки строго MIX_ENV=test TEST_DB_HOST=127.0.0.1 MIX_TEST_PARTITION=новое_имя. Старые default/worker partitions могли иметь drift; не использовать и не латать вручную. Root независимо проверил финальные migration24/25 up/down/up в f01schemafinal20261110; OpenAPI JSON совпадает с client snapshot. Schema заморожена.
 
 ## Источники
