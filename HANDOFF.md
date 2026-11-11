@@ -1,5 +1,9 @@
 # Delivest — F01, краткая передача
 
+## Иконка кнопки сайдбара — 11 ноября 2026
+
+По прямому запросу владельца кнопка сворачивания sidebar получает outline иконку с двумя панелями по предоставленному скриншоту (узкая панель слева). Иконка сохраняет ориентацию при сворачивании; поведение кнопки остаётся прежним. Ветка root/server `codex/sidebar-panel-icon` продолжает согласованный UI стек и удаление отдельной кнопки настроек филиала. Проверено: targeted `mix precommit test/delivest_web/live/staff/staff_shell_test.exs` — 4 tests, 0 failures; strict Credo clean, лог `/tmp/delivest-sidebar-icon-precommit.log`. Root просмотрел diff и проверил в browser collapse/expand и внешний вид. В develop/main не интегрировать без ревью всего зависимого стека.
+
 ## Удаление кнопки настроек филиала — 11 ноября 2026
 
 По прямому запросу владельца удалена отдельная кнопка «Настройки филиала» под переключателем филиалов в sidebar. Обновлены существующие server shell и browser shell проверки; мобильный E2E переход для проверки закрытия overlay теперь использует статистику. Ветка root/server `codex/remove-sidebar-branch-settings` продолжает актуальный UI стек `54f9e3b` / `be493cc3`, который ещё не интегрирован в develop. Демо на localhost:4000 обновлено, отсутствие кнопки подтверждено в браузере. Root targeted `mix precommit test/delivest_web/live/staff/staff_shell_test.exs`: 4 tests, 0 failures, compile/format/strict Credo clean; лог `/tmp/delivest-remove-sidebar-settings-precommit.log`. E2E изменён, но не запускался. Merge зависимого стека в develop/main не выполняется.
