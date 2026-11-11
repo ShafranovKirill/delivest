@@ -1,5 +1,9 @@
 # Delivest — F01, краткая передача
 
+## Удаление кнопки настроек филиала — 11 ноября 2026
+
+По прямому запросу владельца удалена отдельная кнопка «Настройки филиала» под переключателем филиалов в sidebar. Обновлены существующие server shell и browser shell проверки; мобильный E2E переход для проверки закрытия overlay теперь использует статистику. Ветка root/server `codex/remove-sidebar-branch-settings` продолжает актуальный UI стек `54f9e3b` / `be493cc3`, который ещё не интегрирован в develop. Демо на localhost:4000 обновлено, отсутствие кнопки подтверждено в браузере. Root targeted `mix precommit test/delivest_web/live/staff/staff_shell_test.exs`: 4 tests, 0 failures, compile/format/strict Credo clean; лог `/tmp/delivest-remove-sidebar-settings-precommit.log`. E2E изменён, но не запускался. Merge зависимого стека в develop/main не выполняется.
+
 ## Новый shell админки — проверки и push снова разрешены владельцем
 
 Последнее указание владельца отменяет прежнюю паузу проверок: самостоятельно довести интерфейс в спокойном стиле Linear, проверить всё, включая телефон, и обязательно отправить в origin. Вопросов владельцу не задавать. Текущая root/server ветка `codex/admin-spacing-and-safe-branch-delete`; весь незакоммиченный UI WIP ниже относится к этой же согласованной работе.

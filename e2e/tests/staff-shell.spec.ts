@@ -9,7 +9,6 @@ const shellIds = [
   'main-sidebar',
   'sidebar-toggle',
   'header-branch',
-  'sidebar-branch-settings',
   'staff-profile-trigger',
   'staff-profile-menu',
   'command-palette-trigger',
@@ -37,7 +36,7 @@ test('desktop shell has one page title and keeps global controls in the sidebar'
     expect(await page.locator(`#${id}`).count(), `${id} should be unique`).toBe(1)
   }
   await expect(page.locator('#main-sidebar #header-branch')).toBeVisible()
-  await expect(page.locator('#main-sidebar #sidebar-branch-settings')).toHaveAttribute('href', /\/staff\/branches\/e2e\/edit$/)
+  await expect(page.locator('#main-sidebar #sidebar-branch-settings')).toHaveCount(0)
   await expect(page.locator('#main-sidebar #staff-profile-trigger')).toBeVisible()
   await expect(page.locator('#main-sidebar #command-palette-trigger')).toBeVisible()
 
@@ -161,8 +160,8 @@ test('mobile rail stays usable and expanded navigation closes after a route chan
     await expect(page.locator('#staff-sidebar-overlay')).toBeVisible()
     await expectNoHorizontalOverflow(page)
 
-    await page.locator('#sidebar-branch-settings').click()
-    await expect(page).toHaveURL(/\/staff\/branches\/e2e\/edit$/)
+    await page.locator('#main-sidebar nav a[href="/staff/statistics"]').click()
+    await expect(page).toHaveURL(/\/staff\/statistics$/)
     await expect(page.locator('html')).not.toHaveAttribute('data-sidebar-open', '')
     await expect(toggle).toBeVisible()
     await expectNoHorizontalOverflow(page)
