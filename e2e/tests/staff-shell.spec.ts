@@ -198,11 +198,15 @@ test('mobile sidebar opens from the header and closes after a route change', asy
     await expect(title).toBeVisible()
     await expect(page.locator('h1:visible')).toHaveCount(1)
     const titleBox = await title.boundingBox()
-    const actionsBox = await page.locator('#staff-header > div:last-child').boundingBox()
+    const utilities = page.locator('#staff-header .staff-header-utilities')
+    const utilitiesVisible = await utilities.isVisible()
+    const rightBoundary = await (utilitiesVisible ? utilities : page.locator('#staff-header')).boundingBox()
     expect(titleBox).not.toBeNull()
-    expect(actionsBox).not.toBeNull()
+    expect(rightBoundary).not.toBeNull()
     expect(titleBox!.width).toBeGreaterThan(30)
-    expect(titleBox!.x + titleBox!.width).toBeLessThanOrEqual(actionsBox!.x + 1)
+    expect(titleBox!.x + titleBox!.width).toBeLessThanOrEqual(
+      (utilitiesVisible ? rightBoundary!.x : rightBoundary!.x + rightBoundary!.width) + 1,
+    )
 
     await page.locator('#main-sidebar nav a[href="/staff/statistics"]').click()
     await expect(page).toHaveURL(/\/staff\/statistics$/)
