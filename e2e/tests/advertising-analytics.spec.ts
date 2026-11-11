@@ -32,9 +32,11 @@ async function rebuildUntilVisible(page: Page, path: string, selector: string) {
 
 async function selectStaffTheme(page: Page, theme: 'light' | 'dark') {
   if (await page.locator('html').getAttribute('data-theme') === theme) return
-  await page.locator('header .dropdown').last().locator(':scope > [role="button"]').click()
+  const profile = page.locator('#staff-profile-trigger')
+  await profile.click()
   await page.locator(`#header-theme-${theme}`).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
+  await profile.click()
 }
 
 async function expectNoHorizontalOverflow(page: Page) {
