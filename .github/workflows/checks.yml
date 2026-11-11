@@ -98,6 +98,8 @@ jobs:
           node-version: 22.22.2
       - name: Check load harness
         run: node --test scripts/load/*.test.mjs
+      - name: Check clipboard hook
+        run: node --experimental-default-type=module --test server/assets/js/hooks/copy_link.test.mjs
       - name: Check gitlinks
         run: |
           for name in server client agent; do

@@ -1,6 +1,7 @@
 # План работ Delivest
 
 Семь задач UI и операций от 11 ноября: [результаты, проверки и границы](SEVEN_TASKS_PROGRESS.md).
+Согласованный общий Header/Sidebar и исходные критерии: [план UI и операций](2026-11-11-ui-and-operations-plan.md).
 
 Текущий локальный результат и открытые gates: [S5 checkpoint](S5_CHECKPOINT.md).
 
