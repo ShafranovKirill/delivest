@@ -22,8 +22,8 @@ export default defineConfig({
   webServer: [
     {
       command: 'mix phx.server',
-      cwd: '../server',
-      url: `http://localhost:${serverPort}/staff/auth/login`,
+      cwd: process.env.DELIVEST_E2E_SERVER_DIR || '../server',
+      url: `http://127.0.0.1:${serverPort}/staff/auth/login`,
       env: {
         DEV_DATABASE: process.env.DEV_DATABASE || 'delivest_e2e',
         PORT: String(serverPort),
