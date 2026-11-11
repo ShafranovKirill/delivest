@@ -1,6 +1,7 @@
 import { expect, type Page } from '@playwright/test'
 import { branchPage } from '../support/staff'
 import { test } from '../support/test'
+import { adminUrl } from '../support/env'
 
 type Section = {
   path: string
@@ -12,22 +13,24 @@ type Section = {
 }
 
 const sections: Section[] = [
-  { path: 'products', key: 'products', title: 'Товары', height: 120, action: '#create-product', description: 'Управление товарами филиала, ценами и категориями.' },
-  { path: 'products/stops', key: 'stops', title: 'Стоп-лист', height: 64, description: 'Товары в стоп-листе не продаются на сайте и в каналах.' },
-  { path: 'products/modifiers', key: 'modifiers', title: 'Модификаторы', height: 120, action: 'button[phx-click="new_group"]', description: 'Размер, тесто и добавки. Группа создаётся один раз и подключается ко многим товарам.' },
-  { path: 'products/tags', key: 'tags', title: 'Теги', height: 120, action: 'a[href$="/products/tags/new"]', description: 'Теги показываются на карточках товаров на сайте.' },
-  { path: 'products/suggested', key: 'suggested', title: 'Рекомендуемые', height: 64, description: 'Рекомендуемые товары предлагаются в корзине на сайте.' },
+  { path: 'products', key: 'products', title: 'Товары', height: 104, action: '#create-product', description: 'Управление товарами филиала, ценами и категориями.' },
+  { path: 'products/stops', key: 'stops', title: 'Стоп-лист', height: 48, description: 'Товары в стоп-листе не продаются на сайте и в каналах.' },
+  { path: 'products/modifiers', key: 'modifiers', title: 'Модификаторы', height: 104, action: 'button[phx-click="new_group"]', description: 'Размер, тесто и добавки. Группа создаётся один раз и подключается ко многим товарам.' },
+  { path: 'products/tags', key: 'tags', title: 'Теги', height: 104, action: 'a[href$="/products/tags/new"]', description: 'Теги показываются на карточках товаров на сайте.' },
+  { path: 'products/suggested', key: 'suggested', title: 'Рекомендуемые', height: 48, description: 'Рекомендуемые товары предлагаются в корзине на сайте.' },
 ]
 
 async function expectSectionHeader(page: Page, section: Section) {
   const header = page.locator('#staff-header')
-  const title = header.locator('#staff-header-title h1:visible')
+  const title = page.locator('main h1.sr-only')
   const nav = header.getByRole('navigation', { name: 'Товары' })
   const actions = header.locator('#staff-header-actions')
   const selected = nav.locator(`#product-section-tab-${section.key}`)
 
   await expect(title).toHaveCount(1)
-  await expect(title).toHaveAttribute('title', section.title)
+  await expect(title).toHaveText(section.title)
+  await expect(header.locator('h1, #staff-header-context, .staff-header-fallback')).toHaveCount(0)
+  await expect(header).toHaveAttribute('data-header-layout', 'product-tabs')
   await expect(nav.getByRole('tab')).toHaveCount(5)
   await expect(selected).toHaveAttribute('aria-current', 'page')
   await expect(selected).toHaveAttribute('aria-selected', 'true')
@@ -53,11 +56,13 @@ async function expectSectionHeader(page: Page, section: Section) {
     document.documentElement.scrollWidth - document.documentElement.clientWidth,
   )).toBeLessThanOrEqual(1)
 
-  const titleBox = await title.boundingBox()
   const tabBox = await selected.boundingBox()
-  expect(titleBox && tabBox).toBeTruthy()
-  expect(Math.abs(titleBox!.y - tabBox!.y)).toBeLessThan(12)
-  await expect.poll(() => title.evaluate((element) => getComputedStyle(element).borderInlineEndWidth)).not.toBe('0px')
+  expect(tabBox).not.toBeNull()
+  expect(tabBox!.y).toBe(0)
+  expect(tabBox!.height).toBe(48)
+  await expect(selected).toHaveCSS('border-bottom-width', '0px')
+  await expect(header).toHaveCSS('border-bottom-width', '0px')
+  if (section.action) await expect(actions).toHaveCSS('border-top-width', '0px')
   await expect.poll(() => nav.evaluate((element) => {
     const tab = element.querySelector('[aria-current="page"]')!.getBoundingClientRect()
     const viewport = element.getBoundingClientRect()
@@ -65,12 +70,36 @@ async function expectSectionHeader(page: Page, section: Section) {
   })).toBe(true)
 }
 
-test('all product sections use the connected header tabs on desktop', async ({ staff }) => {
+test('product tabs render before JavaScript connects', async ({ browser, staff }) => {
+  const authenticated = await staff('e2e_admin')
+  const context = await browser.newContext({
+    storageState: await authenticated.context().storageState(),
+    javaScriptEnabled: false,
+  })
+  try {
+    const page = await context.newPage()
+    await page.goto(`${adminUrl}/staff/b/e2e/products/tags`)
+    const header = page.locator('#staff-header')
+    await expect(header.locator('[role=tab]')).toHaveCount(5)
+    await expect(header.locator('#product-section-tab-tags')).toHaveAttribute('aria-current', 'page')
+    await expect(header.locator('h1, #staff-header-context, .staff-header-fallback')).toHaveCount(0)
+    await expect(header).toHaveAttribute('data-header-actions', 'true')
+    await expect.poll(() => header.evaluate(e => e.getBoundingClientRect().height)).toBe(104)
+  } finally {
+    await context.close()
+  }
+})
+
+test('all product sections keep the same tab positions on desktop', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.setViewportSize({ width: 1440, height: 900 })
+  await branchPage(page, sections[0].path)
+  const initialBoxes = await page.locator('#staff-page-header-navigation [role=tab]').evaluateAll(elements => elements.map(e => ({x: e.getBoundingClientRect().x, width: e.getBoundingClientRect().width})))
   for (const section of sections) {
-    await branchPage(page, section.path)
+    await page.locator(`#product-section-tab-${section.key}`).click()
     await expectSectionHeader(page, section)
+    const boxes = await page.locator('#staff-page-header-navigation [role=tab]').evaluateAll(elements => elements.map(e => ({x: e.getBoundingClientRect().x, width: e.getBoundingClientRect().width})))
+    expect(boxes).toEqual(initialBoxes)
   }
 
   await branchPage(page, 'products/modifiers')
