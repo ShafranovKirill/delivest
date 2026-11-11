@@ -1,5 +1,28 @@
 # Delivest — F01, краткая передача
 
+## F04 capture — 11 ноября 2026
+
+Принят первый блок F04: opt-in сбор ограниченных клиентских событий, серверные
+сессии с 30 минутами idle и raw retention 90 дней. Host gate по умолчанию
+выключен; удаление старых raw выполняет штатный maintenance worker даже при
+выключенном сборе. `branch_info.analytics_funnel_enabled` сообщает клиенту
+состояние capture. Клиентские UTM метки не подтверждают атрибуцию или выручку;
+created/paid/completed различаются, для выручки и активности учитывается только
+completed. Полная F04 с lifecycle, first source, атрибуцией, агрегатами за
+36 месяцев, dashboard и рекламными ссылками остаётся впереди. Основа F01 ещё
+не merged в develop; demo/production данные и paused policy не менялись.
+Решения и реальные проверки: [F04_ACCEPTANCE.md](docs/tasks/F04_ACCEPTANCE.md).
+После отдельного исправления локализации навигации `297ad86` полный server
+`mix precommit` на свежей test partition прошёл: **1601 tests, 0 failures
+(7 excluded)**; лог `/tmp/delivest-f04-final-precommit.log`. Клиентские
+коммиты слайдера `fac6600` и capture `3c72d59` приняты; независимые проверки
+клиента: regression 55/55, auth 7/7 и typecheck. Главный агент просмотрел
+server diff и независимо проверил primary API/Phone/Features 16/0 и свежий
+API/palette `--seed 0` 14/0 (лог `/tmp/delivest-f04-root-final-tests.log`).
+Живой client→HTTP E2E и отдельный двухсоединительный SKIP LOCKED drill не
+проводились; pilot capacity не измерялась. Это приёмка первого capture блока,
+не всей F04. Production/demo данные не изменялись.
+
 ## Ручной запуск фоновых расчётов — завершение 11 ноября 2026
 
 В ветке root/server `codex/run-background-calculations-now` реализована кнопка «Рассчитать сейчас» для четырёх тяжёлых задач оркестратора: `segments.refresh`, `marketing.preview`, `marketing.report` и `marketing.evaluate`. Минутная доставка `notifications.dispatch` исключена. Глобальный запуск оценки маркетинговых политик доступен только с правами `marketing.manage` и `marketing.network`; интерфейс прямо предупреждает, что расчёт может выдать награды клиентам. Пользовательская действующая бонусная политика сейчас на паузе — её состояние не менять. Server backend `41bdc59` и UI `d0e4dad` уже закоммичены и отправлены; root готовит коммит gitlink. Владелец попросил доставку только через commit и push, без PR и merge.
