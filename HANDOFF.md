@@ -1,5 +1,15 @@
 # Delivest — F01, краткая передача
 
+## Уточнение структуры настроек и диагностика — 11 ноября 2026
+
+По следующему уточнению владельца `/staff/settings` теперь содержит три карточки: «Общие настройки», «Настройки филиалов» (существующий `/staff/branches` с созданием и действиями каждого филиала) и «Интеграции». Отдельные пункты «Филиалы», «Интеграции» и филиальная «Доставка» удалены из sidebar. В настройках конкретного филиала есть карточка «Доставка», а в списке филиалов — отдельные кнопки настроек и доставки. Журнал и метрики объединены в раскрывающуюся «Диагностику». Вложенные настройки подсвечивают общий пункт Settings.
+
+Сохранён доступ ограниченных ролей: integration-only открывает соответствующую карточку; delivery-only может пройти через список имён доступных филиалов к доставке, без статуса филиала и identity create/edit/delete. Общие формы и существующие маршруты сохраняют ACL. Поддельные события удаления дополнительно проверяют read/delete и доступность филиала, сбрасывают недопустимый pending объект.
+
+Рабочая ветка root/server `codex/refine-settings-navigation`, созданная от свежего develop с fast-forward предыдущей итерации. Server UI commit `f1728be`; отдельный `43c67a5` изолирует фиктивные Frontpad API keys в async StopSyncTest, чтобы тесты разных филиалов не конкурировали за общий account-wide throttle. Доменный throttle не менялся. Первый full прогон выявил эту гонку и устаревшее ожидание integration sidebar; оба устранены. Root повторный `TEST_DB_HOST=127.0.0.1 MIX_TEST_PARTITION=refine_settings_final_20261111 mix precommit --seed 514522`: **1700 tests, 0 failures, 7 excluded**, compile/format/strict Credo clean; `/tmp/delivest-refine-settings-root-final-precommit.log`. Root Dialyzer passed (2 прежних штатных исключения, unnecessary skips 0); `/tmp/delivest-refine-settings-root-dialyzer.log`. Assets build passed; `/tmp/delivest-refine-settings-assets.log`.
+
+Root просмотрел полный diff; отдельное read-only review дополнительных замечаний не нашло. Browser QA в прежней синтетической БД: три карточки Settings, список филиалов и действия, branch settings → Delivery и возврат, Diagnostics → Logs/Metrics, Settings → Integrations — прошли. Скриншот `sidebar/settings-refined.jpg` в текущем каталоге визуализации. Доставка обновляет существующие PR root #39 / server #35 быстрым продвижением их feature-веток; перед интеграцией всего зависимого стека остаётся ревью владельца. Main/production не менялись.
+
 ## Завершение TODO по sidebar — 11 ноября 2026
 
 Последние четыре TODO из сохранения ниже выполнены. Root/server — `codex/complete-sidebar-settings`, создана от актуального `origin/develop` с fast-forward сохранённого `codex/unified-common-navigation`. Исходные рабочие деревья были чистыми. Исследование и реализация делегированы согласно AGENTS.md; root самостоятельно просмотрел итоговый diff и проверил результат.
