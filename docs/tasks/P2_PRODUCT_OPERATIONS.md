@@ -12,4 +12,6 @@
 
 Лимиты: 5 MiB ZIP, 20 MiB распакованного содержимого, 40 entries, 1000 товаров, 40 колонок, 32 KiB ячейка. Формулы, DTD/ENTITY, внешние relationships, недопустимые ZIP/XML, неизвестный шаблон и ссылки отклоняются. Необычные Excel extensions могут быть отклонены явно.
 
+При общей интеграции Dialyzer обнаружил недостижимую else-ветку decoder; [server PR №46](https://github.com/ShafranovKirill/delivest-ex/pull/46) удалил только её, сохранив rescue/catch. Полный precommit после правки — 1542 теста без ошибок, 7 исключены. Независимый повтор главного агента: 18 XLSX-тестов и Dialyzer прошли.
+
 Проверки: финальный `mix precommit` — 1510 тестов, 0 ошибок, 7 исключены; compile/format/strict Credo прошли. Assets build прошёл отдельно; server typecheck не настроен и не запускался. Независимый прогон главного агента — 42 domain/UI/controller/CSV теста без ошибок. XLSX открыт и пересохранён openpyxl 3.1.5, затем прочитан обратно с сохранением Unicode, numeric prices и bool. Playwright проверил copy, repeat, source preservation, настоящий download/upload и canonical target round trip; независимый повтор главного агента — 1/1. Первый полный прогон выявил гонку тестов с общим cart cache; модули операций переведены в serial mode, полный повтор прошёл.
