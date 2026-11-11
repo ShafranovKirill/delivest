@@ -7,7 +7,9 @@ const shellIds = [
   'staff-header',
   'staff-header-title',
   'main-sidebar',
+  'sidebar-home',
   'sidebar-toggle',
+  'header-new-orders',
   'header-branch',
   'staff-profile-trigger',
   'staff-profile-menu',
@@ -30,12 +32,16 @@ test('desktop shell has one page title and keeps global controls in the sidebar'
   await expect(title).toHaveCount(1)
   await expect(title).not.toBeEmpty()
   await expect(page.locator('main h1:visible')).toHaveCount(0)
-  await expect(page.locator('#staff-header #header-branch, #staff-header #staff-profile-trigger, #staff-header #command-palette-trigger')).toHaveCount(0)
+  await expect(page.locator('#staff-header #header-branch, #staff-header #staff-profile-trigger, #staff-header #command-palette-trigger, #staff-header #header-new-orders')).toHaveCount(0)
 
   for (const id of shellIds) {
     expect(await page.locator(`#${id}`).count(), `${id} should be unique`).toBe(1)
   }
   await expect(page.locator('#main-sidebar #header-branch')).toBeVisible()
+  await expect(page.locator('#sidebar-home')).toHaveAttribute('href', /\/staff\/b\/e2e\/dashboard$/)
+  await expect(page.locator('#sidebar-home')).toHaveText('')
+  await expect(page.locator('#sidebar-top-row .staff-sidebar-top-actions #header-new-orders')).toBeVisible()
+  await expect(page.locator('#nav-section-branch > p')).toHaveCount(0)
   await expect(page.locator('#main-sidebar #sidebar-branch-settings')).toHaveCount(0)
   await expect(page.locator('#main-sidebar #staff-profile-trigger')).toBeVisible()
   await expect(page.locator('#main-sidebar #command-palette-trigger')).toBeVisible()
@@ -105,6 +111,7 @@ test('profile, theme, search, and sidebar collapse work together', async ({ staf
   await page.locator('[data-phx-main].phx-connected').waitFor()
   await expect(page.locator('html')).toHaveAttribute('data-sidebar-collapsed', '')
   await expect(page.locator('#sidebar-toggle')).toBeVisible()
+  await expect(page.locator('#header-new-orders')).toBeVisible()
   await page.locator('#staff-profile-trigger').click()
   await expect(menu).toBeVisible()
   const menuBox = await menu.boundingBox()
@@ -129,7 +136,19 @@ test('mobile rail stays usable and expanded navigation closes after a route chan
     const rail = page.locator('#main-sidebar')
     const toggle = page.locator('#sidebar-toggle')
     await expect(toggle).toBeVisible()
+    await expect(page.locator('#sidebar-home')).toBeVisible()
+    await expect(page.locator('#header-new-orders')).toBeVisible()
     await expect.poll(async () => (await rail.boundingBox())?.width).toBe(80)
+    const topRow = page.locator('#sidebar-top-row')
+    const actions = page.locator('.staff-sidebar-top-actions')
+    await expect.poll(async () => {
+      const [railBox, rowBox, actionsBox] = await Promise.all([
+        rail.boundingBox(), topRow.boundingBox(), actions.boundingBox(),
+      ])
+      return railBox && rowBox && actionsBox
+        ? rowBox.x >= railBox.x && actionsBox.x + actionsBox.width <= railBox.x + railBox.width
+        : false
+    }).toBe(true)
     await expectNoHorizontalOverflow(page)
 
     await page.locator('#staff-profile-trigger').click()

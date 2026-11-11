@@ -1,5 +1,9 @@
 # Delivest — F01, краткая передача
 
+## Верхняя строка сайдбара — 11 ноября 2026
+
+Прямой запрос владельца: маленький логотип без названия слева ведёт на дашборд, уведомления и сворачивание справа в верхней строке sidebar. Bell переносится из header с сохранением ACL, счётчика и hook. Повтор имени выбранного филиала и линия под переключателем удаляются; название остаётся внутри switcher. В узком 80px rail logo находится над парой bell/toggle, в раскрытом sidebar — одна строка. Проверки: targeted `mix precommit` (staff shell, stop list, overdue alerts, dashboard, branch URL) — 27 tests, 0 failures, compile/format/strict Credo clean; `/tmp/delivest-sidebar-top-precommit.log`. E2E TypeScript прошёл, browser E2E runner не запускался. Root просмотрел diff и проверил desktop expanded/collapsed, mobile390px rail/expanded, bell→orders и logo→dashboard, overflow0. Демо обновлено. Ветка root/server `codex/sidebar-top-controls` продолжает текущий UI стек; develop/main не затрагиваются до ревью зависимого стека.
+
 ## Иконка кнопки сайдбара — 11 ноября 2026
 
 По прямому запросу владельца кнопка сворачивания sidebar получает outline иконку с двумя панелями по предоставленному скриншоту (узкая панель слева). Иконка сохраняет ориентацию при сворачивании; поведение кнопки остаётся прежним. Ветка root/server `codex/sidebar-panel-icon` продолжает согласованный UI стек и удаление отдельной кнопки настроек филиала. Проверено: targeted `mix precommit test/delivest_web/live/staff/staff_shell_test.exs` — 4 tests, 0 failures; strict Credo clean, лог `/tmp/delivest-sidebar-icon-precommit.log`. Root просмотрел diff и проверил в browser collapse/expand и внешний вид. В develop/main не интегрировать без ревью всего зависимого стека.
