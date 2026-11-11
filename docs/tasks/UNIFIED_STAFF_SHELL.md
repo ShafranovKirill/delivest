@@ -1,6 +1,6 @@
 # Единая версия Header/Sidebar и P1–P7
 
-Дата: 12 ноября 2026. Объединяется полный согласованный UI стек и все семь задач; интерфейс уже доступен локально на `http://localhost:4000/staff`.
+Дата: 12 ноября 2026. Полный согласованный UI стек и все семь задач объединены в `develop` через [root PR №44](https://github.com/ShafranovKirill/delivest/pull/44), merge SHA `7015c0006804a00ab75218fd151236a5682250f8`. Интерфейс доступен локально на `http://localhost:4000/staff`.
 
 Ветки больше не заменяют друг друга: server `b46b56f5` объединён с `832feed1`, client `8491bc3` — с `c4d9905`, сохранены связанные изменения agent. [Server PR №47](https://github.com/ShafranovKirill/delivest-ex/pull/47), [client PR №22](https://github.com/ShafranovKirill/delivest-web/pull/22) и [agent PR №8](https://github.com/ShafranovKirill/delivest-agent/pull/8) приняты в `develop`. Канонические gitlinks: server `b72a5e40ca8fa5ba823b0c92216319bacb1f8cf2`, client `d01b89d691de5d604ec36357ed44f882d7a73cfc`, agent `f8f43512822020ec70746e5136f2c9f32772aef3`.
 
