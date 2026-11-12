@@ -74,56 +74,81 @@ for (const cached of [false, true])
     })
   }
 
-test('without SSI, stale scooter stays hidden while the API is pending', async ({
-  page,
-}) => {
-  await page.addInitScript(() => {
-    localStorage.setItem(
-      'franchise',
-      JSON.stringify({ franchise: { primary_color: '#abcdef' } }),
+for (const { name, cache, mode, expectedColor } of [
+  { name: 'cold light', cache: null, mode: 'light', expectedColor: '#462094' },
+  { name: 'cold dark', cache: null, mode: 'dark', expectedColor: '#462094' },
+  {
+    name: 'cached light',
+    cache: JSON.stringify({
+      franchise: { primary_color: '#abcdef', dark_primary_color: '#fedcba' },
+    }),
+    mode: 'light',
+    expectedColor: '#abcdef',
+  },
+  {
+    name: 'cached dark',
+    cache: JSON.stringify({
+      franchise: { primary_color: '#abcdef', dark_primary_color: '#fedcba' },
+    }),
+    mode: 'dark',
+    expectedColor: '#fedcba',
+  },
+  {
+    name: 'unsafe cache',
+    cache: JSON.stringify({
+      franchise: { primary_color: '#abcdef; background: red' },
+    }),
+    mode: 'light',
+    expectedColor: '#462094',
+  },
+  {
+    name: 'malformed cache',
+    cache: '{',
+    mode: 'light',
+    expectedColor: '#462094',
+  },
+]) {
+  test(`without SSI, ${name} shows a colored scooter before the API responds`, async ({
+    page,
+  }) => {
+    await page.addInitScript(
+      ({ stored, theme }) => {
+        localStorage.setItem('delivest-theme', theme)
+        if (stored === null) localStorage.removeItem('franchise')
+        else localStorage.setItem('franchise', stored)
+      },
+      { stored: cache, theme: mode },
     )
-  })
-  let release!: () => void
-  const gate = new Promise<void>((resolve) => (release = resolve))
-  await page.route('**/client/franchise', async (route) => {
-    await gate
-    await route.continue()
-  })
-  await page.goto(`/${branchSlug}`, { waitUntil: 'domcontentloaded' })
-  await expect(page.locator('.boot-scooter')).toBeHidden()
-  await expect(page.locator('.boot')).toBeVisible()
-  await expect(page.locator('.boot-road')).toBeVisible()
-  release()
-  await expect(page.locator('.boot')).toHaveCount(0)
-})
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    await page.route('**/client/franchise', async (route) => {
+      await gate
+      await route.continue()
+    })
+    await page.route('**/*', async (route) => {
+      if (route.request().isNavigationRequest()) {
+        const response = await route.fetch()
+        const html = (await response.text()).replace(
+          /<meta name="(?:theme-color|delivest-brand-color-dark|delivest-default-theme)"[^>]*>/g,
+          '',
+        )
+        await route.fulfill({ response, body: html })
+      } else {
+        await route.fallback()
+      }
+    })
 
-test('rejects an unsafe cached color before the API responds', async ({
-  page,
-}) => {
-  await page.addInitScript(() => {
-    localStorage.setItem(
-      'franchise',
-      JSON.stringify({
-        franchise: { primary_color: '#abcdef; background: red' },
-      }),
-    )
+    await page.goto(`/${branchSlug}`, { waitUntil: 'domcontentloaded' })
+    const scooter = page.locator('.boot-scooter')
+    await expect(scooter).toBeVisible()
+    await expect(page.locator('.boot-road')).toBeVisible()
+    const rgb = `rgb(${parseInt(expectedColor.slice(1, 3), 16)}, ${parseInt(expectedColor.slice(3, 5), 16)}, ${parseInt(expectedColor.slice(5, 7), 16)})`
+    await expect(scooter).toHaveCSS('color', rgb)
+    await expect(page.locator('html')).not.toHaveClass(/boot-color-pending/)
+    release()
+    await expect(page.locator('.boot')).toHaveCount(0)
   })
-  let release!: () => void
-  const gate = new Promise<void>((resolve) => (release = resolve))
-  await page.route('**/client/franchise', async (route) => {
-    await gate
-    await route.continue()
-  })
-  await page.goto(`/${branchSlug}`, { waitUntil: 'domcontentloaded' })
-  expect(
-    await page
-      .locator('html')
-      .evaluate((html) => html.style.getPropertyValue('--boot-color-light')),
-  ).toBe('')
-  await expect(page.locator('.boot-scooter')).toBeHidden()
-  release()
-  await expect(page.locator('.boot')).toHaveCount(0)
-})
+}
 
 test('switching branches keeps franchise colors and changing theme selects its dark color', async ({
   page,

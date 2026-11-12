@@ -39,7 +39,7 @@ cd delivest
 make setup
 ```
 
-`make setup` starts postgres and S3, installs the dependencies, creates and migrates the database, creates the buckets, seeds the roles and creates the admin account `admin123` / `AdminSecret123!`. Then run `make seed` for a branch with the example menu and promotions, or sign in to http://localhost:4000/staff and create a branch by hand.
+`make setup` starts postgres and S3, installs the dependencies, creates and migrates the database, creates the buckets, seeds the roles and creates the admin account `admin123` / `AdminSecret123!`. Then run `make seed` for the legacy example menu and promotions, or sign in to http://localhost:4000/staff and create a branch by hand. For the current standard test configuration (5 categories, 30 products, 6 banners), use `make demo-menu` after a local branch and staff account exist. It reads `DEMO_MENU_BRANCH_SLUGS` (default: `demo-center,demo-north,demo-south`) and uses only the already configured local database and S3; see [examples/demo-menu/README.md](examples/demo-menu/README.md).
 
 Every day:
 
@@ -67,6 +67,7 @@ The client must run on port 3000, the server accepts requests only from `http://
 | `make roles`      | Seed the system roles                                              |
 | `make admin`      | Create the admin account                                           |
 | `make branch`     | Fill the first branch info (address, phone, schedule, map) and the franchise settings (name, about, legal details) with example data |
+| `make demo-menu`  | Apply the current standard local test menu: 30 products and 6 banners |
 | `make menu`       | Seed the first branch with the example menu and photos from `server/priv/images` |
 | `make stocks`     | Seed the first branch with the example promotions and photos       |
 | `make db-reset`   | Recreate the database and run `make seed`, **deletes all data**    |
