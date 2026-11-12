@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "banners": [
+    {
+      "stock_id": "40e7bfb6-ea35-4e70-882d-099843da7e2d",
+      "media_id": "29236e0a-d551-4e0c-80cc-e80e377a8005",
+      "text": "Вечер вкуснее",
+      "asset": "banners/1.webp",
+      "order": 1
+    },
+    {
+      "stock_id": "3e07bf04-ac0d-453e-9000-9f827037adea",
+      "media_id": "e18d5c88-5b05-40b1-979a-cc061365e885",
+      "text": "Время обеда",
+      "asset": "banners/2.webp",
+      "order": 2
+    },
+    {
+      "stock_id": "5ff15abb-2cfa-43e1-8988-19ba72cddb40",
+      "media_id": "21a4ae9f-ea43-4afc-a207-7dbc66f51d22",
+      "text": "Попробуй новое",
+      "asset": "banners/3.webp",
+      "order": 3
+    },
+    {
+      "stock_id": "717489b8-182a-4fcb-a217-29fdecaff2d2",
+      "media_id": "bb794fcd-e1a1-4029-bfd7-577b0f757774",
+      "text": "Сладкая пауза",
+      "asset": "banners/4.webp",
+      "order": 4
+    },
+    {
+      "stock_id": "9e5da141-159a-4597-ac3a-a2052a34fb6c",
+      "media_id": "06b87560-4e05-47d5-8e86-673142bee317",
+      "text": "На двоих",
+      "asset": "banners/5.webp",
+      "order": 5
+    },
+    {
+      "stock_id": "cabcefb8-cb06-4818-97d8-e6ab3d439ba0",
+      "media_id": "91755371-56f3-431f-838f-dfdfc54077e7",
+      "text": "Идеальная пара",
+      "asset": "banners/6.webp",
+      "order": 6
+    }
+  ]
+}
