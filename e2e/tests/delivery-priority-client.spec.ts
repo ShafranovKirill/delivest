@@ -148,6 +148,9 @@ test("address choice shows the server quote and clears it while another point is
 test("below minimum shows delivery price and keeps address confirmation available", async ({
   page,
 }) => {
+  await page.route("**/client/geo/suggest**", async (route) => {
+    await route.fulfill({ json: { data: [first] } });
+  });
   await page.route("**/client/delivery/quote**", async (route) => {
     await route.fulfill({
       json: {
@@ -167,7 +170,8 @@ test("below minimum shows delivery price and keeps address confirmation availabl
   await page.goto("/e2e");
   await page.getByRole("button", { name: "590 ₽" }).click();
   await page.getByText("Указать адрес доставки").click();
-  await page.getByLabel("Город, улица, дом").fill("Москва, Тверская, 7");
+  await page.getByLabel("Город, улица, дом").fill("Тверская, 7");
+  await page.getByRole("option", { name: /Тверская.*7/ }).click();
   const caption = page.getByTestId("delivery-quote-caption");
   await expect(caption).toContainText("Центр");
   await expect(caption).toContainText("100 ₽");
