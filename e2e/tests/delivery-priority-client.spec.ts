@@ -117,11 +117,14 @@ test("address choice shows the server quote and clears it while another point is
   await page.getByRole("button", { name: "590 ₽" }).click();
   await page.getByText("Указать адрес доставки").click();
   const input = page.getByLabel("Город, улица, дом");
+  const confirmAddress = page.getByRole("button", { name: "Подтвердить адрес" });
   await input.fill("Тверская, 7");
+  await expect(confirmAddress).toBeDisabled();
   await page.getByRole("option", { name: /Тверская.*7/ }).click();
   const caption = page.getByTestId("delivery-quote-caption");
   await expect(caption).toContainText("Центр");
   await expect(caption).toContainText("150 ₽");
+  await expect(confirmAddress).toBeEnabled();
   const canvas = page.locator(".maplibregl-canvas");
   await expect(canvas).toBeVisible();
   await expect(page.locator('[aria-busy="true"]')).toBeHidden();
