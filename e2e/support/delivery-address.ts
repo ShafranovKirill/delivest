@@ -14,6 +14,12 @@ const address = {
 }
 
 export async function mockDeliveryAddressSuggestion(page: Page) {
+  await page.route('**/client/franchise', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.data.address_map = true
+    await route.fulfill({ response, json: body })
+  })
   await page.route('**/client/geo/suggest**', async (route) => {
     await route.fulfill({ json: { data: [address] } })
   })

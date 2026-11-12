@@ -148,6 +148,12 @@ test("address choice shows the server quote and clears it while another point is
 test("below minimum shows delivery price and keeps address confirmation available", async ({
   page,
 }) => {
+  await page.route("**/client/franchise", async (route) => {
+    const response = await route.fetch();
+    const body = await response.json();
+    body.data.address_map = true;
+    await route.fulfill({ response, json: body });
+  });
   await page.route("**/client/geo/suggest**", async (route) => {
     await route.fulfill({ json: { data: [first] } });
   });
