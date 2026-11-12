@@ -64,7 +64,7 @@ test('cached franchise theme follows a delayed server refresh until the visitor 
   await page.goto('/e2e', { waitUntil: 'domcontentloaded' })
   await started
   await expect(page.locator('.boot')).toBeVisible()
-  await expect(page.locator('.boot-scooter')).toBeHidden()
+  await expect(page.locator('.boot-scooter')).toBeVisible()
   await expect(page.locator('header')).toHaveCount(0)
   expect(await page.evaluate(() => localStorage.getItem('delivest-theme'))).toBeNull()
 
