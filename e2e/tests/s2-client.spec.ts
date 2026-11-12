@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { mockDeliveryAddressSuggestion } from '../support/delivery-address'
 
 for (const width of [1280, 390]) {
   test(`empty cart returns to menu at ${width}px`, async ({ page }) => {
@@ -58,6 +59,7 @@ test('cart mutation error is visible and retry succeeds', async ({ page }) => {
 })
 
 test('pending delivery quote blocks address confirmation until the quote is fresh', async ({ page }) => {
+  await mockDeliveryAddressSuggestion(page)
   let release!: () => void
   const gate = new Promise<void>((resolve) => { release = resolve })
   await page.route('**/client/delivery/quote**', async (route) => {
@@ -70,7 +72,8 @@ test('pending delivery quote blocks address confirmation until the quote is fres
   await page.goto('/e2e')
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByText('Указать адрес доставки').click()
-  await page.getByLabel('Город, улица, дом').fill('Москва, Тверская, 7')
+  await page.getByLabel('Улица, дом').fill('Тверская, 7')
+  await page.getByRole('option', { name: /Тверская.*7/ }).click()
   const confirm = page.getByRole('button', { name: 'Подтвердить адрес' })
   await expect(confirm).toBeDisabled()
   await expect(page.getByTestId('delivery-quote-caption')).toContainText('Проверяем стоимость доставки')

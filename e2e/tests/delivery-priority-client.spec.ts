@@ -116,7 +116,7 @@ test("address choice shows the server quote and clears it while another point is
   await page.goto("/e2e");
   await page.getByRole("button", { name: "590 ₽" }).click();
   await page.getByText("Указать адрес доставки").click();
-  const input = page.getByLabel("Город, улица, дом");
+  const input = page.getByLabel("Улица, дом");
   const confirmAddress = page.getByRole("button", { name: "Подтвердить адрес" });
   await input.fill("Тверская, 7");
   await expect(confirmAddress).toBeDisabled();
@@ -170,7 +170,7 @@ test("below minimum shows delivery price and keeps address confirmation availabl
   await page.goto("/e2e");
   await page.getByRole("button", { name: "590 ₽" }).click();
   await page.getByText("Указать адрес доставки").click();
-  await page.getByLabel("Город, улица, дом").fill("Тверская, 7");
+  await page.getByLabel("Улица, дом").fill("Тверская, 7");
   await page.getByRole("option", { name: /Тверская.*7/ }).click();
   const caption = page.getByTestId("delivery-quote-caption");
   await expect(caption).toContainText("Центр");
