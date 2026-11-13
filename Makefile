@@ -14,7 +14,7 @@ export COMPOSE_IGNORE_ORPHANS := 1
 SESSION := delivest
 COMPOSE := docker compose -p delivest-ex -f server/docker-compose.yml
 
-.PHONY: dev stop infra infra-down setup server client roles admin branch menu stocks seed db-reset test e2e-db e2e contract check schema pull logs
+.PHONY: dev stop infra infra-down setup server client roles admin branch menu stocks demo-menu seed db-reset test e2e-db e2e contract check schema pull logs
 
 dev: infra
 	@tmux has-session -t $(SESSION) 2>/dev/null || \
@@ -52,6 +52,9 @@ admin: infra
 
 branch: infra
 	cd server && mix delivest.seed_branch
+
+demo-menu:
+	cd server && MIX_ENV=dev mix run ../examples/demo-menu/apply.exs
 
 menu: infra
 	cd server && mix delivest.seed_catalog

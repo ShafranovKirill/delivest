@@ -17,13 +17,13 @@ test('the admin opens the delivery sections and saves the courier settings', asy
   const next = before === 'ready' ? 'preparing' : 'ready'
 
   await search.selectOption(next)
-  await admin.locator('#couriers-form button[type=submit]').click()
+  await admin.locator('#staff-header-actions button[form="couriers-form"]').click()
   await admin.waitForURL(/\/delivery$/)
 
   await admin.locator('#delivery-couriers-card').click()
   await expect(search).toHaveValue(next)
 
   await search.selectOption(before)
-  await admin.locator('#couriers-form button[type=submit]').click()
+  await admin.locator('#staff-header-actions button[form="couriers-form"]').click()
   await admin.waitForURL(/\/delivery$/)
 })

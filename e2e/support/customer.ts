@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { mockDeliveryAddressSuggestion, selectDeliveryAddress } from './delivery-address'
 
 type Fulfillment = "delivery" | "pickup";
 
@@ -7,7 +8,7 @@ const chooseFulfillment = async (page: Page, fulfillment: Fulfillment) => {
     await page.getByText("Заберу самостоятельно").click();
   } else {
     await page.getByText("Указать адрес доставки").click();
-    await page.getByLabel("Город, улица, дом").fill("Москва, Тверская, 7");
+    await selectDeliveryAddress(page)
   }
 
   const confirmLabel = fulfillment === "delivery" ? "Подтвердить адрес" : "Заказать сюда";
@@ -15,6 +16,7 @@ const chooseFulfillment = async (page: Page, fulfillment: Fulfillment) => {
 };
 
 export const placeOrder = async (page: Page, fulfillment: Fulfillment, mobile = false) => {
+  if (fulfillment === 'delivery') await mockDeliveryAddressSuggestion(page)
   await page.goto("/");
   await page.getByRole("button", { name: "590 ₽" }).click();
   await chooseFulfillment(page, fulfillment);
