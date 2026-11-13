@@ -9,7 +9,7 @@ async function createLink(staff: Page) {
   const slug = `e2e-${Date.now()}`
   await staff.locator('#advertising-link-form input[name="link[campaign]"]').fill(slug)
   await staff.locator('#advertising-link-form input[name="link[name]"]').fill(slug)
-  await staff.locator('#staff-header-actions button[form="advertising-link-form"]').click()
+  await staff.locator('main #staff-header-actions button[form="advertising-link-form"]').click()
   const row = staff.locator('#advertising-links > div', { hasText: slug })
   await expect(row).toBeVisible()
   const url = await row.locator('input[readonly]').inputValue()

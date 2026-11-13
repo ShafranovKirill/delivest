@@ -1,5 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 import { mockDeliveryAddressSuggestion, selectDeliveryAddress } from './delivery-address'
+import { branchSlug } from './env'
 
 type Fulfillment = "delivery" | "pickup";
 
@@ -17,8 +18,16 @@ const chooseFulfillment = async (page: Page, fulfillment: Fulfillment) => {
 
 export const placeOrder = async (page: Page, fulfillment: Fulfillment, mobile = false) => {
   if (fulfillment === 'delivery') await mockDeliveryAddressSuggestion(page)
-  await page.goto("/");
-  await page.getByRole("button", { name: "590 ₽" }).click();
+  await page.goto(`/${branchSlug}`);
+  const menuProduct = page.getByRole("button", { name: "590 ₽" });
+  const branchPicker = page.getByRole('heading', { name: 'Выберите филиал' });
+  await expect(menuProduct.or(branchPicker).filter({ visible: true }).first()).toBeVisible();
+  if (await branchPicker.isVisible()) {
+    await page.getByRole('button', { name: /^E2E\b/ }).click();
+    await expect(page).toHaveURL(new RegExp(`/${branchSlug}/?$`));
+  }
+  await expect(menuProduct).toBeVisible();
+  await menuProduct.click();
   await chooseFulfillment(page, fulfillment);
 
   const cart = mobile ? page : page.locator("header");

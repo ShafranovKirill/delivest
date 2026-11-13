@@ -5,13 +5,10 @@ import { test } from '../support/test'
 
 const shellIds = [
   'staff-header',
-  'staff-header-title',
   'main-sidebar',
   'sidebar-home',
   'sidebar-toggle',
-  'header-home',
   'header-sidebar-toggle',
-  'header-new-orders',
   'header-branch',
   'staff-profile-trigger',
   'staff-profile-menu',
@@ -25,31 +22,35 @@ async function expectNoHorizontalOverflow(page: Page) {
   )).toBeLessThanOrEqual(1)
 }
 
-test('desktop shell has one page title and keeps global controls in the sidebar', async ({ staff }) => {
+async function expectGlobalHeader(page: Page) {
+  const header = page.locator('#staff-header')
+  await expect(header.locator('#header-branch')).toBeVisible()
+  await expect(header.locator('#command-palette-trigger')).toBeVisible()
+  await expect(header.locator('h1, #staff-header-actions, #staff-page-header-navigation')).toHaveCount(0)
+  await expect.poll(() => header.evaluate((element) =>
+    Math.round(element.getBoundingClientRect().height),
+  )).toBe(56)
+}
+
+test('desktop shell separates global controls, page title and sidebar footer', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.setViewportSize({ width: 1440, height: 900 })
   await branchPage(page, 'dashboard')
 
-  const title = page.locator('#staff-header-title h1:visible')
-  await expect(title).toHaveCount(1)
-  await expect(title).not.toBeEmpty()
-  await expect(page.locator('main h1:visible')).toHaveCount(0)
-  await expect(page.locator('#staff-header #header-branch, #staff-header #staff-profile-trigger, #staff-header #command-palette-trigger, #staff-header #header-new-orders')).toHaveCount(0)
-
+  await expectGlobalHeader(page)
   for (const id of shellIds) {
     expect(await page.locator(`#${id}`).count(), `${id} should be unique`).toBe(1)
   }
-  await expect(page.locator('#main-sidebar #header-branch')).toBeVisible()
-  await expect(page.locator('#staff-header-sidebar-controls')).toBeHidden()
-  await expect(page.locator('#sidebar-home')).toHaveAttribute('href', /\/staff\/b\/e2e\/dashboard$/)
-  await expect(page.locator('#sidebar-home')).toHaveText('')
-  await expect(page.locator('#sidebar-top-row .staff-sidebar-top-actions #header-new-orders')).toBeVisible()
-  await expect(page.locator('#nav-section-branch > p')).toHaveCount(0)
-  await expect(page.locator('#main-sidebar #sidebar-branch-settings')).toHaveCount(0)
-  await expect(page.locator('#main-sidebar #staff-profile-trigger')).toBeVisible()
-  await expect(page.locator('#main-sidebar #command-palette-trigger')).toBeVisible()
+  await expect(page.locator('main h1:visible')).toHaveCount(1)
+  await expect(page.locator('main h1:visible')).not.toBeEmpty()
+  await expect(page.locator('#main-sidebar #sidebar-home')).toHaveAttribute('href', /\/staff$/)
+  await page.locator('#main-sidebar #sidebar-home').click()
+  await expect(page).toHaveURL(/\/staff\/b\/e2e\/dashboard$/)
+  await expect(page.locator('#main-sidebar #nav-section-settings')).toBeVisible()
+  await expect(page.locator('#main-sidebar .staff-sidebar-footer #staff-profile')).toBeVisible()
+  await expect(page.locator('#main-sidebar #header-branch, #main-sidebar #command-palette-trigger')).toHaveCount(0)
 
-  const branchDetails = page.locator('#header-branch')
+  const branchDetails = page.locator('#staff-header #header-branch')
   const branchSummary = branchDetails.locator('summary')
   await branchSummary.focus()
   await branchSummary.press('Space')
@@ -59,7 +60,7 @@ test('desktop shell has one page title and keeps global controls in the sidebar'
   await expect(branchSummary).toBeFocused()
   await branchSummary.click()
   await expect(branchDetails).toHaveAttribute('open', '')
-  await page.locator('#staff-header-title').click()
+  await page.locator('#staff-header').click()
   await expect(branchDetails).not.toHaveAttribute('open', '')
   await branchSummary.click()
   const selected = page.locator('#header-branch-menu a.menu-active')
@@ -75,7 +76,7 @@ test('profile, theme, search, and sidebar collapse work together', async ({ staf
   await page.setViewportSize({ width: 1440, height: 900 })
   await branchPage(page, 'dashboard')
 
-  const trigger = page.locator('#staff-profile-trigger')
+  const trigger = page.locator('#main-sidebar #staff-profile-trigger')
   const menu = page.locator('#staff-profile-menu')
   await trigger.click()
   await expect(trigger).toHaveAttribute('aria-expanded', 'true')
@@ -95,11 +96,11 @@ test('profile, theme, search, and sidebar collapse work together', async ({ staf
   await page.keyboard.press('Escape')
   await expect(menu).toBeHidden()
   await trigger.click()
-  await page.locator('#staff-header-title').click()
+  await page.locator('main h1').click()
   await expect(menu).toBeHidden()
 
   const palette = page.locator('#command-palette[role="dialog"]')
-  await page.locator('#command-palette-trigger').click()
+  await page.locator('#staff-header #command-palette-trigger').click()
   await expect(palette).toBeVisible()
   await expect(page.locator('#command-palette-input')).toBeFocused()
   await page.keyboard.press('Escape')
@@ -111,8 +112,6 @@ test('profile, theme, search, and sidebar collapse work together', async ({ staf
   await page.locator('#sidebar-toggle').click()
   await expect(page.locator('html')).toHaveAttribute('data-sidebar-collapsed', '')
   await expect(page.locator('#main-sidebar')).toBeHidden()
-  await expect(page.locator('#staff-header-sidebar-controls')).toBeVisible()
-  await expect(page.locator('#header-home')).toHaveAttribute('href', /\/staff\/b\/e2e\/dashboard$/)
   await expect(page.locator('#header-sidebar-toggle')).toBeFocused()
   await expect(page.locator('#header-sidebar-toggle')).toHaveAttribute('aria-expanded', 'false')
   await expect.poll(async () => (await page.locator('#staff-header').boundingBox())?.x).toBe(0)
@@ -122,13 +121,10 @@ test('profile, theme, search, and sidebar collapse work together', async ({ staf
   await page.locator('[data-phx-main].phx-connected').waitFor()
   await expect(page.locator('html')).toHaveAttribute('data-sidebar-collapsed', '')
   await expect(page.locator('#main-sidebar')).toBeHidden()
-  await expect(page.locator('#header-sidebar-toggle')).toBeVisible()
   await page.locator('#header-sidebar-toggle').click()
   await expect(page.locator('html')).not.toHaveAttribute('data-sidebar-collapsed', '')
-  await expect(page.locator('#sidebar-toggle')).toBeVisible()
   await expect(page.locator('#sidebar-toggle')).toBeFocused()
-  await expect(page.locator('#staff-header-sidebar-controls')).toBeHidden()
-  await expect(page.locator('#header-new-orders')).toBeVisible()
+  await expectGlobalHeader(page)
   await page.locator('#staff-profile-trigger').click()
   await expect(menu).toBeVisible()
   const menuBox = await menu.boundingBox()
@@ -138,44 +134,34 @@ test('profile, theme, search, and sidebar collapse work together', async ({ staf
   expect(menuBox!.y).toBeGreaterThanOrEqual(0)
   expect(menuBox!.y + menuBox!.height).toBeLessThanOrEqual(900)
   await page.keyboard.press('Escape')
-  await page.locator('#command-palette-trigger').click()
+  await page.locator('#staff-header #command-palette-trigger').click()
   await expect(palette).toBeVisible()
   await page.keyboard.press('Escape')
 })
 
-test('mobile sidebar opens from the header and closes after a route change', async ({ staff }) => {
+test('mobile sidebar opens from header and closes after navigation', async ({ staff }) => {
   const page = await staff('e2e_admin')
 
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 })
     await branchPage(page, 'dashboard')
-
     const sidebar = page.locator('#main-sidebar')
     const openToggle = page.locator('#header-sidebar-toggle')
     await expect(sidebar).toBeHidden()
     await expect(openToggle).toBeVisible()
     await expect(openToggle).toHaveAttribute('aria-expanded', 'false')
-    await expect(page.locator('#header-home')).toHaveAttribute('href', /\/staff\/b\/e2e\/dashboard$/)
+    await expectGlobalHeader(page)
     await expect.poll(async () => (await page.locator('#staff-header').boundingBox())?.x).toBe(0)
     await expect.poll(() => page.locator('.staff-shell-content').evaluate((el) => getComputedStyle(el).marginLeft)).toBe('0px')
-    const controlsBox = await page.locator('#staff-header-sidebar-controls').boundingBox()
-    const headerBox = await page.locator('#staff-header').boundingBox()
-    expect(controlsBox).not.toBeNull()
-    expect(headerBox).not.toBeNull()
-    expect(controlsBox!.y).toBeGreaterThanOrEqual(headerBox!.y)
-    expect(controlsBox!.y + controlsBox!.height).toBeLessThanOrEqual(headerBox!.y + 64)
     await expectNoHorizontalOverflow(page)
-    if (width === 390) {
-      await page.screenshot({ path: test.info().outputPath('sidebar-hidden-mobile.png') })
-    }
+    if (width === 390) await page.screenshot({ path: test.info().outputPath('sidebar-hidden-mobile.png') })
 
     await openToggle.click()
     await expect(page.locator('html')).toHaveAttribute('data-sidebar-open', '')
-    await expect.poll(async () => (await sidebar.boundingBox())?.width).toBe(288)
-    await expect(page.locator('#staff-header-sidebar-controls')).toBeHidden()
+    await expect.poll(async () => (await sidebar.boundingBox())?.width).toBe(240)
     await expect(page.locator('#sidebar-toggle')).toBeFocused()
     await expect(page.locator('#sidebar-home')).toBeVisible()
-    await expect(page.locator('#header-new-orders')).toBeVisible()
+    await expect(page.locator('#nav-section-settings')).toBeVisible()
     await expect(page.locator('#staff-sidebar-overlay')).toBeVisible()
     await expectNoHorizontalOverflow(page)
 
@@ -188,36 +174,19 @@ test('mobile sidebar opens from the header and closes after a route change', asy
     await page.keyboard.press('Escape')
     await expect(mobileMenu).toBeHidden()
     await expect(sidebar).toBeVisible()
-    await page.locator('#command-palette-trigger').click()
-    await expect(page.locator('#command-palette')).toBeVisible()
-    await page.keyboard.press('Escape')
-    await expect(page.locator('#command-palette')).toBeHidden()
-    await expect(sidebar).toBeVisible()
-
-    const title = page.locator('#staff-header-title h1:visible')
-    await expect(title).toBeVisible()
-    await expect(page.locator('h1:visible')).toHaveCount(1)
-    const titleBox = await title.boundingBox()
-    const utilities = page.locator('#staff-header .staff-header-utilities')
-    const utilitiesVisible = await utilities.isVisible()
-    const rightBoundary = await (utilitiesVisible ? utilities : page.locator('#staff-header')).boundingBox()
-    expect(titleBox).not.toBeNull()
-    expect(rightBoundary).not.toBeNull()
-    expect(titleBox!.width).toBeGreaterThan(30)
-    expect(titleBox!.x + titleBox!.width).toBeLessThanOrEqual(
-      (utilitiesVisible ? rightBoundary!.x : rightBoundary!.x + rightBoundary!.width) + 1,
-    )
+    await expect(page.locator('main h1:visible')).toHaveCount(1)
 
     await page.locator('#main-sidebar nav a[href="/staff/statistics"]').click()
     await expect(page).toHaveURL(/\/staff\/statistics$/)
     await expect(page.locator('html')).not.toHaveAttribute('data-sidebar-open', '')
     await expect(sidebar).toBeHidden()
     await expect(openToggle).toBeVisible()
+    await expect(openToggle).toBeFocused()
     await expectNoHorizontalOverflow(page)
 
     await page.goto(`${adminUrl}/staff/branches`)
     await page.locator('[data-phx-main].phx-connected').waitFor()
-    const createAction = page.locator('#staff-header-actions #create-branch')
+    const createAction = page.locator('main #staff-header-actions #create-branch')
     await expect(createAction).toBeVisible()
     const actionBox = await createAction.boundingBox()
     expect(actionBox).not.toBeNull()
@@ -227,12 +196,11 @@ test('mobile sidebar opens from the header and closes after a route change', asy
   }
 })
 
-test('branch selection page uses the shared header title', async ({ staff }) => {
+test('branch selection page has the only title in main', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.goto(`${adminUrl}/staff/branches/select`)
   await page.locator('[data-phx-main].phx-connected').waitFor()
-
-  await expect(page.locator('#staff-header-title h1:visible')).toHaveText('Выберите филиал')
+  await expect(page.locator('main h1:visible')).toHaveText('Выберите филиал')
   await expect(page.locator('h1:visible')).toHaveCount(1)
-  await expect(page.locator('main h1:visible')).toHaveCount(0)
+  await expectGlobalHeader(page)
 })
