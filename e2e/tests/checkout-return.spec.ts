@@ -45,14 +45,30 @@ test('mobile header back opens the preserved cart after direct checkout reload',
   await page.setViewportSize({ width: 390, height: 844 })
   await fillCartAndOpenCheckout(page)
 
+  await page.goto('/e2e/checkout')
+  await page.reload()
+  await expect(page.getByRole('button', { name: 'Оформить заказ' })).toBeVisible()
+  await page.locator('header').getByRole('button', { name: 'Назад' }).click()
+  await expectCartOnMenu(page, true)
+})
+
+test('new mobile tab chooses pickup before returning to the preserved cart', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await fillCartAndOpenCheckout(page)
+
   const direct = await page.context().newPage()
   await direct.setViewportSize({ width: 390, height: 844 })
-  await direct.goto('/e2e/checkout')
-  await direct.reload()
-  await expect(direct.getByRole('button', { name: 'Оформить заказ' })).toBeVisible()
-  await direct.locator('header').getByRole('button', { name: 'Назад' }).click()
-  await expectCartOnMenu(direct, true)
-  await direct.close()
+  try {
+    await direct.goto('/e2e/checkout')
+    await expect(direct.getByRole('dialog')).toBeVisible()
+    await direct.getByRole('dialog').getByRole('radio', { name: 'Самовывоз' }).click()
+    await direct.getByRole('button', { name: 'Заказать сюда' }).click()
+    await expect(direct.getByRole('dialog')).toBeHidden()
+    await direct.locator('header').getByRole('button', { name: 'Назад' }).click()
+    await expectCartOnMenu(direct, true)
+  } finally {
+    await direct.close()
+  }
 })
 
 test('immediate mobile return keeps the reopened cart after the old close timer', async ({ page }) => {

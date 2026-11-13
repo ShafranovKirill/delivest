@@ -27,7 +27,10 @@ test('fulfillment map loads only after opening the picker and survives reopening
   await expect(page.getByRole('button', { name: 'Заказать сюда' })).toBeHidden()
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByRole('button', { name: 'К оформлению заказа' }).click()
-  await page.getByRole('button', { name: 'Адрес не выбран' }).click()
-  await page.getByRole('radio', { name: 'Самовывоз' }).click()
+  const picker = page.getByRole('dialog').filter({
+    has: page.getByRole('radio', { name: 'Самовывоз' }),
+  })
+  await expect(picker).toBeVisible()
+  await picker.getByRole('radio', { name: 'Самовывоз' }).click()
   await expect(page.getByRole('button', { name: 'Заказать сюда' })).toBeVisible()
 })
