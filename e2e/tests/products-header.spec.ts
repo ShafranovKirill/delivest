@@ -18,7 +18,7 @@ const sections: Section[] = [
   { path: 'products/modifiers', key: 'modifiers', title: 'Модификаторы', height: 104, action: 'button[phx-click="new_group"]', description: 'Размер, тесто и добавки. Группа создаётся один раз и подключается ко многим товарам.' },
   { path: 'products/tags', key: 'tags', title: 'Теги', height: 104, action: 'a[href$="/products/tags/new"]', description: 'Теги показываются на карточках товаров на сайте.' },
   { path: 'products/suggested', key: 'suggested', title: 'Рекомендуемые', height: 48, description: 'Рекомендуемые товары предлагаются в корзине на сайте.' },
-  { path: 'menu/popular', key: 'popular', title: 'Popular products', height: 104, action: 'button[form="popular-settings"]', description: 'The products the app shows in the popular block of the menu.' },
+  { path: 'menu/popular', key: 'popular', title: 'Популярные товары', height: 104, action: 'button[form="popular-settings"]', description: 'Товары, которые приложение показывает в блоке популярных товаров.' },
 ]
 
 async function expectSectionHeader(page: Page, section: Section) {
