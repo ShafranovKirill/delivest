@@ -4,6 +4,8 @@ export DB_USER := postgres
 export DB_PASSWORD := postgres
 export DB_NAME := delivest
 export DB_PORT := 5432
+PREFLIGHT_DATABASE ?= delivest_e2e_preflight_$(shell date +%Y%m%d%H%M%S)
+PREFLIGHT_DATABASE := $(PREFLIGHT_DATABASE)
 export S3_ACCESS_KEY := athena_admin
 export S3_SECRET_KEY := StrongS3Password!
 export S3_BUCKET := delivest
@@ -14,7 +16,7 @@ export COMPOSE_IGNORE_ORPHANS := 1
 SESSION := delivest
 COMPOSE := docker compose -p delivest-ex -f server/docker-compose.yml
 
-.PHONY: dev stop infra infra-down setup server client roles admin branch menu stocks demo-menu seed db-reset test e2e-db e2e contract check schema pull logs
+.PHONY: dev stop infra infra-down setup server client roles admin branch menu stocks demo-menu seed db-reset test e2e-db e2e preflight install-pre-push contract check schema pull logs
 
 dev: infra
 	@tmux has-session -t $(SESSION) 2>/dev/null || \
@@ -78,6 +80,21 @@ e2e-db: infra
 
 e2e: e2e-db
 	cd e2e && pnpm install && pnpm exec playwright install chromium && pnpm test
+
+preflight: export DEV_DATABASE = $(PREFLIGHT_DATABASE)
+preflight:
+	@case "$$DEV_DATABASE" in delivest_e2e*) ;; *) echo "PREFLIGHT_DATABASE must name a separate delivest_e2e database" >&2; exit 1;; esac
+	@echo "Preflight database: $$DEV_DATABASE"
+	cd server && mix ecto.create && mix ecto.migrate && mix run priv/repo/e2e_seeds.exs
+	cd client && CI=1 pnpm install --frozen-lockfile && pnpm type-check
+	cd e2e && CI=1 pnpm install --frozen-lockfile && pnpm typecheck && pnpm exec playwright install chromium
+	cd e2e && CI=1 pnpm exec playwright test --retries=0 $(PLAYWRIGHT_ARGS)
+
+install-pre-push:
+	@hook="$$(git rev-parse --git-path hooks/pre-push)"; \
+	if [ -e "$$hook" ] || [ -L "$$hook" ]; then echo "Existing pre-push hook: $$hook (left unchanged)" >&2; exit 1; fi; \
+	mkdir -p "$$(dirname "$$hook")"; \
+	printf '#!/bin/sh\nset -eu\nmake preflight\n' > "$$hook" && chmod +x "$$hook"
 
 contract: infra
 	@test -n "$(P)" || (echo "usage: make contract P=<provider>" && exit 1)

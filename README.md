@@ -73,9 +73,15 @@ The client must run on port 3000, the server accepts requests only from `http://
 | `make db-reset`   | Recreate the database and run `make seed`, **deletes all data**    |
 | `make test`       | Server tests                                                       |
 | `make check`      | Server compile warnings, format and tests, client type-check and lint |
+| `make preflight`  | Prepare a separate E2E database and run client/E2E type checks and all Playwright tests |
+| `make install-pre-push` | Install a local pre-push hook that runs `make preflight` if no hook exists |
 | `make schema`     | Download the OpenAPI schema from the running server and regenerate the client API types |
 | `make pull`       | Fast-forward this repository and every submodule                   |
 | `make logs`       | Logs of postgres and S3                                            |
+
+Run `make preflight` before pushing to `develop` and again before releasing to `main`. Start local Postgres and S3 first. Each run creates a fresh timestamped `delivest_e2e_preflight_*` database, migrates and seeds it, installs client and E2E dependencies with frozen lockfiles, checks their types, and runs Playwright against its own server and client on ports 4100 and 3100. It does not drop a database or start Docker. Previous preflight databases remain and can be removed manually when no longer needed. You can set `PREFLIGHT_DATABASE` to a fresh name beginning with `delivest_e2e` for a diagnostic run; reuse of a database after Playwright is not supported because tests change the seed data. To run a focused E2E check, pass Playwright arguments, for example `make preflight PLAYWRIGHT_ARGS=tests/checkout-return.spec.ts`.
+
+Optionally run `make install-pre-push` to check automatically before each push. The installer leaves an existing pre-push hook unchanged. The hook runs the full preflight and requires local Postgres and S3 to be available.
 
 ---
 

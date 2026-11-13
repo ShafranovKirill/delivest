@@ -158,7 +158,7 @@ test('checkout contact and delivery draft are cleared when A signs out and B sig
   await expect(page).toHaveURL(/\/e2e\/checkout$/)
   await expect(page.getByPlaceholder('Например: без лука')).toHaveValue('')
   await expect(page.getByText(privateApartment, { exact: true })).toBeHidden()
-  await page.getByRole('button', { name: /Доставка|Самовывоз|Адрес не выбран/ }).first().click()
+  await expect(page.getByRole('dialog')).toBeVisible()
   await expect(page.getByRole('dialog').getByRole('radio', { name: 'Доставка' })).toBeChecked()
   await expect(page.getByLabel('Квартира')).not.toHaveValue(privateApartment)
 })
