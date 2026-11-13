@@ -2,10 +2,6 @@
 
 resolver 127.0.0.11 valid=10s ipv6=off;
 
-log_format delivest_safe '$remote_addr - $remote_user [$time_local] '
-                         '"$request_method $uri $server_protocol" $status $body_bytes_sent';
-error_log /var/log/nginx/error.log crit;
-
 map $http_upgrade $connection_upgrade {
     default upgrade;
     ''      '';
@@ -53,7 +49,6 @@ upstream delivest_s3 {
 server {
     listen 80 default_server;
     server_name _;
-    access_log /var/log/nginx/access.log delivest_safe;
 
     location / {
         proxy_pass http://delivest_client;
@@ -64,7 +59,6 @@ server {
 server {
     listen 80;
     server_name ${PHX_HOST};
-    access_log /var/log/nginx/access.log delivest_safe;
 
     client_max_body_size 10M;
 
@@ -84,7 +78,6 @@ server {
 server {
     listen 80;
     server_name ${S3_PUBLIC_HOST};
-    access_log /var/log/nginx/access.log delivest_safe;
 
     client_max_body_size 20M;
     proxy_request_buffering off;

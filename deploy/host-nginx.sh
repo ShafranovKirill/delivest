@@ -41,7 +41,6 @@ fi
 
 CERT_DIR=/etc/letsencrypt/live/$PROJECT
 
-# shellcheck disable=SC2016
 if ! grep -rqs 'map \$http_upgrade \$connection_upgrade' /etc/nginx; then
   cat > /etc/nginx/conf.d/connection-upgrade.conf <<'CONF'
 map $http_upgrade $connection_upgrade {
@@ -50,11 +49,6 @@ map $http_upgrade $connection_upgrade {
 }
 CONF
 fi
-
-cat > /etc/nginx/conf.d/delivest-access-log.conf <<'CONF'
-log_format delivest_safe '$remote_addr - $remote_user [$time_local] '
-                         '"$request_method $uri $server_protocol" $status $body_bytes_sent';
-CONF
 
 proxy_location() {
   cat <<CONF
@@ -79,8 +73,6 @@ write_http_conf() {
     echo "    listen 80;"
     echo "    server_name $DOMAINS;"
     echo "    client_max_body_size 20M;"
-    echo "    access_log /var/log/nginx/access.log delivest_safe;"
-    echo "    error_log /var/log/nginx/error.log crit;"
     proxy_location
     echo "}"
   } > "$1"
@@ -102,8 +94,6 @@ write_https_conf() {
       echo "    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;"
     echo ""
     echo "    client_max_body_size 20M;"
-    echo "    access_log /var/log/nginx/access.log delivest_safe;"
-    echo "    error_log /var/log/nginx/error.log crit;"
     proxy_location
     echo "}"
     echo ""
@@ -111,8 +101,6 @@ write_https_conf() {
     echo "    listen 80;"
     echo "    server_name $DOMAINS;"
     echo "    return 301 https://\$host\$request_uri;"
-    echo "    access_log /var/log/nginx/access.log delivest_safe;"
-    echo "    error_log /var/log/nginx/error.log crit;"
     echo "}"
   } > "$1"
 }

@@ -1,19 +1,17 @@
 import { expect, test, type Page } from '@playwright/test'
-import { mockDeliveryAddressSuggestion, selectDeliveryAddress } from '../support/delivery-address'
 
 type Fulfillment = 'pickup' | 'delivery'
 
 async function openMobileCheckout(page: Page, fulfillment: Fulfillment) {
-  if (fulfillment === 'delivery') await mockDeliveryAddressSuggestion(page)
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
   await page.getByRole('button', { name: '590 ₽' }).click()
 
   if (fulfillment === 'pickup') {
-    await page.getByText('Заберу самостоятельно').click()
+    await page.getByText('Заберу из пиццерии').click()
   } else {
     await page.getByText('Указать адрес доставки').click()
-    await selectDeliveryAddress(page)
+    await page.getByLabel('Город, улица, дом').fill('Москва, Тверская, 7')
   }
   await page
     .getByRole('button', { name: fulfillment === 'pickup' ? 'Заказать сюда' : 'Подтвердить адрес' })

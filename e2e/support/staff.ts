@@ -5,21 +5,16 @@ export const signIn = async (browser: Browser, login: string) => {
   const context = await browser.newContext({ locale: 'ru-RU', timezoneId: 'Europe/Moscow' })
   const page = await context.newPage()
   await page.goto(`${adminUrl}/staff/auth/login`)
-  await page.locator('[data-phx-main].phx-connected').waitFor()
   await page.locator('#user_login').fill(login)
   await page.locator('#user_password').fill(staffPassword)
   await page.locator('#user_password').press('Enter')
   await page.waitForURL((url) => !url.pathname.startsWith('/staff/auth'))
-  await page.locator('[data-phx-main].phx-connected').waitFor()
   await page.waitForLoadState('networkidle')
   return page
 }
 
-export const branchPage = async (page: Page, path: string) => {
-  const response = await page.goto(`${adminUrl}/staff/b/${branchSlug}/${path}`)
-  await page.locator('[data-phx-main].phx-connected').waitFor()
-  return response
-}
+export const branchPage = (page: Page, path: string) =>
+  page.goto(`${adminUrl}/staff/b/${branchSlug}/${path}`)
 
 export const tagged = (number: string) => new RegExp(`#${number}(?!\\d)`)
 

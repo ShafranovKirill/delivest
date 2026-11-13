@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 async function fillCartAndOpenCheckout(page: Page, waitForForm = true) {
   await page.goto('/')
   await page.getByRole('button', { name: '590 ₽' }).click()
-  await page.getByText('Заберу самостоятельно').click()
+  await page.getByText('Заберу из пиццерии').click()
   await page.getByRole('button', { name: 'Заказать сюда' }).click()
 
   const cartButton = page.viewportSize()!.width < 768 ? page : page.locator('header')

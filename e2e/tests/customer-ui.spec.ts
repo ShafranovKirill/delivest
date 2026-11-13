@@ -63,13 +63,11 @@ test('cached franchise theme follows a delayed server refresh until the visitor 
 
   await page.goto('/e2e', { waitUntil: 'domcontentloaded' })
   await started
-  await expect(page.locator('.boot')).toBeVisible()
-  await expect(page.locator('.boot-scooter')).toBeVisible()
-  await expect(page.locator('header')).toHaveCount(0)
+  await expect(page.locator('header')).toBeVisible()
+  await expect(page.locator('html')).not.toHaveClass(/\bdark\b/)
   expect(await page.evaluate(() => localStorage.getItem('delivest-theme'))).toBeNull()
 
   releaseRefresh()
-  await expect(page.locator('header')).toBeVisible()
   await expect(page.locator('html')).toHaveClass(/\bdark\b/)
   expect(await page.evaluate(() => localStorage.getItem('delivest-theme'))).toBeNull()
 })
