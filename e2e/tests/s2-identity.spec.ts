@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { adminUrl } from '../support/env'
+import { mockDeliveryAddressSuggestion, selectDeliveryAddress } from '../support/delivery-address'
 
 type ClientSession = {
   access_token: string
@@ -125,6 +126,7 @@ test('A private data and a late A socket token stay out of B session', async ({ 
 })
 
 test('checkout contact and delivery draft are cleared when A signs out and B signs in', async ({ page }) => {
+  await mockDeliveryAddressSuggestion(page)
   const unique = suffix()
   const phoneA = `+7996${unique}`
   const phoneB = `+7995${unique}`
@@ -135,7 +137,7 @@ test('checkout contact and delivery draft are cleared when A signs out and B sig
   const a = await signIn(page, phoneA)
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByText('Указать адрес доставки').click()
-  await page.getByLabel('Город, улица, дом').fill('Москва, Тверская, 7')
+  await selectDeliveryAddress(page)
   await page.getByLabel('Квартира').fill(privateApartment)
   await page.getByRole('button', { name: 'Подтвердить адрес' }).click()
   await page.locator('header').getByRole('button', { name: '590 ₽' }).click()

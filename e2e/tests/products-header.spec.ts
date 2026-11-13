@@ -18,6 +18,7 @@ const sections: Section[] = [
   { path: 'products/modifiers', key: 'modifiers', title: 'Модификаторы', height: 104, action: 'button[phx-click="new_group"]', description: 'Размер, тесто и добавки. Группа создаётся один раз и подключается ко многим товарам.' },
   { path: 'products/tags', key: 'tags', title: 'Теги', height: 104, action: 'a[href$="/products/tags/new"]', description: 'Теги показываются на карточках товаров на сайте.' },
   { path: 'products/suggested', key: 'suggested', title: 'Рекомендуемые', height: 48, description: 'Рекомендуемые товары предлагаются в корзине на сайте.' },
+  { path: 'menu/popular', key: 'popular', title: 'Popular products', height: 104, action: 'button[form="popular-settings"]', description: 'The products the app shows in the popular block of the menu.' },
 ]
 
 async function expectSectionHeader(page: Page, section: Section) {
@@ -31,7 +32,7 @@ async function expectSectionHeader(page: Page, section: Section) {
   await expect(title).toHaveText(section.title)
   await expect(header.locator('h1, #staff-header-context, .staff-header-fallback')).toHaveCount(0)
   await expect(header).toHaveAttribute('data-header-layout', 'product-tabs')
-  await expect(nav.getByRole('tab')).toHaveCount(5)
+  await expect(nav.getByRole('tab')).toHaveCount(sections.length)
   await expect(selected).toHaveAttribute('aria-current', 'page')
   await expect(selected).toHaveAttribute('aria-selected', 'true')
   await expect(nav.locator('[aria-current="page"]')).toHaveCount(1)
@@ -80,7 +81,7 @@ test('product tabs render before JavaScript connects', async ({ browser, staff }
     const page = await context.newPage()
     await page.goto(`${adminUrl}/staff/b/e2e/products/tags`)
     const header = page.locator('#staff-header')
-    await expect(header.locator('[role=tab]')).toHaveCount(5)
+    await expect(header.locator('[role=tab]')).toHaveCount(sections.length)
     await expect(header.locator('#product-section-tab-tags')).toHaveAttribute('aria-current', 'page')
     await expect(header.locator('h1, #staff-header-context, .staff-header-fallback')).toHaveCount(0)
     await expect(header).toHaveAttribute('data-header-actions', 'true')

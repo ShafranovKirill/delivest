@@ -1,0 +1,362 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "id": "afbec7a3-fc36-4b3b-9e25-8002da1a870d",
+      "name": "Бургеры",
+      "order": 1
+    },
+    {
+      "id": "5c8bdcc2-e366-469a-ac8d-8c54ebc89c0d",
+      "name": "Пицца",
+      "order": 2
+    },
+    {
+      "id": "ac3994a3-6ed5-44d9-892a-1bbc3eee6c16",
+      "name": "Закуски",
+      "order": 3
+    },
+    {
+      "id": "35ce6e59-bd70-46fb-a9df-f6c6812164fc",
+      "name": "Десерты",
+      "order": 4
+    },
+    {
+      "id": "ea5b6515-1f94-4f71-ae41-a5700386f048",
+      "name": "Напитки",
+      "order": 5
+    }
+  ],
+  "products": [
+    {
+      "category": "Пицца",
+      "order": 1,
+      "name": "Маргарита",
+      "price": 490,
+      "product_id": "411d9268-710a-4cf2-8df6-0df4d09dbebf",
+      "media_id": "63ec1fd7-f213-4ef7-82f8-d983f5f75a17",
+      "asset": "products/1-1.webp",
+      "category_id": "5c8bdcc2-e366-469a-ac8d-8c54ebc89c0d",
+      "slug": "preview-20261112-1-1"
+    },
+    {
+      "category": "Пицца",
+      "order": 2,
+      "name": "Пепперони",
+      "price": 590,
+      "product_id": "073ae7c5-42ce-4916-824b-ac79c5a6284d",
+      "media_id": "34bad8f8-99e1-44b9-8335-28990bdde45f",
+      "asset": "products/1-2.webp",
+      "category_id": "5c8bdcc2-e366-469a-ac8d-8c54ebc89c0d",
+      "slug": "preview-20261112-1-2"
+    },
+    {
+      "category": "Пицца",
+      "order": 3,
+      "name": "Четыре сыра",
+      "price": 650,
+      "product_id": "134f3065-d638-4b05-b51b-aa55186a9052",
+      "media_id": "fc6a985c-8812-45b8-ace3-4d713571ae44",
+      "asset": "products/1-3.webp",
+      "category_id": "5c8bdcc2-e366-469a-ac8d-8c54ebc89c0d",
+      "slug": "preview-20261112-1-3"
+    },
+    {
+      "category": "Пицца",
+      "order": 4,
+      "name": "Курица и грибы",
+      "price": 620,
+      "product_id": "381ae6dc-1967-498e-9775-f851136a23a2",
+      "media_id": "df166952-5de2-4cb8-923d-17d9800b707f",
+      "asset": "products/1-4.webp",
+      "category_id": "5c8bdcc2-e366-469a-ac8d-8c54ebc89c0d",
+      "slug": "preview-20261112-1-4"
+    },
+    {
+      "category": "Пицца",
+      "order": 5,
+      "name": "Барбекю с говядиной",
+      "price": 690,
+      "product_id": "e65c6c38-0c81-43ba-a0c0-b8c050234cc8",
+      "media_id": "258f00b7-01ef-41d6-a88b-ab2fcc4e523f",
+      "asset": "products/1-5.webp",
+      "category_id": "5c8bdcc2-e366-469a-ac8d-8c54ebc89c0d",
+      "slug": "preview-20261112-1-5"
+    },
+    {
+      "category": "Пицца",
+      "order": 6,
+      "name": "Овощная",
+      "price": 550,
+      "product_id": "c0ac33fc-edd0-420b-85be-e714f826ba8d",
+      "media_id": "dba64768-0624-4d3e-89e7-e19da4cec9dc",
+      "asset": "products/1-6.webp",
+      "category_id": "5c8bdcc2-e366-469a-ac8d-8c54ebc89c0d",
+      "slug": "preview-20261112-1-6"
+    },
+    {
+      "category": "Бургеры",
+      "order": 1,
+      "name": "Чизбургер",
+      "price": 390,
+      "product_id": "fab71c79-87c2-4545-907b-160b4891bd8b",
+      "media_id": "177f480b-db54-43e5-bbb0-e5d2f249a43d",
+      "asset": "products/2-1.webp",
+      "category_id": "afbec7a3-fc36-4b3b-9e25-8002da1a870d",
+      "slug": "preview-20261112-2-1"
+    },
+    {
+      "category": "Бургеры",
+      "order": 2,
+      "name": "Двойной чизбургер",
+      "price": 590,
+      "product_id": "d032067f-d536-48b9-a424-be45cd73e236",
+      "media_id": "982db081-d75b-414b-9c95-6c8344bb6e8b",
+      "asset": "products/2-2.webp",
+      "category_id": "afbec7a3-fc36-4b3b-9e25-8002da1a870d",
+      "slug": "preview-20261112-2-2"
+    },
+    {
+      "category": "Бургеры",
+      "order": 3,
+      "name": "Куриный бургер",
+      "price": 450,
+      "product_id": "2127be7a-946b-47e1-bd29-0ab30c741ad5",
+      "media_id": "2153734c-08c3-4fbd-bcf8-cdc633106551",
+      "asset": "products/2-3.webp",
+      "category_id": "afbec7a3-fc36-4b3b-9e25-8002da1a870d",
+      "slug": "preview-20261112-2-3"
+    },
+    {
+      "category": "Бургеры",
+      "order": 4,
+      "name": "Бургер с беконом",
+      "price": 550,
+      "product_id": "e51d444d-3baf-472e-8ced-f80ad1c84d39",
+      "media_id": "e11918d0-d795-4be1-9747-f7819a535a18",
+      "asset": "products/2-4.webp",
+      "category_id": "afbec7a3-fc36-4b3b-9e25-8002da1a870d",
+      "slug": "preview-20261112-2-4"
+    },
+    {
+      "category": "Бургеры",
+      "order": 5,
+      "name": "Грибной бургер",
+      "price": 520,
+      "product_id": "65540d0c-dd68-4fb8-b3e2-c2726a3edb4d",
+      "media_id": "ef60e59d-c902-4b30-b5e6-0e0e693eed46",
+      "asset": "products/2-5.webp",
+      "category_id": "afbec7a3-fc36-4b3b-9e25-8002da1a870d",
+      "slug": "preview-20261112-2-5"
+    },
+    {
+      "category": "Бургеры",
+      "order": 6,
+      "name": "Острый чизбургер",
+      "price": 530,
+      "product_id": "73ad8e7b-d1b0-46e2-9dfa-a827ec16f45d",
+      "media_id": "0d91d23c-177c-42c3-a2ca-2a7ca092dbf9",
+      "asset": "products/2-6.webp",
+      "category_id": "afbec7a3-fc36-4b3b-9e25-8002da1a870d",
+      "slug": "preview-20261112-2-6"
+    },
+    {
+      "category": "Закуски",
+      "order": 1,
+      "name": "Картофель фри",
+      "price": 230,
+      "product_id": "f87a77b9-471a-46c1-bef1-a8f63e782bf4",
+      "media_id": "40312a1a-abdf-4b8a-baa7-23f0d7d60b30",
+      "asset": "products/3-1.webp",
+      "category_id": "ac3994a3-6ed5-44d9-892a-1bbc3eee6c16",
+      "slug": "preview-20261112-3-1"
+    },
+    {
+      "category": "Закуски",
+      "order": 2,
+      "name": "Картофель по-деревенски",
+      "price": 250,
+      "product_id": "83edc840-1a8a-447c-a876-d3eb48511b99",
+      "media_id": "53b35314-0c26-4bcb-8aa7-82cea56dbecd",
+      "asset": "products/3-2.webp",
+      "category_id": "ac3994a3-6ed5-44d9-892a-1bbc3eee6c16",
+      "slug": "preview-20261112-3-2"
+    },
+    {
+      "category": "Закуски",
+      "order": 3,
+      "name": "Куриные наггетсы",
+      "price": 290,
+      "product_id": "c28b3c94-5db7-4340-bbde-93c597f975bd",
+      "media_id": "0caa31a0-efcc-4170-a2db-6004eb0b7e91",
+      "asset": "products/3-3.webp",
+      "category_id": "ac3994a3-6ed5-44d9-892a-1bbc3eee6c16",
+      "slug": "preview-20261112-3-3"
+    },
+    {
+      "category": "Закуски",
+      "order": 4,
+      "name": "Сырные палочки",
+      "price": 330,
+      "product_id": "c9aab6ff-0f7f-4e54-a6dd-dbab5be36207",
+      "media_id": "627f941c-8081-4944-9462-41ab523e25b5",
+      "asset": "products/3-4.webp",
+      "category_id": "ac3994a3-6ed5-44d9-892a-1bbc3eee6c16",
+      "slug": "preview-20261112-3-4"
+    },
+    {
+      "category": "Закуски",
+      "order": 5,
+      "name": "Луковые кольца",
+      "price": 270,
+      "product_id": "3e7bb38e-2f14-4516-8cb7-fa605fae00b4",
+      "media_id": "7c93ae33-cdcc-4783-9e26-f4dbac262482",
+      "asset": "products/3-5.webp",
+      "category_id": "ac3994a3-6ed5-44d9-892a-1bbc3eee6c16",
+      "slug": "preview-20261112-3-5"
+    },
+    {
+      "category": "Закуски",
+      "order": 6,
+      "name": "Крылышки барбекю",
+      "price": 390,
+      "product_id": "2a597262-9ca1-48b1-b93b-a80f7a69c6a9",
+      "media_id": "7b0eb99d-799d-4c45-9db6-bdc4a526acfc",
+      "asset": "products/3-6.webp",
+      "category_id": "ac3994a3-6ed5-44d9-892a-1bbc3eee6c16",
+      "slug": "preview-20261112-3-6"
+    },
+    {
+      "category": "Десерты",
+      "order": 1,
+      "name": "Чизкейк",
+      "price": 310,
+      "product_id": "8e1b3653-5c84-40ea-9ab3-6747a2d5d833",
+      "media_id": "04edaa32-23ee-4084-b6d5-c2c0b118eea1",
+      "asset": "products/4-1.webp",
+      "category_id": "35ce6e59-bd70-46fb-a9df-f6c6812164fc",
+      "slug": "preview-20261112-4-1"
+    },
+    {
+      "category": "Десерты",
+      "order": 2,
+      "name": "Шоколадный торт",
+      "price": 350,
+      "product_id": "d2594886-dbbd-4bd4-bd1c-575e68563088",
+      "media_id": "d6e853f0-8fd6-42e9-bef0-d13c2213f869",
+      "asset": "products/4-2.webp",
+      "category_id": "35ce6e59-bd70-46fb-a9df-f6c6812164fc",
+      "slug": "preview-20261112-4-2"
+    },
+    {
+      "category": "Десерты",
+      "order": 3,
+      "name": "Тирамису",
+      "price": 330,
+      "product_id": "3a4c8322-45d7-466f-b402-817b0f6a7e9f",
+      "media_id": "39acef47-875a-4ca1-841d-6f6e476deb89",
+      "asset": "products/4-3.webp",
+      "category_id": "35ce6e59-bd70-46fb-a9df-f6c6812164fc",
+      "slug": "preview-20261112-4-3"
+    },
+    {
+      "category": "Десерты",
+      "order": 4,
+      "name": "Брауни",
+      "price": 290,
+      "product_id": "ed277b16-0994-4428-ba29-5d0375644f4d",
+      "media_id": "5ecfd1ff-9b7a-4bce-ad01-20cbaeb43557",
+      "asset": "products/4-4.webp",
+      "category_id": "35ce6e59-bd70-46fb-a9df-f6c6812164fc",
+      "slug": "preview-20261112-4-4"
+    },
+    {
+      "category": "Десерты",
+      "order": 5,
+      "name": "Круассан",
+      "price": 250,
+      "product_id": "849625b3-2218-476f-b2ab-8ad376e1249f",
+      "media_id": "7a8d6707-2752-4b74-9e8f-e3a230a933de",
+      "asset": "products/4-5.webp",
+      "category_id": "35ce6e59-bd70-46fb-a9df-f6c6812164fc",
+      "slug": "preview-20261112-4-5"
+    },
+    {
+      "category": "Десерты",
+      "order": 6,
+      "name": "Клубничный пончик",
+      "price": 240,
+      "product_id": "61421421-1e7a-4017-8866-ad1d82733812",
+      "media_id": "b273f47d-2ef6-4ce0-9ec3-c70f4de024e3",
+      "asset": "products/4-6.webp",
+      "category_id": "35ce6e59-bd70-46fb-a9df-f6c6812164fc",
+      "slug": "preview-20261112-4-6"
+    },
+    {
+      "category": "Напитки",
+      "order": 1,
+      "name": "Капучино",
+      "price": 240,
+      "product_id": "181c85b4-a76c-4596-86fa-f5b2abc05648",
+      "media_id": "638696f2-80ca-45ff-b559-299b0be83825",
+      "asset": "products/5-1.webp",
+      "category_id": "ea5b6515-1f94-4f71-ae41-a5700386f048",
+      "slug": "preview-20261112-5-1"
+    },
+    {
+      "category": "Напитки",
+      "order": 2,
+      "name": "Кофе с латте-артом",
+      "price": 260,
+      "product_id": "35c1092d-5476-46b0-b60b-973a85d51b3f",
+      "media_id": "6ba57c9a-0856-4804-8a1f-f07f2f4eb1f3",
+      "asset": "products/5-2.webp",
+      "category_id": "ea5b6515-1f94-4f71-ae41-a5700386f048",
+      "slug": "preview-20261112-5-2"
+    },
+    {
+      "category": "Напитки",
+      "order": 3,
+      "name": "Айс-латте",
+      "price": 290,
+      "product_id": "7c6fff29-2c15-4eb6-9c69-395c102f02c8",
+      "media_id": "73f636b0-c709-41ac-9c3a-7fd9c8379551",
+      "asset": "products/5-3.webp",
+      "category_id": "ea5b6515-1f94-4f71-ae41-a5700386f048",
+      "slug": "preview-20261112-5-3"
+    },
+    {
+      "category": "Напитки",
+      "order": 4,
+      "name": "Лимонад с мятой",
+      "price": 270,
+      "product_id": "331198e9-0906-4aa3-a76e-0588d86d95c6",
+      "media_id": "6c2c6ec2-8502-4061-83d1-a11b6a331a6f",
+      "asset": "products/5-4.webp",
+      "category_id": "ea5b6515-1f94-4f71-ae41-a5700386f048",
+      "slug": "preview-20261112-5-4"
+    },
+    {
+      "category": "Напитки",
+      "order": 5,
+      "name": "Ягодный напиток",
+      "price": 290,
+      "product_id": "ad39f6bb-864b-4d28-8dab-82f1e515eb83",
+      "media_id": "802e5e6f-b7c6-446e-9ea5-22ec0731bcdb",
+      "asset": "products/5-5.webp",
+      "category_id": "ea5b6515-1f94-4f71-ae41-a5700386f048",
+      "slug": "preview-20261112-5-5"
+    },
+    {
+      "category": "Напитки",
+      "order": 6,
+      "name": "Шоколадный фраппе",
+      "price": 330,
+      "product_id": "a6d12ebd-0b64-47de-b3f3-5e672a27c707",
+      "media_id": "e6020dc4-2e22-4103-8c13-1155689e6db6",
+      "asset": "products/5-6.webp",
+      "category_id": "ea5b6515-1f94-4f71-ae41-a5700386f048",
+      "slug": "preview-20261112-5-6"
+    }
+  ]
+}
