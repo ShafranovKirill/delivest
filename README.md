@@ -29,7 +29,7 @@ The agent reports the version of every running container, and the bastion shows 
 
 ## Local development
 
-Needs Docker, Elixir with Erlang, Node with pnpm and tmux. Only postgres and the S3 storage run in Docker (`server/docker-compose.yml`), the server and the client run in the console with code reloading.
+Needs Docker, Elixir with Erlang, Node with pnpm and tmux. Postgres, S3 storage and the backup agent run in Docker (`server/docker-compose.yml`); the server and client run in the console with code reloading. `make infra` builds and starts the local agent. Keep `server/.instance-backups` on the host: it carries backup jobs and archives shared with the Phoenix process. The local Seaweed image is pinned to the same version as production, and `make infra` updates it before backups are used. Restart the local Phoenix process after updating the backup setup; `make dev` only attaches to an existing tmux session and does not restart it.
 
 First run:
 
@@ -39,7 +39,7 @@ cd delivest
 make setup
 ```
 
-`make setup` starts postgres and S3, installs the dependencies, creates and migrates the database, creates the buckets, seeds the roles and creates the admin account `admin123` / `AdminSecret123!`. Then run `make seed` for a branch with the example menu and promotions, or sign in to http://localhost:4000/staff and create a branch by hand.
+`make setup` starts postgres and S3, installs the dependencies, creates and migrates the database, creates the buckets, seeds the roles and creates the admin account `admin123` / `AdminSecret123!`. Then run `make seed` for the legacy example menu and promotions, or sign in to http://localhost:4000/staff and create a branch by hand. For the current standard test configuration (5 categories, 30 products, 6 banners), use `make demo-menu` after a local branch and staff account exist. It reads `DEMO_MENU_BRANCH_SLUGS` (default: `demo-center,demo-north,demo-south`) and uses only the already configured local database and S3; see [examples/demo-menu/README.md](examples/demo-menu/README.md).
 
 Every day:
 
@@ -67,6 +67,7 @@ The client must run on port 3000, the server accepts requests only from `http://
 | `make roles`      | Seed the system roles                                              |
 | `make admin`      | Create the admin account                                           |
 | `make branch`     | Fill the first branch info (address, phone, schedule, map) and the franchise settings (name, about, legal details) with example data |
+| `make demo-menu`  | Apply the current standard local test menu: 30 products and 6 banners |
 | `make menu`       | Seed the first branch with the example menu and photos from `server/priv/images` |
 | `make stocks`     | Seed the first branch with the example promotions and photos       |
 | `make db-reset`   | Recreate the database and run `make seed`, **deletes all data**    |
@@ -274,6 +275,12 @@ An administrator can populate missing role presets from **Staff → Roles → Cr
 ---
 
 ## Backups
+
+Administrators can use **Staff → Franchise → Full instance backup** to create and download a `.tar` archive of the entire PostgreSQL database and SeaweedFS storage, then restore it with an explicit full replacement confirmation. The site disconnects during restore; sign in afterward with staff credentials from the source archive. Branch and franchise ZIP snapshots are a separate legacy format and cannot be imported here. Source and target application releases must be compatible, and target migrations must include those recorded in the archive; start and migrate a fresh target before uploading. The source and target must use the same SeaweedFS image ID and bucket names. The target deployment environment remains in place. Jobs and archives live in the shared `instance_backups` volume in production or `server/.instance-backups` during local development. The default upload limit is 20 GiB (`INSTANCE_BACKUP_MAX_ARCHIVE` in bytes). Unsafe interrupted jobs keep the application stopped for operator review. The previous database and a directory copy of the previous storage contents remain as recovery artifacts after replacement. Completed jobs and archives also remain in the shared volume; remove them according to a retention policy after verifying the restored site to avoid filling the disk. The CLI fallback is `scripts/full-backup` (`--replace` for import, `--leave-stopped` for cutover export).
+
+For single-node SeaweedFS restores, the agent rebuilds only the master's election and membership state from its complete volume mirror. It keeps the volume counter, topology ID, growth state, all filer and volume data, and the original archive. A missing or incomplete mirror rejects the restore before changing the target.
+
+### Bastion database backups
 
 When the deployment is connected to the bastion, the bastion makes a database backup every day at 00:00 UTC and keeps the last 7 in its own storage. The agent runs `pg_dump -Fc` inside the `postgres` container without the `app_logs` data and uploads the file to the bastion over HTTPS. Uploaded images are not included.
 

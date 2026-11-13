@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  echo 'usage: scripts/full-backup export|import PATH [--project-dir ROOT] [--compose-file FILE] [--project-name NAME] [--app-stopped] [--leave-stopped|--replace]' >&2
+  exit 2
+}
+
+[[ $# -ge 2 ]] || usage
+action=$1
+archive=$2
+shift 2
+[[ $action == export || $action == import ]] || usage
+project_dir=$PWD
+compose_file=
+project_name=
+replace=false
+app_stopped=false
+leave_stopped=false
+
+while (($#)); do
+  case $1 in
+    --project-dir) (($# >= 2)) || usage; project_dir=$2; shift 2 ;;
+    --compose-file) (($# >= 2)) || usage; compose_file=$2; shift 2 ;;
+    --project-name) (($# >= 2)) || usage; project_name=$2; shift 2 ;;
+    --replace) replace=true; shift ;;
+    --app-stopped) app_stopped=true; shift ;;
+    --leave-stopped) leave_stopped=true; shift ;;
+    *) usage ;;
+  esac
+done
+
+[[ $action != import || $replace == true ]] || usage
+[[ $action != export || $replace == false ]] || usage
+[[ $action != import || $leave_stopped == false ]] || usage
+project_dir=$(realpath "$project_dir")
+compose_file=${compose_file:-docker-compose.yml}
+if [[ $compose_file == /* ]]; then
+  compose_file=$(realpath -m -- "$compose_file")
+else
+  compose_file=$(realpath -m -- "$project_dir/$compose_file")
+fi
+archive=$(realpath -m -- "$archive")
+if [[ -z $project_name && -f $project_dir/.env ]]; then
+  project_name=$(sed -n 's/^[[:space:]]*COMPOSE_PROJECT_NAME[[:space:]]*=[[:space:]]*//p' "$project_dir/.env" | head -n 1 | tr -d '\r' | sed "s/^[\"']//; s/[\"']$//")
+fi
+project_name=${project_name:-$(basename "$project_dir")}
+[[ $archive == "$project_dir"/* ]] || { echo 'archive must be inside the mounted project directory' >&2; exit 2; }
+[[ -f $compose_file ]] || { echo "compose file not found: $compose_file" >&2; exit 2; }
+
+payload=$(python3 -c 'import json,sys; print(json.dumps(dict(zip(("action","path","project_dir","compose_file","project_name","replace","app_stopped","leave_stopped"),sys.argv[1:6]+[x=="true" for x in sys.argv[6:9]]))))' \
+  "$action" "$archive" "$project_dir" "$compose_file" "$project_name" "$replace" "$app_stopped" "$leave_stopped")
+
+docker compose -p "$project_name" --project-directory "$project_dir" -f "$compose_file" \
+  exec -T -e "DELIVEST_FULL_BACKUP_JSON=$payload" agent \
+  bin/delivest_agent eval 'DelivestAgent.FullBackup.CLI.eval_json(System.fetch_env!("DELIVEST_FULL_BACKUP_JSON"))'
