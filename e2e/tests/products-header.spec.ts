@@ -23,14 +23,14 @@ const sections: Section[] = [
 
 async function expectSectionHeader(page: Page, section: Section) {
   const header = page.locator('#staff-header')
-  const title = page.locator('main h1.sr-only')
+  const title = header.locator('h1.sr-only')
   const nav = header.getByRole('navigation', { name: 'Товары' })
   const actions = header.locator('#staff-header-actions')
   const selected = nav.locator(`#product-section-tab-${section.key}`)
 
   await expect(title).toHaveCount(1)
   await expect(title).toHaveText(section.title)
-  await expect(header.locator('h1, #staff-header-context, .staff-header-fallback')).toHaveCount(0)
+  await expect(header.locator('h1:not(.sr-only), #staff-header-context, .staff-header-fallback')).toHaveCount(0)
   await expect(header).toHaveAttribute('data-header-layout', 'product-tabs')
   await expect(nav.getByRole('tab')).toHaveCount(sections.length)
   await expect(selected).toHaveAttribute('aria-current', 'page')
@@ -83,7 +83,7 @@ test('product tabs render before JavaScript connects', async ({ browser, staff }
     const header = page.locator('#staff-header')
     await expect(header.locator('[role=tab]')).toHaveCount(sections.length)
     await expect(header.locator('#product-section-tab-tags')).toHaveAttribute('aria-current', 'page')
-    await expect(header.locator('h1, #staff-header-context, .staff-header-fallback')).toHaveCount(0)
+    await expect(header.locator('h1:not(.sr-only), #staff-header-context, .staff-header-fallback')).toHaveCount(0)
     await expect(header).toHaveAttribute('data-header-actions', 'true')
     await expect.poll(() => header.evaluate(e => e.getBoundingClientRect().height)).toBe(104)
   } finally {

@@ -24,6 +24,33 @@ test('client actions occupy a second header row without page introduction', asyn
   await expectHeaderFit(page, 104)
 })
 
+test('staff navigation and actions are present in the initial HTML', async ({ browser, staff }) => {
+  const authenticated = await staff('e2e_admin')
+  const context = await browser.newContext({
+    storageState: await authenticated.context().storageState(),
+    javaScriptEnabled: false,
+    viewport: { width: 390, height: 844 },
+  })
+  try {
+    const page = await context.newPage()
+    const header = page.locator('#staff-header')
+    await page.goto(`${adminUrl}/staff/branches/${branchSlug}/edit`)
+    await expect(header.locator('#settings-navigation [aria-current="page"]')).toBeVisible()
+    await expectHeaderFit(page, 48)
+
+    await page.goto(`${adminUrl}/staff/b/${branchSlug}/orders`)
+    await expect(header.locator('#order-status-tabs [aria-current="page"]')).toBeVisible()
+    await expectHeaderFit(page, 104)
+
+    await page.goto(`${adminUrl}/staff/clients`)
+    await expect(header.locator('#staff-header-title h1')).toBeVisible()
+    await expect(header.locator('#staff-header-actions')).toContainText('Создать клиента')
+    await expectHeaderFit(page, 104)
+  } finally {
+    await context.close()
+  }
+})
+
 test('mobile settings and order routes stay in a 48px navigation row', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.setViewportSize({ width: 390, height: 844 })

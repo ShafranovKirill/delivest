@@ -227,7 +227,7 @@ test('mobile sidebar opens from the header and closes after a route change', asy
   }
 })
 
-test('branch selection page uses the same portal title', async ({ staff }) => {
+test('branch selection page uses the shared header title', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.goto(`${adminUrl}/staff/branches/select`)
   await page.locator('[data-phx-main].phx-connected').waitFor()
