@@ -76,7 +76,7 @@ test('pending delivery quote blocks address confirmation until the quote is fres
   await page.getByRole('option', { name: /Тверская.*7/ }).click()
   const confirm = page.getByRole('button', { name: 'Подтвердить адрес' })
   await expect(confirm).toBeDisabled()
-  await expect(page.getByTestId('delivery-quote-caption')).toContainText('Проверяем стоимость доставки')
+  await expect(page.getByTestId('delivery-quote-caption')).toContainText('Рассчитываем')
   release()
   await expect(confirm).toBeEnabled()
   await confirm.click()
