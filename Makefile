@@ -113,3 +113,13 @@ pull:
 
 logs:
 	$(COMPOSE) logs -f --tail 50
+
+.PHONY: demo demo-prepare demo-stop demo-reset
+demo:
+	./scripts/local-demo.sh start
+demo-prepare:
+	./scripts/local-demo.sh prepare
+demo-stop:
+	./scripts/local-demo.sh stop
+demo-reset:
+	./scripts/local-demo.sh reset
