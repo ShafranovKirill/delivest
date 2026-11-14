@@ -174,8 +174,11 @@ test('network navigation asks for a branch before opening a scoped section', asy
   await expect(page.locator('#branch-select-dialog')).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page).toHaveURL(`${adminUrl}/staff/dashboard`)
+  await expect(page.locator('#branch-select-dialog')).toHaveCount(0)
+  await page.locator('[data-phx-main].phx-connected').waitFor()
 
   await page.locator('#command-palette-trigger').click()
+  await expect(page.locator('#command-palette')).toBeVisible()
   await page.locator('#command-palette-input').fill('Новый заказ')
   const newOrder = page.locator('#command-item-page-orders_new')
   await expect(newOrder).toHaveAttribute('href', /orders%2Fnew/)
