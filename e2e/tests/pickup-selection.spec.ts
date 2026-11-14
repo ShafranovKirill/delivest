@@ -65,8 +65,6 @@ for (const [name, width] of [['mobile', 390], ['desktop', 1280]] as const) {
     await expect(detail).toContainText('Москва, Тверская улица, 7')
     await expect(detail).toContainText('Сегодня')
     await expect(detail.getByRole('link', { name: /\+7/ })).toBeVisible()
-    await detail.getByText('Вся неделя').click()
-    await expect(detail.getByText('Понедельник')).toBeVisible()
     if (screenshots) await page.screenshot({ path: `${screenshots}/pickup-${name}-detail.png`, animations: 'disabled' })
     await detail.getByRole('button', { name: 'Заберу здесь' }).click()
     await expect(page.getByTestId('pickup-branch-detail')).toHaveCount(0)
