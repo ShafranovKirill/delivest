@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { selectPickupLocation } from '../support/pickup'
 
 async function configureAddressMode(
   page: Page,
@@ -74,7 +75,7 @@ for (const showCity of [true, false]) {
     await confirm.click()
     await page.getByRole('button', { name: /Доставка\s*150/ }).filter({ visible: true }).click()
     await page.getByRole('radio', { name: 'Самовывоз', exact: true }).click()
-    await page.getByRole('button', { name: 'Заказать сюда' }).click()
+    await selectPickupLocation(page)
     await expect(page.getByRole('heading', { name: 'Заказ на самовывоз' })).toBeVisible()
     await expect(page.getByText('740 ₽', { exact: true })).toHaveCount(0)
   })

@@ -1,10 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
+import { selectPickupLocation } from '../support/pickup'
 
 async function fillCartAndOpenCheckout(page: Page, waitForForm = true) {
   await page.goto('/')
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByText('Заберу самостоятельно').click()
-  await page.getByRole('button', { name: 'Заказать сюда' }).click()
+  await selectPickupLocation(page)
 
   const cartButton = page.viewportSize()!.width < 768 ? page : page.locator('header')
   await cartButton.getByRole('button', { name: '590 ₽' }).click()
@@ -62,7 +63,7 @@ test('new mobile tab chooses pickup before returning to the preserved cart', asy
     await direct.goto('/e2e/checkout')
     await expect(direct.getByRole('dialog')).toBeVisible()
     await direct.getByRole('dialog').getByRole('radio', { name: 'Самовывоз' }).click()
-    await direct.getByRole('button', { name: 'Заказать сюда' }).click()
+    await selectPickupLocation(direct)
     await expect(direct.getByRole('dialog')).toBeHidden()
     await direct.locator('header').getByRole('button', { name: 'Назад' }).click()
     await expectCartOnMenu(direct, true)
