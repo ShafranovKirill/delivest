@@ -20,6 +20,35 @@ async function searchFor(page: Page, query: string) {
   return palette
 }
 
+test('weekly schedule persists a day off and restores its opening times', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  const url = `${adminUrl}/staff/branches/e2e/edit/hours`
+  await page.goto(url)
+  await page.locator('[data-phx-main].phx-connected').waitFor()
+  const enabled = page.locator('input[type="checkbox"][name="branch_form[working_hours][monday][enabled]"]')
+  const open = page.locator('input[name="branch_form[working_hours][monday][open]"]')
+  const close = page.locator('input[name="branch_form[working_hours][monday][close]"]')
+  const save = page.locator('#staff-header-actions button[form="branch-form"]')
+  await expect(enabled).toBeChecked()
+  const originalOpen = await open.inputValue()
+  const originalClose = await close.inputValue()
+
+  await enabled.uncheck()
+  await save.click()
+  await expect(page.locator('#flash-group')).toContainText(/сохран|saved/i)
+  await page.goto(url)
+  await expect(enabled).not.toBeChecked()
+  await expect(open).toHaveValue(originalOpen)
+  await expect(close).toHaveValue(originalClose)
+  await enabled.check()
+  await save.click()
+  await expect(page.locator('#flash-group')).toContainText(/сохран|saved/i)
+  await page.goto(url)
+  await expect(enabled).toBeChecked()
+  await expect(open).toHaveValue(originalOpen)
+  await expect(close).toHaveValue(originalClose)
+})
+
 test('setting aliases in search open canonical editors with the correct scope', async ({ staff }) => {
   const page = await staff('e2e_admin')
   for (const item of settings) {
@@ -31,7 +60,7 @@ test('setting aliases in search open canonical editors with the correct scope', 
     await expect(page).toHaveURL(`${adminUrl}${item.path}`)
     await expect(page.locator('#staff-header #header-branch')).toContainText(item.scope)
     await expect(page.locator('main h1:visible')).toHaveCount(1)
-    await expect(page.locator('main #settings-navigation [aria-current="page"], main #staff-section-navigation [aria-current="page"]')).toHaveCount(1)
+    await expect(page.locator('#settings-navigation [aria-current="page"], #staff-section-navigation [aria-current="page"]')).toHaveCount(1)
   }
 })
 
@@ -39,10 +68,10 @@ test('settings menu and search resolve through the same destinations', async ({ 
   const page = await staff('e2e_admin')
   await page.goto(`${adminUrl}/staff/settings`)
   await page.locator('[data-phx-main].phx-connected').waitFor()
-  await expect(page.locator('#settings-center #settings-navigation')).toBeVisible()
+  await expect(page.locator('#sidebar-settings-navigation')).toBeVisible()
   await expect(page.locator('#settings-feature-filter')).toBeVisible()
   for (const { id, query } of settings.filter((item) => item.scope === 'Сеть')) {
-    const menuLink = page.locator(`#settings-nav-${id}`)
+    const menuLink = page.locator(`#sidebar-settings-nav-${id}`)
     await expect(menuLink).toBeVisible()
     const href = await menuLink.getAttribute('href')
     const palette = await searchFor(page, query)
@@ -78,7 +107,7 @@ test('network scope selection in one tab does not change another tab', async ({ 
   await expect(otherTab.locator('#staff-header #header-branch')).toContainText('E2E')
 })
 
-test('settings pages keep the same sidebar position, links and centered branch control', async ({ staff }) => {
+test('settings use the existing desktop sidebar and a mobile navigation row', async ({ staff }) => {
   const page = await staff('e2e_admin')
   const paths = [
     '/staff/settings?branch=e2e',
@@ -89,14 +118,13 @@ test('settings pages keep the same sidebar position, links and centered branch c
     '/staff/b/e2e/integrations',
   ]
 
-  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.setViewportSize({ width: 1920, height: 1080 })
   let expectedLinks: { id: string; href: string }[] | undefined
-  let expectedBox: { x: number; width: number } | undefined
 
   for (const path of paths) {
     await page.goto(`${adminUrl}${path}`)
     await page.locator('[data-phx-main].phx-connected').waitFor()
-    const nav = page.locator('#settings-center > #settings-navigation')
+    const nav = page.locator('#sidebar-settings-navigation')
     await expect(nav).toHaveCount(1)
     await expect(page.locator('#staff-section-navigation')).toHaveCount(0)
 
@@ -104,10 +132,13 @@ test('settings pages keep the same sidebar position, links and centered branch c
       anchors.map(anchor => ({ id: anchor.id, href: anchor.getAttribute('href') ?? '' })),
     )
     const box = await nav.boundingBox()
-    const content = await page.locator('#settings-center > div.min-w-0').boundingBox()
+    const content = await page.locator('#settings-center').boundingBox()
     expect(box).not.toBeNull()
     expect(content).not.toBeNull()
-    expect(content!.x).toBeGreaterThan(box!.x + box!.width)
+    expect(content!.x).toBeGreaterThanOrEqual(240)
+    expect(content!.x).toBeLessThan(272)
+    await expect(page.locator('#staff-context-navigation')).toBeHidden()
+    expect(content!.x + content!.width).toBeGreaterThan(1850)
     if (expectedLinks) {
       expect(links.map(link => link.id)).toEqual(expectedLinks.map(link => link.id))
       if (path === '/staff/franchise/brand') {
@@ -120,10 +151,10 @@ test('settings pages keep the same sidebar position, links and centered branch c
         }
       } else expect(links).toEqual(expectedLinks)
     } else expectedLinks = links
-    if (expectedBox) {
-      expect(Math.abs(box!.x - expectedBox.x)).toBeLessThanOrEqual(2)
-      expect(Math.abs(box!.width - expectedBox.width)).toBeLessThanOrEqual(2)
-    } else expectedBox = { x: box!.x, width: box!.width }
+    const sidebar = await page.locator('#main-sidebar').boundingBox()
+    expect(sidebar!.width).toBe(240)
+    expect(box!.x).toBeGreaterThanOrEqual(sidebar!.x)
+    expect(box!.x + box!.width).toBeLessThanOrEqual(sidebar!.x + sidebar!.width)
 
     const header = await page.locator('#staff-header').boundingBox()
     const summary = await page.locator('#staff-header #header-branch summary').boundingBox()
@@ -161,7 +192,8 @@ test('network navigation asks for a branch before opening a scoped section', asy
   await page.goto(`${adminUrl}/staff/dashboard`)
   await page.locator('[data-phx-main].phx-connected').waitFor()
 
-  const productLink = page.locator('#nav-section-main').getByRole('link', { name: 'Меню', exact: true })
+  await page.locator('#sidebar-group-menu-toggle').click()
+  const productLink = page.locator('#sidebar-product-section-tab-products')
   const productHref = await productLink.getAttribute('href')
   expect(productHref).not.toBeNull()
   const productChooser = new URL(productHref!, adminUrl)
@@ -189,10 +221,10 @@ test('network navigation asks for a branch before opening a scoped section', asy
 
   await page.goto(`${adminUrl}/staff/franchise/brand`)
   await page.locator('[data-phx-main].phx-connected').waitFor()
-  await page.locator('#settings-nav-hours').click()
+  await page.locator('#sidebar-settings-nav-hours').click()
   await expect(page.locator('#branch-select-dialog')).toBeVisible()
   await page.locator('#branch-select-dialog').getByRole('heading', { name: 'E2E Board', exact: true }).locator('..').click()
   await expect(page).toHaveURL(`${adminUrl}/staff/branches/e2e-board/edit/hours`)
-  await expect(page.locator('#settings-nav-hours[aria-current="page"]')).toBeVisible()
+  await expect(page.locator('#sidebar-settings-nav-hours[aria-current="page"]')).toBeVisible()
   await expect(page.locator('#settings-nav-branch_settings')).toHaveAttribute('href', '/staff/branches/e2e-board/edit')
 })

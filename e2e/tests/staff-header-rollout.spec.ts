@@ -34,11 +34,11 @@ test('staff page navigation and actions are present in the initial HTML', async 
   try {
     const page = await context.newPage()
     await page.goto(`${adminUrl}/staff/branches/${branchSlug}/edit`)
-    await expect(page.locator('main #settings-navigation [aria-current="page"]')).toBeVisible()
+    await expect(page.locator('#settings-navigation [aria-current="page"]')).toBeVisible()
     await expectPageFrame(page)
 
     await page.goto(`${adminUrl}/staff/b/${branchSlug}/orders`)
-    await expect(page.locator('main #order-status-tabs [aria-current="page"]')).toBeVisible()
+    await expect(page.locator('main #orders-filters #order-status-tabs [aria-current="page"]')).toBeVisible()
     await expectPageFrame(page)
 
     await page.goto(`${adminUrl}/staff/clients`)
@@ -50,19 +50,28 @@ test('staff page navigation and actions are present in the initial HTML', async 
   }
 })
 
-test('mobile settings and order navigation stay inside the page content', async ({ staff }) => {
+test('mobile settings and order navigation stay directly below the global header', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(`${adminUrl}/staff/branches/${branchSlug}/edit`)
   await page.locator('[data-phx-main].phx-connected').waitFor()
 
-  const settings = page.locator('main #settings-navigation')
+  const settings = page.locator('#settings-navigation')
   await expect(settings).toBeVisible()
+  await expect.poll(async () => (await page.locator('#staff-context-navigation').boundingBox())?.y).toBe(56)
   await expect(settings.locator('[aria-current="page"]')).toHaveCount(1)
   await expectPageFrame(page)
 
   await branchPage(page, 'orders')
-  const orders = page.locator('main #order-status-tabs')
+  const orders = page.locator('#staff-context-navigation #staff-section-navigation')
+  await expect(orders.locator('[aria-current="page"]')).toHaveCount(1)
+  await expect(page.locator('main #orders-filters #order-status-tabs')).toBeVisible()
+  await expect(page.locator('#main-sidebar #order-status-tabs, #main-sidebar #sidebar-order-status-tabs, #staff-context-navigation #order-status-tabs')).toHaveCount(0)
+  await expect(page.locator('#sidebar-group-orders a[href*="status="], #staff-context-navigation a[href*="status="]')).toHaveCount(0)
+  await expect.poll(async () => (await page.locator('#staff-context-navigation').boundingBox())?.y).toBe(56)
+  await page.locator('main #order-status-tab-cancelled').click()
+  await expect(page).toHaveURL(/status=cancelled/)
+  await expect(page.locator('main #order-status-tab-cancelled')).toHaveAttribute('aria-current', 'page')
   await expect(orders.locator('[aria-current="page"]')).toHaveCount(1)
   await expectPageFrame(page)
 })

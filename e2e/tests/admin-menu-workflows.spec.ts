@@ -42,12 +42,12 @@ test('product creation, editing and filtered return keep menu data', async ({ st
   await expect(row).toBeVisible()
   await expect(row).toContainText('Неактивен')
   const filteredUrl = page.url()
-  const rowAnchor = await row.getByRole('link', { name }).getAttribute('id')
+  const rowAnchor = await row.getByRole('link', { name, exact: true }).getAttribute('id')
   expect(rowAnchor).toMatch(/^product-row-/)
   await page.setViewportSize({ width: 390, height: 300 })
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
-  await row.getByRole('link', { name }).click()
+  await row.getByRole('link', { name, exact: true }).click()
   await expect.poll(() => page.locator('main #staff-page-header h1').evaluate(element =>
     element.getBoundingClientRect().top,
   )).toBeGreaterThan(56)
@@ -62,7 +62,7 @@ test('product creation, editing and filtered return keep menu data', async ({ st
   await page.locator('#product-form button[type=submit]').click()
   await expect(page).toHaveURL(`${filteredUrl}#${rowAnchor}`)
 
-  await page.locator('#products tr', { hasText: name }).getByRole('link', { name }).click()
+  await page.locator('#products tr', { hasText: name }).getByRole('link', { name, exact: true }).click()
   await page.locator('#product-edit-link').click()
   await expect(page.locator('#product-form input[name="product[calories]"]')).toHaveValue('42.5')
   await page.locator('#product-back-to-list').click()
@@ -74,7 +74,7 @@ test('product creation, editing and filtered return keep menu data', async ({ st
 
   await page.setViewportSize({ width: 390, height: 844 })
   await page.evaluate(() => { document.documentElement.dataset.theme = 'dark' })
-  await page.locator('#products tr', { hasText: name }).getByRole('link', { name }).click()
+  await page.locator('#products tr', { hasText: name }).getByRole('link', { name, exact: true }).click()
   await expect(page.locator('main h1:visible')).toHaveCount(1)
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1)
   await page.screenshot({ path: '/tmp/admin-stage4-product-edit-mobile-dark.png', fullPage: true })

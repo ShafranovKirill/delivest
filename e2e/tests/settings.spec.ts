@@ -76,7 +76,7 @@ test('unsaved courier settings guard scope and settings navigation, then a saved
   await expect(page).toHaveURL(/\/staff\/b\/e2e\/delivery$/)
   await page.locator('#delivery-couriers-card').click()
   await expect(search).toHaveValue(next)
-  await page.locator('#main-sidebar #nav-section-settings a').click()
+  await page.locator('#sidebar-settings-nav-features').click()
   await expect(page).toHaveURL(/\/staff\/settings$/)
   await expect(dialog).toBeHidden()
 
@@ -94,7 +94,7 @@ test('failed same-page brand save stays dirty, successful save clears the guard'
 
   const name = page.locator('#franchise-settings-form input[name="settings[name]"]')
   const save = page.locator('#franchise-settings-form button[type="submit"]')
-  const settingsLink = page.locator('#settings-navigation #settings-nav-features')
+  const settingsLink = page.locator('#sidebar-settings-navigation #sidebar-settings-nav-features')
   const dialog = page.locator('#staff-unsaved-dialog')
   const initial = await name.inputValue()
   const invalidName = 'X'.repeat(61)
