@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { adminUrl } from '../support/env'
 import { mockDeliveryAddressSuggestion, selectDeliveryAddress } from '../support/delivery-address'
+import { selectPickupLocation } from '../support/pickup'
 
 type ClientSession = {
   access_token: string
@@ -27,7 +28,7 @@ async function placePickupOrder(page: Page, phone: string): Promise<string> {
   await page.goto('/e2e')
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByText('Заберу самостоятельно').click()
-  await page.getByRole('button', { name: 'Заказать сюда' }).click()
+  await selectPickupLocation(page)
   await page.locator('header').getByRole('button', { name: '590 ₽' }).click()
   await page.getByRole('button', { name: 'К оформлению заказа' }).click()
   await expect(page).toHaveURL(/\/e2e\/checkout$/)

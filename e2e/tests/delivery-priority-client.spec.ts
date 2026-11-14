@@ -24,6 +24,7 @@ const second = {
 test("address choice shows the server quote and clears it while another point is checked", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   let releaseSecond!: () => void;
   const secondGate = new Promise<void>((resolve) => {
     releaseSecond = resolve;
@@ -118,31 +119,80 @@ test("address choice shows the server quote and clears it while another point is
   await page.getByText("Указать адрес доставки").click();
   const input = page.getByLabel("Улица, дом");
   const confirmAddress = page.getByRole("button", { name: "Подтвердить адрес" });
-  await input.fill("Тверская, 7");
-  await expect(confirmAddress).toBeDisabled();
-  await page.getByRole("option", { name: /Тверская.*7/ }).click();
   const caption = page.getByTestId("delivery-quote-caption");
-  await expect(caption).toContainText("Центр");
-  await expect(caption).toContainText("150 ₽");
-  await expect(confirmAddress).toBeEnabled();
+  const conditions = page.getByRole("button", { name: "Условия доставки" });
   const canvas = page.locator(".maplibregl-canvas");
   await expect(canvas).toBeVisible();
+  await expect(caption).toHaveCount(0);
+  await expect(conditions).toHaveCount(0);
+  await expect(page.locator('[aria-busy="true"]')).toBeHidden();
+  await expect.poll(async () => (await confirmAddress.boundingBox())?.height).toBe(48);
+  const initialMapHeight = (await canvas.boundingBox())?.height;
+  const initialConfirmBox = await confirmAddress.boundingBox();
+  expect(initialConfirmBox?.height).toBe(48);
+  await input.fill("Тверская, 7");
+  await expect(confirmAddress).toBeDisabled();
+  await expect(caption).toHaveCount(0);
+  await page.getByRole("option", { name: /Тверская.*7/ }).click();
+  await expect(caption).toContainText("150 ₽");
+  await expect(caption).not.toContainText("45 мин");
+  await expect(caption).not.toContainText("Центр");
+  const addressBox = await input.boundingBox();
+  const captionBox = await caption.boundingBox();
+  const confirmBox = await confirmAddress.boundingBox();
+  expect(captionBox!.y).toBeGreaterThan(addressBox!.y + addressBox!.height);
+  expect(captionBox!.x + captionBox!.width).toBeLessThan(confirmBox!.x);
+  expect(confirmBox?.height).toBe(48);
+  expect((await canvas.boundingBox())?.height).toBe(initialMapHeight);
+  await conditions.click();
+  await expect(page.getByText("Центр", { exact: true })).toBeVisible();
+  await expect(page.getByText("около 45 мин", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Минимальная сумма.*500\s₽/)).toBeVisible();
+  await expect(page.getByText(/бесплатно от 1\s500\s₽/)).toBeVisible();
+  await expect(page.getByText(/от 500\s₽: 100\s₽/)).toBeVisible();
+  if (process.env.ORDER_SUCCESS_SCREENSHOTS) {
+    await page.screenshot({ path: `${process.env.ORDER_SUCCESS_SCREENSHOTS}/map-mobile-conditions.png`, fullPage: false, animations: 'disabled' });
+  }
+  await conditions.click();
+  await expect(page.getByText('Условия доставки', { exact: true })).toBeHidden();
+  if (process.env.ORDER_SUCCESS_SCREENSHOTS) {
+    await page.screenshot({ path: `${process.env.ORDER_SUCCESS_SCREENSHOTS}/map-mobile.png`, fullPage: false, animations: 'disabled' });
+  }
+  await expect(confirmAddress).toBeEnabled();
   await expect(page.locator('[aria-busy="true"]')).toBeHidden();
   const box = await canvas.boundingBox();
   expect(box).not.toBeNull();
+  const tabs = page.getByRole('radiogroup');
+  const close = page.getByRole('button', { name: 'Закрыть' }).first();
+  expect((await tabs.boundingBox())?.height).toBe(40);
+  expect((await close.boundingBox())?.height).toBe(40);
   await page.mouse.move(
     box!.x + box!.width / 2 + 30,
     box!.y + box!.height / 2 - 30,
   );
-  await expect(page.getByText(/от 500 ₽: 100 ₽/)).toBeVisible();
+  await expect(page.getByText(/^Центр · от 500\s₽: 100\s₽ · около 35 мин$/)).toBeVisible();
 
+  await conditions.click();
+  await expect(page.getByText("Центр", { exact: true })).toBeVisible();
   await input.fill("Арбат, 10");
   await page.getByRole("option", { name: /Арбат.*10/ }).click();
-  await expect(caption).toContainText("Проверяем стоимость доставки");
-  await expect(caption).not.toContainText("150 ₽");
+  await expect(caption).toHaveCount(0);
+  await expect(confirmAddress).toBeDisabled();
+  await expect(page.getByText("Центр", { exact: true })).toBeHidden();
+  await expect(conditions).toHaveCount(0);
+  expect((await canvas.boundingBox())?.height).toBe(initialMapHeight);
+  expect((await confirmAddress.boundingBox())?.height).toBe(48);
   releaseSecond();
-  await expect(caption).toContainText("Арбат");
   await expect(caption).toContainText("250 ₽");
+  await conditions.click();
+  await expect(page.getByText("Арбат", { exact: true })).toBeVisible();
+  expect((await canvas.boundingBox())?.height).toBe(initialMapHeight);
+  expect((await confirmAddress.boundingBox())?.height).toBe(48);
+  await conditions.click();
+  await expect(page.getByText('Условия доставки', { exact: true })).toBeHidden();
+  await page.setViewportSize({ width: 320, height: 844 });
+  await expect(confirmAddress).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
 });
 
 test("below minimum shows delivery price and keeps address confirmation available", async ({
@@ -179,10 +229,12 @@ test("below minimum shows delivery price and keeps address confirmation availabl
   await page.getByLabel("Улица, дом").fill("Тверская, 7");
   await page.getByRole("option", { name: /Тверская.*7/ }).click();
   const caption = page.getByTestId("delivery-quote-caption");
-  await expect(caption).toContainText("Центр");
   await expect(caption).toContainText("100 ₽");
-  await expect(caption).toContainText("500 ₽");
-  await expect(caption).toContainText("1 500 ₽");
+  await expect(caption).not.toContainText("500 ₽");
+  await page.getByRole("button", { name: "Условия доставки" }).click();
+  await expect(page.getByText("Центр", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Минимальная сумма.*500\s₽/)).toBeVisible();
+  await expect(page.getByText(/бесплатно от 1\s500\s₽/)).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Подтвердить адрес" }),
   ).toBeEnabled();
