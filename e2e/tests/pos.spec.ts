@@ -25,7 +25,8 @@ test('the cashier sells for cash, the kitchen cooks and the cashier hands the or
 
   const board = await page.context().newPage()
   await board.goto(`${adminUrl}/board/e2e-board`)
-  await expect(board.locator('#board-preparing').getByText(number, { exact: true })).toBeVisible()
+  // The kitchen job moves an accepted order to preparing asynchronously.
+  await expect(board.locator('#board-preparing').getByText(number, { exact: true })).toBeVisible({ timeout: 30_000 })
 
   const kitchen = await staff('e2e_kitchen')
   await branchPage(kitchen, 'kitchen')

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { mockDeliveryAddressSuggestion } from '../support/delivery-address'
+import { selectPickupLocation } from '../support/pickup'
 
 for (const width of [1280, 390]) {
   test(`empty cart returns to menu at ${width}px`, async ({ page }) => {
@@ -8,7 +9,7 @@ for (const width of [1280, 390]) {
     if (width < 768) {
       await page.getByRole('button', { name: '590 ₽' }).click()
       await page.getByText('Заберу самостоятельно').click()
-      await page.getByRole('button', { name: 'Заказать сюда' }).click()
+      await selectPickupLocation(page)
       await page.getByRole('button', { name: '590 ₽' }).click()
       await page.getByRole('dialog').getByRole('button', { name: 'Удалить' }).click()
     } else {
@@ -21,29 +22,38 @@ for (const width of [1280, 390]) {
 
 test('product card opens by Enter and Space without swallowing its add button', async ({ page }) => {
   await page.goto('/e2e')
-  const card = page.getByRole('button', { name: 'Маргарита', exact: true }).first()
+  const card = page.getByRole('button', { name: 'Пепперони', exact: true }).first()
+  const productDialog = page.getByRole('dialog').filter({ has: page.getByRole('heading', { name: 'Пепперони', exact: true }) })
   await expect(card).toBeVisible()
   await card.focus()
   await page.keyboard.press('Enter')
-  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(productDialog).toBeVisible()
   await page.keyboard.press('Escape')
-  await expect(page.getByRole('dialog')).toBeHidden()
+  await expect(productDialog).toBeHidden()
   await card.focus()
   await page.keyboard.press('Space')
-  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(productDialog).toBeVisible()
   await page.keyboard.press('Escape')
-  await expect(page.getByRole('dialog')).toBeHidden()
-  await card.getByRole('button', { name: '590 ₽' }).focus()
-  await page.keyboard.press('Enter')
-  await expect(page.getByRole('dialog')).toBeHidden()
+  await expect(productDialog).toBeHidden()
+  await card.getByRole('button', { name: '690 ₽' }).click()
+  await expect(productDialog).toBeHidden()
   await expect(card.getByRole('button', { name: '−' })).toBeVisible()
+  await page.getByText('Заберу самостоятельно').click()
+  await selectPickupLocation(page)
+  await page.locator('header').getByRole('button', { name: '690 ₽' }).click()
+  await expect(page.getByRole('dialog').getByText('Классическое')).toBeVisible()
+  await page.locator('.p-drawer-close-button').click()
+  await card.getByRole('button', { name: '+' }).focus()
+  await page.keyboard.press('Enter')
+  await expect(productDialog).toBeHidden()
+  await expect(card.getByText('2', { exact: true })).toBeVisible()
 })
 
 test('cart mutation error is visible and retry succeeds', async ({ page }) => {
   await page.goto('/e2e')
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByText('Заберу самостоятельно').click()
-  await page.getByRole('button', { name: 'Заказать сюда' }).click()
+  await selectPickupLocation(page)
   await page.locator('header').getByRole('button', { name: '590 ₽' }).click()
   let fail = true
   await page.route(/\/client\/cart\/[^/]+\/items\/[^/]+/, async (route) => {
@@ -76,9 +86,10 @@ test('pending delivery quote blocks address confirmation until the quote is fres
   await page.getByRole('option', { name: /Тверская.*7/ }).click()
   const confirm = page.getByRole('button', { name: 'Подтвердить адрес' })
   await expect(confirm).toBeDisabled()
-  await expect(page.getByTestId('delivery-quote-caption')).toContainText('Проверяем стоимость доставки')
+  await expect(page.getByTestId('delivery-quote-caption')).toHaveCount(0)
   release()
   await expect(confirm).toBeEnabled()
+  await expect(page.getByTestId('delivery-quote-caption')).toContainText('100 ₽')
   await confirm.click()
   await page.getByRole('button', { name: '590 ₽' }).click()
   const checkout = page.getByRole('button', { name: 'К оформлению заказа' })
