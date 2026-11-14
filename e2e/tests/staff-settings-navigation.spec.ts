@@ -77,3 +77,61 @@ test('network scope selection in one tab does not change another tab', async ({ 
   await otherTab.reload()
   await expect(otherTab.locator('#staff-header #header-branch')).toContainText('E2E')
 })
+
+test('settings pages keep the same sidebar position, links and centered branch control', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  const paths = [
+    '/staff/settings?branch=e2e',
+    '/staff/franchise/brand',
+    '/staff/branches/e2e/edit',
+    '/staff/branches/e2e/edit/hours',
+    '/staff/b/e2e/delivery',
+    '/staff/b/e2e/integrations',
+  ]
+
+  await page.setViewportSize({ width: 1440, height: 900 })
+  let expectedLinks: { id: string; href: string }[] | undefined
+  let expectedBox: { x: number; width: number } | undefined
+
+  for (const path of paths) {
+    await page.goto(`${adminUrl}${path}`)
+    await page.locator('[data-phx-main].phx-connected').waitFor()
+    const nav = page.locator('#settings-center > #settings-navigation')
+    await expect(nav).toHaveCount(1)
+    await expect(page.locator('#staff-section-navigation')).toHaveCount(0)
+
+    const links = await nav.locator('a').evaluateAll(anchors =>
+      anchors.map(anchor => ({ id: anchor.id, href: anchor.getAttribute('href') ?? '' })),
+    )
+    const box = await nav.boundingBox()
+    const content = await page.locator('#settings-center > div.min-w-0').boundingBox()
+    expect(box).not.toBeNull()
+    expect(content).not.toBeNull()
+    expect(content!.x).toBeGreaterThan(box!.x + box!.width)
+    if (expectedLinks) expect(links).toEqual(expectedLinks)
+    else expectedLinks = links
+    if (expectedBox) {
+      expect(Math.abs(box!.x - expectedBox.x)).toBeLessThanOrEqual(2)
+      expect(Math.abs(box!.width - expectedBox.width)).toBeLessThanOrEqual(2)
+    } else expectedBox = { x: box!.x, width: box!.width }
+
+    const header = await page.locator('#staff-header').boundingBox()
+    const summary = await page.locator('#staff-header #header-branch summary').boundingBox()
+    expect(header).not.toBeNull()
+    expect(summary).not.toBeNull()
+    expect(Math.abs((summary!.y + summary!.height / 2) - (header!.y + header!.height / 2)))
+      .toBeLessThanOrEqual(2)
+  }
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  for (const path of paths) {
+    await page.goto(`${adminUrl}${path}`)
+    await page.locator('[data-phx-main].phx-connected').waitFor()
+    const header = await page.locator('#staff-header').boundingBox()
+    const summary = await page.locator('#staff-header #header-branch summary').boundingBox()
+    expect(header).not.toBeNull()
+    expect(summary).not.toBeNull()
+    expect(Math.abs((summary!.y + summary!.height / 2) - (header!.y + header!.height / 2)))
+      .toBeLessThanOrEqual(2)
+  }
+})
