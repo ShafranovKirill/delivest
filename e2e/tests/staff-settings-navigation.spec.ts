@@ -108,8 +108,18 @@ test('settings pages keep the same sidebar position, links and centered branch c
     expect(box).not.toBeNull()
     expect(content).not.toBeNull()
     expect(content!.x).toBeGreaterThan(box!.x + box!.width)
-    if (expectedLinks) expect(links).toEqual(expectedLinks)
-    else expectedLinks = links
+    if (expectedLinks) {
+      expect(links.map(link => link.id)).toEqual(expectedLinks.map(link => link.id))
+      if (path === '/staff/franchise/brand') {
+        for (let index = 0; index < links.length; index++) {
+          const original = expectedLinks[index]
+          if (original.href.startsWith('/staff/b/') || /^\/staff\/branches\/[^/]+\/edit/.test(original.href)) {
+            expect(links[index].href).toContain('/staff/branches/select?')
+            expect(links[index].href).toContain('from=')
+          } else expect(links[index].href).toBe(original.href)
+        }
+      } else expect(links).toEqual(expectedLinks)
+    } else expectedLinks = links
     if (expectedBox) {
       expect(Math.abs(box!.x - expectedBox.x)).toBeLessThanOrEqual(2)
       expect(Math.abs(box!.width - expectedBox.width)).toBeLessThanOrEqual(2)
@@ -127,6 +137,15 @@ test('settings pages keep the same sidebar position, links and centered branch c
   for (const path of paths) {
     await page.goto(`${adminUrl}${path}`)
     await page.locator('[data-phx-main].phx-connected').waitFor()
+    await expect.poll(async () => {
+      return page.locator('#settings-navigation').evaluate(nav => {
+        const active = nav.querySelector('[aria-current="page"]')
+        if (!active) return false
+        const navRect = nav.getBoundingClientRect()
+        const activeRect = active.getBoundingClientRect()
+        return activeRect.left >= navRect.left - 2 && activeRect.right <= navRect.right + 2
+      })
+    }).toBe(true)
     const header = await page.locator('#staff-header').boundingBox()
     const summary = await page.locator('#staff-header #header-branch summary').boundingBox()
     expect(header).not.toBeNull()
@@ -134,4 +153,43 @@ test('settings pages keep the same sidebar position, links and centered branch c
     expect(Math.abs((summary!.y + summary!.height / 2) - (header!.y + header!.height / 2)))
       .toBeLessThanOrEqual(2)
   }
+})
+
+test('network navigation asks for a branch before opening a scoped section', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await branchPage(page, 'dashboard')
+  await page.goto(`${adminUrl}/staff/dashboard`)
+  await page.locator('[data-phx-main].phx-connected').waitFor()
+
+  const productLink = page.locator('#nav-section-main').getByRole('link', { name: 'Меню', exact: true })
+  const productHref = await productLink.getAttribute('href')
+  expect(productHref).not.toBeNull()
+  const productChooser = new URL(productHref!, adminUrl)
+  expect(productChooser.pathname).toBe('/staff/branches/select')
+  expect(productChooser.searchParams.get('modal')).toBe('true')
+  expect(productChooser.searchParams.get('from')).toMatch(/^\/staff\/b\/[a-z0-9-]+\/products$/)
+  await productLink.click()
+  await expect(page.locator('#branch-select-dialog[role="dialog"][aria-modal="true"]')).toBeVisible()
+  await page.reload()
+  await expect(page.locator('#branch-select-dialog')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page).toHaveURL(`${adminUrl}/staff/dashboard`)
+
+  await page.locator('#command-palette-trigger').click()
+  await page.locator('#command-palette-input').fill('Новый заказ')
+  const newOrder = page.locator('#command-item-page-orders_new')
+  await expect(newOrder).toHaveAttribute('href', /orders%2Fnew/)
+  await newOrder.click()
+  await expect(page.locator('#branch-select-dialog')).toBeVisible()
+  await page.locator('#branch-select-dialog').getByRole('heading', { name: 'E2E Board', exact: true }).locator('..').click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/b/e2e-board/orders/new`)
+
+  await page.goto(`${adminUrl}/staff/franchise/brand`)
+  await page.locator('[data-phx-main].phx-connected').waitFor()
+  await page.locator('#settings-nav-hours').click()
+  await expect(page.locator('#branch-select-dialog')).toBeVisible()
+  await page.locator('#branch-select-dialog').getByRole('heading', { name: 'E2E Board', exact: true }).locator('..').click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/branches/e2e-board/edit/hours`)
+  await expect(page.locator('#settings-nav-hours[aria-current="page"]')).toBeVisible()
+  await expect(page.locator('#settings-nav-branch_settings')).toHaveAttribute('href', '/staff/branches/e2e-board/edit')
 })
