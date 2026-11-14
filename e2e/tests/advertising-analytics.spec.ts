@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '../support/test'
+import { selectPickupLocation } from '../support/pickup'
 import { adminUrl } from '../support/env'
 import { advance, branchPage, expectStatus, orderCard, tagged } from '../support/staff'
 import { placeOrder } from '../support/customer'
@@ -112,7 +113,7 @@ test('advertising redirect, verified phone, checkout and OMS completion preserve
 
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByText('Заберу самостоятельно').click()
-  await page.getByRole('button', { name: 'Заказать сюда' }).click()
+  await selectPickupLocation(page)
   await page.locator('header').getByRole('button', { name: '590 ₽' }).click()
   await page.getByRole('button', { name: 'К оформлению заказа' }).click()
   await expect(page).toHaveURL(/\/e2e\/checkout$/)

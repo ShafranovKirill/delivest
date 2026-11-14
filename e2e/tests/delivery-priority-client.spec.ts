@@ -133,11 +133,12 @@ test("address choice shows the server quote and clears it while another point is
   await expect(page.getByText(/бесплатно от 1\s500\s₽/)).toBeVisible();
   await expect(page.getByText(/от 500\s₽: 100\s₽/)).toBeVisible();
   if (process.env.ORDER_SUCCESS_SCREENSHOTS) {
-    await page.screenshot({ path: `${process.env.ORDER_SUCCESS_SCREENSHOTS}/map-mobile-conditions.png`, fullPage: true });
+    await page.screenshot({ path: `${process.env.ORDER_SUCCESS_SCREENSHOTS}/map-mobile-conditions.png`, fullPage: false, animations: 'disabled' });
   }
   await conditions.click();
+  await expect(page.getByText('Условия доставки', { exact: true })).toBeHidden();
   if (process.env.ORDER_SUCCESS_SCREENSHOTS) {
-    await page.screenshot({ path: `${process.env.ORDER_SUCCESS_SCREENSHOTS}/map-mobile.png`, fullPage: true });
+    await page.screenshot({ path: `${process.env.ORDER_SUCCESS_SCREENSHOTS}/map-mobile.png`, fullPage: false, animations: 'disabled' });
   }
   await expect(confirmAddress).toBeEnabled();
   const canvas = page.locator(".maplibregl-canvas");
@@ -147,6 +148,8 @@ test("address choice shows the server quote and clears it while another point is
   const captionBox = await caption.boundingBox();
   expect(box).not.toBeNull();
   expect(captionBox?.height).toBe(44);
+  const addressBox = await input.boundingBox();
+  expect(captionBox!.y + captionBox!.height).toBeLessThan(addressBox!.y);
   const tabs = page.getByRole('radiogroup');
   const close = page.getByRole('button', { name: 'Закрыть' }).first();
   expect((await tabs.boundingBox())?.height).toBe(40);
@@ -155,7 +158,7 @@ test("address choice shows the server quote and clears it while another point is
     box!.x + box!.width / 2 + 30,
     box!.y + box!.height / 2 - 30,
   );
-  await expect(page.getByText(/от 500\s₽: 100\s₽/)).toBeVisible();
+  await expect(page.getByText(/^Центр · от 500\s₽: 100\s₽ · около 35 мин$/)).toBeVisible();
 
   await conditions.click();
   await expect(page.getByText("Центр", { exact: true })).toBeVisible();

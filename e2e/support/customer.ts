@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import { mockDeliveryAddressSuggestion, selectDeliveryAddress } from './delivery-address'
 import { branchSlug } from './env'
+import { selectPickupLocation } from './pickup'
 
 type Fulfillment = "delivery" | "pickup";
 
@@ -12,8 +13,8 @@ const chooseFulfillment = async (page: Page, fulfillment: Fulfillment) => {
     await selectDeliveryAddress(page)
   }
 
-  const confirmLabel = fulfillment === "delivery" ? "Подтвердить адрес" : "Заказать сюда";
-  await page.getByRole("button", { name: confirmLabel }).click();
+  if (fulfillment === 'pickup') await selectPickupLocation(page)
+  else await page.getByRole('button', { name: 'Подтвердить адрес' }).click()
 };
 
 export const placeOrder = async (page: Page, fulfillment: Fulfillment, mobile = false) => {
