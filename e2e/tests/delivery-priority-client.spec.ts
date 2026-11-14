@@ -55,7 +55,13 @@ test("address suggestions stay below the field and show a Russian empty state", 
   await expect(option).toBeVisible();
   const inputBox = await input.boundingBox();
   const optionBox = await option.boundingBox();
+  const overlayBox = await page
+    .locator(".address-suggest-overlay")
+    .boundingBox();
   const dialogBox = await dialog.boundingBox();
+  expect(
+    overlayBox!.y - (inputBox!.y + inputBox!.height),
+  ).toBeGreaterThanOrEqual(11.5);
   expect(optionBox!.y).toBeGreaterThanOrEqual(inputBox!.y + inputBox!.height);
   expect(optionBox!.x).toBeGreaterThanOrEqual(dialogBox!.x);
   expect(optionBox!.x + optionBox!.width).toBeLessThanOrEqual(
@@ -212,7 +218,13 @@ test("address choice shows the server quote and clears it while another point is
   await expect(suggestion).toBeVisible();
   const suggestionBox = await suggestion.boundingBox();
   const inputBox = await input.boundingBox();
+  const overlayBox = await page
+    .locator(".address-suggest-overlay")
+    .boundingBox();
   const dialogBox = await page.getByRole("dialog").boundingBox();
+  expect(
+    overlayBox!.y - (inputBox!.y + inputBox!.height),
+  ).toBeGreaterThanOrEqual(11.5);
   expect(suggestionBox!.y).toBeGreaterThanOrEqual(
     inputBox!.y + inputBox!.height,
   );
