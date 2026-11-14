@@ -180,7 +180,7 @@ test('advertising redirect, verified phone, checkout and OMS completion preserve
   await expect(admin.locator('#statistics-report-summary')).toBeVisible()
 
   await branchPage(admin, 'statistics?tab=franchise&period=today')
-  await expect(admin.locator('#statistics-branch-comparison tbody tr', { hasText: 'E2E' }))
+  await expect(admin.locator('tbody#statistics-branch-comparison tr', { hasText: 'E2E' }))
     .toBeVisible()
   await expectNoHorizontalOverflow(admin)
   expect(errors).toEqual([])

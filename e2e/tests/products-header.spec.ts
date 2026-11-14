@@ -98,7 +98,16 @@ test('product actions and query survive page navigation', async ({ staff }) => {
   await branchPage(page, 'products?search=header')
   await expectSectionPage(page, sections[0])
   await expect(page.locator('main #products-filter')).toBeVisible()
-  await expect(page.locator('main #staff-header-actions #product-operations-link, main #staff-header-actions #bulk-add-products, main #staff-header-actions #create-product')).toHaveCount(3)
+  await expect(page.locator('main #staff-header-actions #create-product')).toBeVisible()
+  const more = page.locator('main #product-more-actions')
+  await more.locator('summary').focus()
+  await page.keyboard.press('Enter')
+  await expect(more).toHaveAttribute('open', '')
+  await expect(more.locator('#product-operations-link')).toBeVisible()
+  await expect(more.locator('#bulk-add-products')).toBeVisible()
+  await expect.poll(() => page.evaluate(() =>
+    document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  )).toBeLessThanOrEqual(1)
 
   await page.locator('#product-operations-link').click()
   await expect(page).toHaveURL(/\/products\/operations$/)
@@ -122,6 +131,11 @@ test('mobile keeps selected product tab visible in local navigation', async ({ s
     await expectSectionPage(page, section)
   }
   await branchPage(page, 'products')
+  await page.locator('#product-more-actions summary').click()
+  await expect(page.locator('#product-more-actions #product-operations-link')).toBeVisible()
+  await expect.poll(() => page.evaluate(() =>
+    document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  )).toBeLessThanOrEqual(1)
   const nav = page.locator('main #staff-section-navigation')
   await expect.poll(() => nav.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeGreaterThan(0)
   await nav.evaluate((element) => element.scrollTo({ left: element.scrollWidth, behavior: 'instant' }))

@@ -6,6 +6,7 @@ test('the cashier sells for cash, the kitchen cooks and the cashier hands the or
   page,
   staff,
 }) => {
+  test.setTimeout(180_000)
   const cashier = await staff('e2e_cashier')
   await branchPage(cashier, 'pos')
 
@@ -39,10 +40,11 @@ test('the cashier sells for cash, the kitchen cooks and the cashier hands the or
   await branchPage(operator, 'orders?status=completed')
   const card = orderCard(operator, number)
   await expectStatus(card, 'Выполнен')
+  // Fiscal completion is delivered asynchronously after the order is completed.
   await expect(async () => {
     await operator.reload()
     await expect(card.locator('[id^="receipt-"]').first()).toContainText('Пробит', {
       timeout: 2_000,
     })
-  }).toPass()
+  }).toPass({ timeout: 120_000 })
 })
