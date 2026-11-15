@@ -17,3 +17,11 @@ MIX_ENV=dev mix run ../examples/demo-menu/apply.exs
 By default the target branch slugs are `demo-center,demo-north,demo-south`. To apply it to an existing local branch, set `DEMO_MENU_BRANCH_SLUGS=your-branch-slug`. The script refuses nonlocal DB or S3 hosts and production Mix environments. It creates or updates the fixture records by fixed IDs, uploads the WebP assets to the configured local public bucket, and links the menu only to the chosen branches. It removes those branches' other category, product, and banner links without deleting their records. Running it again does not create duplicate records or links. If Phoenix is already running, restart it after applying the preset so its in-memory banner cache reloads the new WebP URLs; the menu itself refreshes through catalog versions.
 
 Before changing the links, each run writes a JSON backup path to stdout. It contains the target branches' previous menu relations, catalog versions, media metadata, and IDs of fixture records that already existed. Keep that file if you need to restore the previous preview. This preset does not provision a franchise, staff account, or branch; the existing generic `make menu` and `make stocks` seeds remain available for legacy examples.
+
+To give eight existing `demo-center` products prices in stars in the dedicated local demo database, run from `server/`:
+
+```bash
+DEV_DATABASE=delivest_f01_demo_local DEV_EXTERNAL_HOST=127.0.0.1 MIX_ENV=dev mix run --no-start ../examples/demo-menu/stars.exs
+```
+
+The script checks the database and branch, updates only `stars_price`, and can be run repeatedly. These products are shared by the demo branches, so their stars prices may also appear in `demo-north` and `demo-south`.
