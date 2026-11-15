@@ -7,7 +7,10 @@ export MIX_ENV=dev DEV_DATABASE="$DEMO_DB" DEV_EXTERNAL_HOST=127.0.0.1 DEV_DATAB
 DEMO_SERVER_PORT=${DEMO_SERVER_PORT:-4000}
 DEMO_CLIENT_PORT=${DEMO_CLIENT_PORT:-3000}
 for port in "$DEMO_SERVER_PORT" "$DEMO_CLIENT_PORT"; do
-  [[ "$port" =~ ^[0-9]+$ ]] && (( port >= 1024 && port <= 65535 )) || { echo "Invalid demo port: $port" >&2; exit 1; }
+  if [[ ! "$port" =~ ^[0-9]+$ ]] || (( port < 1024 || port > 65535 )); then
+    echo "Invalid demo port: $port" >&2
+    exit 1
+  fi
 done
 export DEFAULT_LOCALE=ru PORT="$DEMO_SERVER_PORT" CLIENT_ORIGIN="http://localhost:$DEMO_CLIENT_PORT"
 export VITE_API_BASE_URL="http://localhost:$DEMO_SERVER_PORT"
@@ -19,7 +22,7 @@ case "${1:-}" in
     if ! docker exec delivest-postgres pg_isready -U postgres >/dev/null 2>&1 || ! curl -sS -o /dev/null --max-time 2 http://127.0.0.1:8333/; then
       docker compose -p delivest-ex -f server/docker-compose.yml up -d --pull missing postgres s3 >/dev/null
     fi
-    for attempt in {1..30}; do
+    for ((attempt = 1; attempt <= 30; attempt++)); do
       docker exec delivest-postgres pg_isready -U postgres >/dev/null 2>&1 && break
       sleep 1
     done
@@ -75,7 +78,7 @@ case "${1:-}" in
     tmux new-session -d -s "$SESSION" -n server -c "$PWD/server" "MIX_ENV=dev DEV_DATABASE=$DEMO_DB DEV_EXTERNAL_HOST=127.0.0.1 DEFAULT_LOCALE=ru PORT=$DEMO_SERVER_PORT CLIENT_ORIGIN=http://localhost:$DEMO_CLIENT_PORT mix run --no-start scripts/local_f01_demo.exs > /tmp/delivest-local-demo-server.log 2>&1"
     tmux set-environment -t "$SESSION" DEMO_PORTS "$DEMO_SERVER_PORT:$DEMO_CLIENT_PORT"
     tmux new-window -t "$SESSION" -n client -c "$PWD/client" "VITE_API_BASE_URL=http://localhost:$DEMO_SERVER_PORT pnpm dev --host 127.0.0.1 --port $DEMO_CLIENT_PORT --strictPort > /tmp/delivest-local-demo-client.log 2>&1"
-    for attempt in {1..30}; do
+    for ((attempt = 1; attempt <= 30; attempt++)); do
       running_ports=$(tmux show-environment -t "$SESSION" DEMO_PORTS 2>/dev/null || true)
       if [[ "$running_ports" == "DEMO_PORTS=$DEMO_SERVER_PORT:$DEMO_CLIENT_PORT" ]] && curl -fsS --max-time 2 "http://127.0.0.1:$DEMO_SERVER_PORT/staff/auth/login" >/dev/null && curl -fsS --max-time 2 "http://127.0.0.1:$DEMO_CLIENT_PORT/demo-center" >/dev/null; then
         echo "Demo ready: http://localhost:$DEMO_SERVER_PORT/staff/auth/login and http://localhost:$DEMO_CLIENT_PORT/demo-center"
