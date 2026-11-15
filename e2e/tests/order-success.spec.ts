@@ -59,10 +59,9 @@ for (const [name, width, height, mobile] of [
       await page.setViewportSize({ width: 320, height })
       const emblem = await page.locator('.order-success-hero .success-art').boundingBox()
       const status = await page.locator('.order-success-hero [aria-live] h2').boundingBox()
-      const eta = await page
-        .locator('.order-success-hero [aria-live]')
-        .getByText(/Готовим в среднем/)
-        .boundingBox()
+      const etaElement = page.locator('.order-success-hero [aria-live] .success-eta')
+      await expect(etaElement).toBeVisible()
+      const eta = await etaElement.boundingBox()
       const summary = await page.locator('[data-order-summary]').boundingBox()
       const stages = await page.locator('.order-success-hero ol').boundingBox()
       expect(emblem).not.toBeNull()
@@ -139,7 +138,7 @@ for (const [name, width, height, mobile] of [
           /pi-credit-card/,
         )
         await expect(page.locator('[aria-current="step"]')).toHaveCount(0)
-        await expect(page.getByText(/Готовим в среднем/)).toHaveCount(0)
+        await expect(page.locator('.order-success-hero .success-eta')).toHaveCount(0)
 
         mockedStatus = 'cancelled'
         await page.reload()
