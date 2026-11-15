@@ -24,6 +24,13 @@ for (const [name, width, height, mobile] of [
       'aria-hidden',
       'true',
     )
+    await expect
+      .poll(() =>
+        page
+          .locator('.order-success-hero .success-art')
+          .evaluate((image: HTMLImageElement) => image.naturalWidth),
+      )
+      .toBeGreaterThan(0)
     await expect(page.locator('.order-success-card')).toHaveClass(/is-success/)
     await expect(page.locator('.order-success-hero')).toContainText('Заказ оформлен')
     await expect(page.locator('.order-success-hero [aria-live]')).toHaveAttribute(
@@ -52,11 +59,25 @@ for (const [name, width, height, mobile] of [
       await page.setViewportSize({ width: 320, height })
       const emblem = await page.locator('.order-success-hero .success-art').boundingBox()
       const status = await page.locator('.order-success-hero [aria-live] h2').boundingBox()
+      const eta = await page
+        .locator('.order-success-hero [aria-live]')
+        .getByText(/Готовим в среднем/)
+        .boundingBox()
+      const summary = await page.locator('[data-order-summary]').boundingBox()
       const stages = await page.locator('.order-success-hero ol').boundingBox()
       expect(emblem).not.toBeNull()
       expect(status).not.toBeNull()
+      expect(eta).not.toBeNull()
+      expect(summary).not.toBeNull()
       expect(stages).not.toBeNull()
       expect(status!.x + status!.width).toBeLessThan(emblem!.x)
+      expect(Math.abs(eta!.x - status!.x)).toBeLessThan(2)
+      expect(eta!.y).toBeGreaterThan(status!.y + status!.height)
+      expect(eta!.x + eta!.width).toBeLessThan(emblem!.x)
+      expect(emblem!.x + emblem!.width / 2).toBeGreaterThan(summary!.x + summary!.width * 0.7)
+      expect(
+        Math.abs(emblem!.y + emblem!.height / 2 - (summary!.y + summary!.height / 2)),
+      ).toBeLessThan(10)
       expect(emblem!.y + emblem!.height).toBeLessThan(stages!.y)
       await page.setViewportSize({ width, height })
     }
@@ -191,6 +212,7 @@ test('delivery receipt reconciles item, discount and fee and completes all five 
     const body = (await response.json()) as { data: Record<string, unknown> }
     const items = body.data.items as Array<Record<string, unknown>>
     body.data.status = 'completed'
+    body.data.payment_method = 'cash'
     body.data.subtotal_amount = 59_000
     body.data.discount_amount = 10_000
     body.data.delivery_amount = 15_000
