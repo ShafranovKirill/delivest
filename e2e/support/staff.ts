@@ -1,8 +1,16 @@
 import { expect, type Browser, type Locator, type Page } from '@playwright/test'
 import { adminUrl, branchSlug, staffPassword } from './env'
 
+let staffSessionCounter = 0
+
 export const signIn = async (browser: Browser, login: string) => {
-  const context = await browser.newContext({ locale: 'ru-RU', timezoneId: 'Europe/Moscow' })
+  const session = ++staffSessionCounter
+  // Independent staff sessions need separate IPs so they do not share a login quota.
+  const context = await browser.newContext({
+    locale: 'ru-RU',
+    timezoneId: 'Europe/Moscow',
+    extraHTTPHeaders: { 'x-forwarded-for': `198.18.${session >> 8}.${session & 255}` },
+  })
   const page = await context.newPage()
   await page.goto(`${adminUrl}/staff/auth/login`)
   await page.locator('[data-phx-main].phx-connected').waitFor()

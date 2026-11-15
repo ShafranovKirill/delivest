@@ -21,9 +21,88 @@ const second = {
   longitude: 37.591,
 };
 
+test("address suggestions stay below the field and show a Russian empty state", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.route("**/client/franchise", async (route) => {
+    const response = await route.fetch();
+    const body = await response.json();
+    body.data.address_map = true;
+    await route.fulfill({ response, json: body });
+  });
+  let empty = false;
+  await page.route("**/client/geo/suggest**", async (route) => {
+    await route.fulfill({
+      json: {
+        data: empty
+          ? []
+          : Array.from({ length: 8 }, (_, index) => ({
+              ...first,
+              house: String(index + 7),
+              value: `Москва, Тверская, ${index + 7}`,
+            })),
+      },
+    });
+  });
+  await page.goto("/e2e");
+  await page.getByRole("button", { name: "590 ₽" }).click();
+  await page.getByText("Указать адрес доставки").click();
+  const input = page.getByLabel("Улица, дом");
+  const dialog = page.getByRole("dialog");
+  await input.fill("Тверская, 7");
+  const option = page.getByRole("option", { name: /Тверская.*7/ });
+  await expect(option).toBeVisible();
+  const inputBox = await input.boundingBox();
+  const optionBox = await option.boundingBox();
+  const overlayBox = await page
+    .locator(".address-suggest-overlay")
+    .boundingBox();
+  const dialogBox = await dialog.boundingBox();
+  expect(
+    overlayBox!.y - (inputBox!.y + inputBox!.height),
+  ).toBeGreaterThanOrEqual(11.5);
+  expect(optionBox!.y).toBeGreaterThanOrEqual(inputBox!.y + inputBox!.height);
+  expect(optionBox!.x).toBeGreaterThanOrEqual(dialogBox!.x);
+  expect(optionBox!.x + optionBox!.width).toBeLessThanOrEqual(
+    dialogBox!.x + dialogBox!.width,
+  );
+  const list = page.locator(
+    ".address-suggest-overlay .p-autocomplete-list-container",
+  );
+  const listBox = await list.boundingBox();
+  expect(
+    await list.evaluate((element) => element.scrollHeight),
+  ).toBeGreaterThan(await list.evaluate((element) => element.clientHeight));
+  expect(listBox!.y + listBox!.height).toBeLessThanOrEqual(
+    dialogBox!.y + dialogBox!.height,
+  );
+  if (process.env.ORDER_SUCCESS_SCREENSHOTS)
+    await page.screenshot({
+      path: `${process.env.ORDER_SUCCESS_SCREENSHOTS}/map-desktop-suggestions.png`,
+      animations: "disabled",
+    });
+  empty = true;
+  await input.fill("Несуществующая улица 999");
+  const emptyMessage = page.locator(
+    ".address-suggest-overlay .p-autocomplete-empty-message",
+  );
+  await expect(emptyMessage).toBeVisible();
+  await expect(emptyMessage).toContainText("Адрес не найден");
+  await expect(emptyMessage).toContainText(
+    "Проверьте название улицы и номер дома",
+  );
+  if (process.env.ORDER_SUCCESS_SCREENSHOTS)
+    await page.screenshot({
+      path: `${process.env.ORDER_SUCCESS_SCREENSHOTS}/map-desktop-empty.png`,
+      animations: "disabled",
+    });
+});
+
 test("address choice shows the server quote and clears it while another point is checked", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   let releaseSecond!: () => void;
   const secondGate = new Promise<void>((resolve) => {
     releaseSecond = resolve;
@@ -117,32 +196,119 @@ test("address choice shows the server quote and clears it while another point is
   await page.getByRole("button", { name: "590 ₽" }).click();
   await page.getByText("Указать адрес доставки").click();
   const input = page.getByLabel("Улица, дом");
-  const confirmAddress = page.getByRole("button", { name: "Подтвердить адрес" });
-  await input.fill("Тверская, 7");
-  await expect(confirmAddress).toBeDisabled();
-  await page.getByRole("option", { name: /Тверская.*7/ }).click();
+  const confirmAddress = page.getByRole("button", {
+    name: "Подтвердить адрес",
+  });
   const caption = page.getByTestId("delivery-quote-caption");
-  await expect(caption).toContainText("Центр");
-  await expect(caption).toContainText("150 ₽");
-  await expect(confirmAddress).toBeEnabled();
+  const conditions = page.getByRole("button", { name: "Условия доставки" });
   const canvas = page.locator(".maplibregl-canvas");
   await expect(canvas).toBeVisible();
+  await expect(caption).toContainText("Выберите адрес");
+  await expect(caption).not.toContainText("₽");
+  await expect(conditions).toHaveCount(0);
+  await expect(page.locator('[aria-busy="true"]')).toBeHidden();
+  await expect
+    .poll(async () => (await confirmAddress.boundingBox())?.height)
+    .toBe(48);
+  const initialMapHeight = (await canvas.boundingBox())?.height;
+  const initialConfirmBox = await confirmAddress.boundingBox();
+  expect(initialConfirmBox?.height).toBe(48);
+  await input.fill("Тверская, 7");
+  const suggestion = page.getByRole("option", { name: /Тверская.*7/ });
+  await expect(suggestion).toBeVisible();
+  const suggestionBox = await suggestion.boundingBox();
+  const inputBox = await input.boundingBox();
+  const overlayBox = await page
+    .locator(".address-suggest-overlay")
+    .boundingBox();
+  const dialogBox = await page.getByRole("dialog").boundingBox();
+  expect(
+    overlayBox!.y - (inputBox!.y + inputBox!.height),
+  ).toBeGreaterThanOrEqual(11.5);
+  expect(suggestionBox!.y).toBeGreaterThanOrEqual(
+    inputBox!.y + inputBox!.height,
+  );
+  expect(suggestionBox!.x).toBeGreaterThanOrEqual(dialogBox!.x);
+  expect(suggestionBox!.x + suggestionBox!.width).toBeLessThanOrEqual(
+    dialogBox!.x + dialogBox!.width,
+  );
+  const listBox = await page
+    .locator(".address-suggest-overlay .p-autocomplete-list-container")
+    .boundingBox();
+  expect(listBox!.y + listBox!.height).toBeLessThanOrEqual(
+    dialogBox!.y + dialogBox!.height,
+  );
+  if (process.env.ORDER_SUCCESS_SCREENSHOTS)
+    await page.screenshot({
+      path: `${process.env.ORDER_SUCCESS_SCREENSHOTS}/map-mobile-suggestions.png`,
+      animations: "disabled",
+    });
+  await expect(confirmAddress).toBeDisabled();
+  await expect(caption).toContainText(/Выберите адрес|Проверяем/);
+  await expect(caption).not.toContainText("150 ₽");
+  await input.press("ArrowDown");
+  await input.press("Enter");
+  await expect(caption).toContainText("150 ₽");
+  await expect(caption).not.toContainText("45 мин");
+  await expect(caption).not.toContainText("Центр");
+  const addressBox = await input.boundingBox();
+  const captionBox = await caption.boundingBox();
+  const confirmBox = await confirmAddress.boundingBox();
+  expect(captionBox!.y + captionBox!.height).toBeLessThan(addressBox!.y);
+  expect(captionBox!.x).toBeLessThan((await canvas.boundingBox())!.x + 32);
+  expect(confirmBox?.height).toBe(48);
+  await expect
+    .poll(async () => (await canvas.boundingBox())?.height)
+    .toBe(initialMapHeight);
+  await expect(conditions).toHaveCount(0);
+  await expect(page.getByText("Центр", { exact: true })).toHaveCount(0);
+  if (process.env.ORDER_SUCCESS_SCREENSHOTS) {
+    await page.screenshot({
+      path: `${process.env.ORDER_SUCCESS_SCREENSHOTS}/map-mobile.png`,
+      fullPage: false,
+      animations: "disabled",
+    });
+  }
+  await expect(confirmAddress).toBeEnabled();
   await expect(page.locator('[aria-busy="true"]')).toBeHidden();
   const box = await canvas.boundingBox();
   expect(box).not.toBeNull();
+  const tabs = page.getByRole("radiogroup");
+  const close = page.getByRole("button", { name: "Закрыть" }).first();
+  expect((await tabs.boundingBox())?.height).toBe(40);
+  expect((await close.boundingBox())?.height).toBe(40);
   await page.mouse.move(
     box!.x + box!.width / 2 + 30,
     box!.y + box!.height / 2 - 30,
   );
-  await expect(page.getByText(/от 500 ₽: 100 ₽/)).toBeVisible();
+  await expect(
+    page.getByText(/^Центр · от 500\s₽: 100\s₽ · около 35 мин$/),
+  ).toHaveCount(0);
 
   await input.fill("Арбат, 10");
   await page.getByRole("option", { name: /Арбат.*10/ }).click();
-  await expect(caption).toContainText("Проверяем стоимость доставки");
+  await expect(caption).toContainText(/Выберите адрес|Проверяем/);
   await expect(caption).not.toContainText("150 ₽");
+  await expect(confirmAddress).toBeDisabled();
+  await expect(page.getByText("Центр", { exact: true })).toHaveCount(0);
+  await expect(conditions).toHaveCount(0);
+  await expect
+    .poll(async () => (await canvas.boundingBox())?.height)
+    .toBe(initialMapHeight);
+  expect((await confirmAddress.boundingBox())?.height).toBe(48);
   releaseSecond();
-  await expect(caption).toContainText("Арбат");
   await expect(caption).toContainText("250 ₽");
+  await expect(conditions).toHaveCount(0);
+  await expect(page.getByText("Арбат", { exact: true })).toHaveCount(0);
+  await expect
+    .poll(async () => (await canvas.boundingBox())?.height)
+    .toBe(initialMapHeight);
+  expect((await confirmAddress.boundingBox())?.height).toBe(48);
+  await page.setViewportSize({ width: 320, height: 844 });
+  await expect(confirmAddress).toBeVisible();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(320);
 });
 
 test("below minimum shows delivery price and keeps address confirmation available", async ({
@@ -179,10 +345,10 @@ test("below minimum shows delivery price and keeps address confirmation availabl
   await page.getByLabel("Улица, дом").fill("Тверская, 7");
   await page.getByRole("option", { name: /Тверская.*7/ }).click();
   const caption = page.getByTestId("delivery-quote-caption");
-  await expect(caption).toContainText("Центр");
   await expect(caption).toContainText("100 ₽");
-  await expect(caption).toContainText("500 ₽");
-  await expect(caption).toContainText("1 500 ₽");
+  await expect(caption).not.toContainText("500 ₽");
+  await expect(page.getByRole("button", { name: "Условия доставки" })).toHaveCount(0);
+  await expect(page.getByText("Центр", { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Подтвердить адрес" }),
   ).toBeEnabled();

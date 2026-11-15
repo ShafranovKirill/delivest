@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '../support/test'
+import { selectPickupLocation } from '../support/pickup'
 import { adminUrl } from '../support/env'
 import { advance, branchPage, expectStatus, orderCard, tagged } from '../support/staff'
 import { placeOrder } from '../support/customer'
@@ -9,7 +10,7 @@ async function createLink(staff: Page) {
   const slug = `e2e-${Date.now()}`
   await staff.locator('#advertising-link-form input[name="link[campaign]"]').fill(slug)
   await staff.locator('#advertising-link-form input[name="link[name]"]').fill(slug)
-  await staff.locator('#staff-header-actions button[form="advertising-link-form"]').click()
+  await staff.locator('main #staff-header-actions button[form="advertising-link-form"]').click()
   const row = staff.locator('#advertising-links > div', { hasText: slug })
   await expect(row).toBeVisible()
   const url = await row.locator('input[readonly]').inputValue()
@@ -112,7 +113,7 @@ test('advertising redirect, verified phone, checkout and OMS completion preserve
 
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByText('Заберу самостоятельно').click()
-  await page.getByRole('button', { name: 'Заказать сюда' }).click()
+  await selectPickupLocation(page)
   await page.locator('header').getByRole('button', { name: '590 ₽' }).click()
   await page.getByRole('button', { name: 'К оформлению заказа' }).click()
   await expect(page).toHaveURL(/\/e2e\/checkout$/)
@@ -180,7 +181,7 @@ test('advertising redirect, verified phone, checkout and OMS completion preserve
   await expect(admin.locator('#statistics-report-summary')).toBeVisible()
 
   await branchPage(admin, 'statistics?tab=franchise&period=today')
-  await expect(admin.locator('#statistics-branch-comparison tbody tr', { hasText: 'E2E' }))
+  await expect(admin.locator('tbody#statistics-branch-comparison tr', { hasText: 'E2E' }))
     .toBeVisible()
   await expectNoHorizontalOverflow(admin)
   expect(errors).toEqual([])

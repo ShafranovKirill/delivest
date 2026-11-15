@@ -13,6 +13,11 @@ test('a delivery order goes from the customer through the kitchen to the courier
   const card = orderCard(operator, number)
   await expectStatus(card, 'Новый')
   await advance(card, 'Подтвердить')
+  const status = card.locator('[id^="order-status-"]')
+  await expect.poll(() => status.innerText().then(text => text.trim())).toMatch(/^(Подтверждён|Готовится)$/)
+  if ((await status.innerText()).trim() === 'Подтверждён') {
+    await advance(card, 'Передать на кухню')
+  }
   await expectStatus(card, 'Готовится')
 
   const kitchen = await staff('e2e_kitchen')

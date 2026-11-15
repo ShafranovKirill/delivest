@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { mockDeliveryAddressSuggestion, selectDeliveryAddress } from '../support/delivery-address'
+import { selectPickupLocation } from '../support/pickup'
 
 type Fulfillment = 'pickup' | 'delivery'
 
@@ -15,9 +16,8 @@ async function openMobileCheckout(page: Page, fulfillment: Fulfillment) {
     await page.getByText('Указать адрес доставки').click()
     await selectDeliveryAddress(page)
   }
-  await page
-    .getByRole('button', { name: fulfillment === 'pickup' ? 'Заказать сюда' : 'Подтвердить адрес' })
-    .click()
+  if (fulfillment === 'pickup') await selectPickupLocation(page)
+  else await page.getByRole('button', { name: 'Подтвердить адрес' }).click()
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByRole('button', { name: 'К оформлению заказа' }).click()
   await expect(page).toHaveURL(/checkout/)
