@@ -24,6 +24,41 @@ test.afterEach(async ({ page }) => {
   await page.unrouteAll({ behavior: 'wait' })
 })
 
+for (const mapAddress of [false, true]) {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`delivery fields keep readable focus colors in ${theme} theme with map ${mapAddress}`, async ({ page }) => {
+      await page.setViewportSize({ width: mapAddress ? 390 : 1280, height: 844 })
+      await page.addInitScript((value) => localStorage.setItem('delivest-theme', value), theme)
+      await configureAddressMode(page, {
+        map_address: mapAddress,
+        show_city: true,
+        operator_address: true,
+      })
+      await page.route('**/client/franchise', async (route) => {
+        const response = await route.fetch()
+        const body = await response.json()
+        body.data.address_map = mapAddress
+        await route.fulfill({ response, json: body })
+      })
+      await page.route('**/client/geo/suggest**', (route) => route.fulfill({ json: { data: [] } }))
+      await page.goto('/e2e')
+      await expect(page.locator('html')).toHaveClass(theme === 'dark' ? /dark/ : /^(?!.*\bdark\b)/)
+      await page.getByRole('button', { name: '590 ₽' }).click()
+      await page.getByText('Указать адрес доставки').click()
+      for (const label of ['Улица, дом', 'Подъезд', 'Код двери', 'Этаж', 'Квартира']) {
+        const field = page.getByLabel(label, { exact: true })
+        await field.click()
+        await expect(field).toBeFocused()
+        await expect(field).toHaveCSS('background-color', theme === 'dark' ? 'rgb(23, 23, 27)' : 'rgb(255, 255, 255)')
+        await field.fill(label === 'Улица, дом' ? 'Тверская, 7' : '1')
+        await expect(field).toHaveCSS('background-color', theme === 'dark' ? 'rgb(23, 23, 27)' : 'rgb(255, 255, 255)')
+        await expect(field).not.toHaveCSS('color', theme === 'dark' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)')
+      }
+      await page.screenshot({ path: test.info().outputPath('delivery-focus-colors.png') })
+    })
+  }
+}
+
 for (const showCity of [true, false]) {
   test(`manual delivery uses the shared picker with operator ${showCity ? 'enabled' : 'disabled'}`, async ({
     page,
