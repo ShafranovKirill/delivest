@@ -100,6 +100,55 @@ test('pickup without coordinates stays compact and supports list, back and confi
   await expect(page.getByTestId('pickup-branch-detail')).toHaveCount(0)
 })
 
+test('mobile pickup detail without a map keeps its confirmation at the bottom while scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 480 })
+  const address = `Москва, ${'Очень длинная улица с длинным адресом, '.repeat(18)}дом 7`
+  await page.route('**/client/franchise', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.data.address_map = true
+    await route.fulfill({ response, json: body })
+  })
+  await page.route('**/client/branches', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.data = body.data.map((branch: { branch_info?: Record<string, unknown> }) => ({
+      ...branch,
+      branch_info: { ...branch.branch_info, latitude: null, longitude: null, address },
+    }))
+    await route.fulfill({ response, json: body })
+  })
+
+  await page.goto('/e2e')
+  await page.getByRole('button', { name: '590 ₽' }).click()
+  await page.getByText('Заберу самостоятельно').click()
+  await openPickupPreview(page)
+
+  const detail = page.getByTestId('pickup-branch-detail')
+  const dialog = page.getByRole('dialog').filter({ has: detail })
+  const panel = dialog.locator('.pickup-detail-panel')
+  const confirm = detail.getByRole('button', { name: 'Заберу здесь' })
+  await expect(detail).toContainText('E2E')
+  await expect(detail).toContainText(address)
+  await expect(confirm).toBeInViewport()
+  const bottomGap = async () => {
+    const dialogBox = (await dialog.boundingBox())!
+    const buttonBox = (await confirm.boundingBox())!
+    return dialogBox.y + dialogBox.height - buttonBox.y - buttonBox.height
+  }
+  await expect.poll(bottomGap).toBeLessThanOrEqual(32)
+  expect(await panel.evaluate((element) => element.scrollHeight)).toBeGreaterThan(
+    await panel.evaluate((element) => element.clientHeight),
+  )
+  await panel.evaluate((element) => { element.scrollTop = element.scrollHeight })
+  await expect.poll(() => panel.evaluate((element) => element.scrollTop)).toBeGreaterThan(0)
+  await expect(confirm).toBeInViewport()
+  await expect.poll(bottomGap).toBeLessThanOrEqual(32)
+
+  await detail.getByRole('button', { name: 'Назад' }).click()
+  await expect(page.getByTestId('pickup-branch-list')).toBeVisible()
+})
+
 for (const disabledBy of ['branch', 'franchise'] as const) {
   test(`pickup with map disabled by ${disabledBy} selects directly from the compact list`, async ({ page }) => {
     await page.route('**/client/franchise', async (route) => {
