@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { dragSheetHandle, expectBottomSheet } from '../support/bottom-sheet'
 import { selectPickupLocation } from '../support/pickup'
 
 async function configureAddressMode(
@@ -188,7 +189,7 @@ test('map style failure keeps address selection usable in a compact dialog', asy
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByText('Указать адрес доставки').click()
   const dialog = page.getByRole('dialog').filter({ has: page.getByLabel('Улица, дом') })
-  await expect(dialog).toHaveCSS('border-top-left-radius', '24px')
+  await expectBottomSheet(page, dialog)
   const confirm = page.getByRole('button', { name: 'Подтвердить адрес' })
   await expect(confirm).toBeDisabled()
   await page.getByLabel('Улица, дом').fill('Тверская, 7')
@@ -199,4 +200,43 @@ test('map style failure keeps address selection usable in a compact dialog', asy
   expect(box!.height).toBeGreaterThanOrEqual(48)
   expect(box!.x + box!.width).toBeLessThanOrEqual(320)
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
+})
+
+test('mobile map-free delivery uses a bottom sheet with handle dismissal', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 })
+  await configureAddressMode(page, { map_address: false, show_city: false, operator_address: false })
+  await page.goto('/e2e')
+  await page.getByRole('button', { name: '590 ₽' }).click()
+  await page.getByText('Указать адрес доставки').click()
+
+  const dialog = page.getByRole('dialog').filter({ has: page.getByLabel('Улица, дом') })
+  await expectBottomSheet(page, dialog)
+  await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
+  const handle = dialog.getByRole('button', { name: 'Закрыть' })
+  await dragSheetHandle(page, handle, 35)
+  await expect(dialog).toBeVisible()
+  await dragSheetHandle(page, handle, 180)
+  await expect(dialog).toHaveCount(0)
+})
+
+test('mobile map-free pickup uses a bottom sheet with backdrop dismissal', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 })
+  await page.route('**/client/franchise', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.data.address_map = false
+    await route.fulfill({ response, json: body })
+  })
+  await page.goto('/e2e')
+  await page.getByRole('button', { name: '590 ₽' }).click()
+  await page.getByText('Заберу самостоятельно').click()
+
+  const dialog = page.getByRole('dialog').filter({ has: page.getByTestId('pickup-branch-list') })
+  await expectBottomSheet(page, dialog)
+  await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
+  const handle = dialog.getByRole('button', { name: 'Закрыть' })
+  await dragSheetHandle(page, handle, 35)
+  await expect(dialog).toBeVisible()
+  await page.mouse.click(8, 8)
+  await expect(dialog).toHaveCount(0)
 })
