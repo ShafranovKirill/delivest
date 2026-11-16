@@ -249,6 +249,7 @@ test("address choice shows the server quote and clears it while another point is
   await input.press("ArrowDown");
   await input.press("Enter");
   await expect(caption).toContainText("150 ₽");
+  await expect(caption).toContainText("бесплатно от 1 500 ₽");
   await expect(caption).not.toContainText("45 мин");
   await expect(caption).not.toContainText("Центр");
   const addressBox = await input.boundingBox();
@@ -329,7 +330,7 @@ test("below minimum shows delivery price and keeps address confirmation availabl
         data: {
           status: "below_minimum",
           price: 10000,
-          min_order: 50000,
+          min_order: 80000,
           free_from: 150000,
           minutes: 35,
           zone_id: "first",
@@ -346,7 +347,8 @@ test("below minimum shows delivery price and keeps address confirmation availabl
   await page.getByRole("option", { name: /Тверская.*7/ }).click();
   const caption = page.getByTestId("delivery-quote-caption");
   await expect(caption).toContainText("100 ₽");
-  await expect(caption).not.toContainText("500 ₽");
+  await expect(caption).toContainText("Минимум 800 ₽");
+  await expect(caption).toContainText("добавьте на 210 ₽");
   await expect(page.getByRole("button", { name: "Условия доставки" })).toHaveCount(0);
   await expect(page.getByText("Центр", { exact: true })).toHaveCount(0);
   await expect(

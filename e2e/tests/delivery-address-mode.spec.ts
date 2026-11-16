@@ -129,5 +129,63 @@ test('explicit map mode falls back to the compact address picker when the map in
   await expect(address).toBeVisible()
   await address.fill('Москва, Тверская, 7')
   await expect(page.getByRole('button', { name: 'Подтвердить адрес' })).toBeDisabled()
-  await expect(page.getByRole('button', { name: 'Уточнить адрес по телефону' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Уточнить адрес по телефону' })).toHaveCount(0)
+  await expect(page.getByText(/Выбор нового адреса сейчас недоступен/)).toBeVisible()
+})
+
+test('manual delivery offers suggestions without opening a map', async ({ page }) => {
+  await configureAddressMode(page, { map_address: false, show_city: false, operator_address: false })
+  await page.route('**/client/franchise', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.data.address_map = true
+    await route.fulfill({ response, json: body })
+  })
+  await page.route('**/client/geo/suggest**', (route) =>
+    route.fulfill({ json: { data: [{ city: 'Москва', street: 'Тверская', house: '7', value: 'Москва, Тверская, 7', latitude: 55.75, longitude: 37.61 }] } }),
+  )
+  await page.route('**/client/delivery/quote**', (route) =>
+    route.fulfill({ json: { data: { status: 'ok', price: 15000, min_order: 0 } } }),
+  )
+  await page.goto('/e2e')
+  await page.getByRole('button', { name: '590 ₽' }).click()
+  await page.getByText('Указать адрес доставки').click()
+  await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
+  await page.getByLabel('Улица, дом').fill('Тверская, 7')
+  await page.getByRole('option', { name: /Тверская.*7/ }).click()
+  await expect(page.getByTestId('delivery-quote-caption')).toContainText('150 ₽')
+  await expect(page.getByRole('button', { name: 'Подтвердить адрес' })).toBeEnabled()
+})
+
+test('map style failure keeps address selection usable in a compact dialog', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 })
+  await configureAddressMode(page, { map_address: true, show_city: true, operator_address: false })
+  await page.route('**/client/franchise', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.data.address_map = true
+    await route.fulfill({ response, json: body })
+  })
+  await page.route('**/styles/liberty', (route) => route.abort())
+  await page.route('**/client/geo/suggest**', (route) =>
+    route.fulfill({ json: { data: [{ city: 'Москва', street: 'Тверская', house: '7', value: 'Москва, Тверская, 7', latitude: 55.75, longitude: 37.61 }] } }),
+  )
+  await page.route('**/client/delivery/quote**', (route) =>
+    route.fulfill({ json: { data: { status: 'ok', price: 15000, min_order: 0 } } }),
+  )
+  await page.goto('/e2e')
+  await page.getByRole('button', { name: '590 ₽' }).click()
+  await page.getByText('Указать адрес доставки').click()
+  const dialog = page.getByRole('dialog').filter({ has: page.getByLabel('Улица, дом') })
+  await expect(dialog).toHaveCSS('border-top-left-radius', '24px')
+  const confirm = page.getByRole('button', { name: 'Подтвердить адрес' })
+  await expect(confirm).toBeDisabled()
+  await page.getByLabel('Улица, дом').fill('Тверская, 7')
+  await page.getByRole('option', { name: /Тверская.*7/ }).click()
+  await expect(page.getByTestId('delivery-quote-caption')).toContainText('150 ₽')
+  await expect(confirm).toBeEnabled()
+  const box = await confirm.boundingBox()
+  expect(box!.height).toBeGreaterThanOrEqual(48)
+  expect(box!.x + box!.width).toBeLessThanOrEqual(320)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
 })
