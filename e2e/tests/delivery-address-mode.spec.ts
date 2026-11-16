@@ -21,6 +21,27 @@ async function configureAddressMode(
   })
 }
 
+async function configureSavedAddress(page: Page) {
+  await page.addInitScript(() =>
+    localStorage.setItem('auth', JSON.stringify({
+      accessToken: null,
+      refreshToken: 'qa',
+      client: { id: '11111111-1111-4111-8111-111111111111', phone: '+70000000000' },
+    })),
+  )
+  await page.route('**/client/**', (route) => {
+    const headers = { ...route.request().headers() }
+    delete headers.authorization
+    return route.fallback({ headers })
+  })
+  await page.route('**/client/addresses', (route) => route.fulfill({ json: {
+    data: [{ id: 'saved', street: 'Тверская', house: '7', city: 'Москва', label: 'Сохранённый адрес' }],
+  } }))
+  await page.route(/\/client\/(?:orders\/active|notifications|loyalty|socket_token)(?:\?.*)?$/, (route) =>
+    route.fulfill({ json: { data: [] } }),
+  )
+}
+
 test.afterEach(async ({ page }) => {
   await page.unrouteAll({ behavior: 'wait' })
 })
@@ -128,9 +149,10 @@ for (const showCity of [true, false]) {
   })
 }
 
-test('mobile map-free picker keeps one compact height across delivery and pickup', async ({ page }) => {
+test('mobile manual delivery grows naturally while pickup keeps its height', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await configureAddressMode(page, { map_address: false, show_city: true, operator_address: true })
+  await configureSavedAddress(page)
   await page.goto('/e2e')
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByText('Указать адрес доставки').click()
@@ -140,34 +162,63 @@ test('mobile map-free picker keeps one compact height across delivery and pickup
   const bounds = async () => {
     const box = await dialog.boundingBox()
     expect(box).not.toBeNull()
-    expect(box!.height).toBeLessThanOrEqual(416.5)
     return { top: box!.y, height: box!.height }
   }
+  const overflow = () => dialog.evaluate((root) =>
+    Math.max(0, ...[root, ...root.querySelectorAll<HTMLElement>('*')]
+      .filter((element) => ['auto', 'scroll'].includes(getComputedStyle(element).overflowY))
+      .map((element) => element.scrollHeight - element.clientHeight)),
+  )
   await expectBottomSheet(page, dialog)
+  await expect(dialog.getByText('Сохранённый адрес')).toBeVisible()
   await expect(dialog.getByLabel('Улица, дом')).toBeVisible()
   const delivery = await bounds()
+  expect(delivery.height).toBeGreaterThan(416)
+  expect(await overflow()).toBeLessThanOrEqual(2)
   const operator = dialog.getByRole('button', { name: 'Уточнить адрес по телефону' })
-  await operator.scrollIntoViewIfNeeded()
   await expect(operator).toBeVisible()
 
   await modes.getByRole('radio', { name: 'Самовывоз' }).click()
   await expect(dialog.getByTestId('pickup-branch-list')).toBeVisible()
   const pickup = await bounds()
-  expect(Math.abs(pickup.top - delivery.top)).toBeLessThanOrEqual(1)
-  expect(Math.abs(pickup.height - delivery.height)).toBeLessThanOrEqual(1)
+  expect(pickup.height).toBeLessThanOrEqual(416.5)
+  expect(pickup.top).toBeGreaterThan(delivery.top)
 
   await modes.getByRole('radio', { name: 'Доставка' }).click()
   await expect(dialog.getByLabel('Улица, дом')).toBeVisible()
   const returned = await bounds()
-  expect(Math.abs(returned.top - delivery.top)).toBeLessThanOrEqual(1)
-  await operator.scrollIntoViewIfNeeded()
+  expect(Math.abs(returned.height - delivery.height)).toBeLessThanOrEqual(1)
+  expect(await overflow()).toBeLessThanOrEqual(2)
   await expect(operator).toBeVisible()
 
   await page.setViewportSize({ width: 320, height: 480 })
-  await expect.poll(async () => (await dialog.boundingBox())?.height ?? 0).toBeLessThanOrEqual(408.5)
+  await expect.poll(async () => (await dialog.boundingBox())?.height ?? 0).toBeLessThanOrEqual(480)
+  expect(await overflow()).toBeLessThanOrEqual(2)
+  await expect(operator).toBeInViewport()
   await modes.getByRole('radio', { name: 'Самовывоз' }).click()
   await expect(dialog.getByTestId('pickup-branch-list')).toBeVisible()
   await expect.poll(async () => (await dialog.boundingBox())?.height ?? 0).toBeLessThanOrEqual(408.5)
+  await modes.getByRole('radio', { name: 'Доставка' }).click()
+  await page.setViewportSize({ width: 320, height: 360 })
+  await expect.poll(async () => (await dialog.boundingBox())?.height ?? 0).toBeLessThanOrEqual(360)
+  await expect.poll(overflow).toBeGreaterThan(2)
+  await operator.scrollIntoViewIfNeeded()
+  await expect(operator).toBeInViewport()
+})
+
+test('manual delivery without the operator action fits its content', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await configureAddressMode(page, { map_address: false, show_city: true, operator_address: false })
+  await page.goto('/e2e')
+  await page.getByRole('button', { name: '590 ₽' }).click()
+  await page.getByText('Указать адрес доставки').click()
+  const dialog = page.getByRole('dialog').filter({ has: page.getByLabel('Улица, дом') })
+  await expectBottomSheet(page, dialog)
+  await expect(dialog.getByRole('button', { name: 'Уточнить адрес по телефону' })).toHaveCount(0)
+  expect(await dialog.evaluate((root) => {
+    const content = root.querySelector('.p-dialog-content')!
+    return content.scrollHeight - content.clientHeight
+  })).toBeLessThanOrEqual(2)
 })
 
 test('operator choice can be replaced with an address from checkout', async ({ page }) => {
