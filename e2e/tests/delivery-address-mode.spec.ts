@@ -318,7 +318,7 @@ test('mobile map-free pickup uses a bottom sheet with backdrop dismissal', async
   await expect(dialog).toHaveCount(0)
 })
 
-test('pickup with manual delivery mode chooses a single-method branch from the compact list', async ({ page }) => {
+test('pickup with manual delivery mode previews a single-method branch before confirmation', async ({ page }) => {
   await page.route('**/client/franchise', async (route) => {
     const response = await route.fetch()
     const body = await response.json()
@@ -348,6 +348,11 @@ test('pickup with manual delivery mode chooses a single-method branch from the c
   await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
   await expect(dialog.locator('[data-map-placeholder]')).toHaveCount(0)
   await expect(page.getByTestId('pickup-branch-row').filter({ has: page.getByText('E2E', { exact: true }) })).toContainText('Москва, Тверская улица, 7')
+  await page.getByTestId('pickup-branch-row').filter({ has: page.getByText('E2E', { exact: true }) }).click()
+  const detail = page.getByTestId('pickup-branch-detail')
+  await expect(detail).toBeVisible()
+  await expect(detail.getByRole('radiogroup')).toHaveCount(0)
+  await detail.getByRole('button', { name: 'Назад' }).click()
   await selectPickupLocation(page)
   await expect(page.getByTestId('pickup-branch-detail')).toHaveCount(0)
   await expect(dialog).toBeHidden()

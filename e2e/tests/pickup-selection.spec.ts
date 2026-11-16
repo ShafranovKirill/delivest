@@ -150,7 +150,7 @@ test('mobile pickup detail without a map keeps its confirmation at the bottom wh
 })
 
 for (const disabledBy of ['branch', 'franchise'] as const) {
-  test(`pickup with map disabled by ${disabledBy} selects directly from the compact list`, async ({ page }) => {
+  test(`pickup with map disabled by ${disabledBy} previews before confirmation`, async ({ page }) => {
     await page.route('**/client/franchise', async (route) => {
       const response = await route.fetch()
       const body = await response.json()
@@ -175,6 +175,12 @@ for (const disabledBy of ['branch', 'franchise'] as const) {
     await expect(list).toHaveAttribute('data-compact', 'true')
     await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
     await list.getByTestId('pickup-branch-row').filter({ has: page.getByText('E2E', { exact: true }) }).click()
+    const detail = page.getByTestId('pickup-branch-detail')
+    await expect(detail).toBeVisible()
+    await detail.getByRole('button', { name: 'Назад' }).click()
+    await expect(list).toBeVisible()
+    await list.getByTestId('pickup-branch-row').filter({ has: page.getByText('E2E', { exact: true }) }).click()
+    await detail.getByRole('button', { name: 'Заберу здесь' }).click()
     await expect(page.getByRole('dialog')).toHaveCount(0)
     await expect(page.getByTestId('pickup-branch-detail')).toHaveCount(0)
   })

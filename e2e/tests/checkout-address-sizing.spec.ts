@@ -126,6 +126,41 @@ test("checkout dine-in confirmation returns to the order with the selected metho
   ).toBeVisible();
 });
 
+for (const method of ["Самовывоз", "В зале"] as const) {
+  test(`checkout form ${method} opens the branch preview before changing fulfillment`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const dialog = await openCheckoutAddress(page, false, [
+      "pickup",
+      "dine_in",
+    ]);
+    await dialog.getByRole("button", { name: "Закрыть" }).click();
+    await page
+      .getByRole("group", { name: "Адрес доставки" })
+      .getByRole("button", { name: method })
+      .click();
+    await expect(dialog.getByTestId("pickup-branch-list")).toBeVisible();
+    await expect(dialog.getByTestId("pickup-branch-detail")).toHaveCount(0);
+    await dialog
+      .getByTestId("pickup-branch-row")
+      .filter({ has: page.getByText("E2E", { exact: true }) })
+      .click();
+    const detail = dialog.getByTestId("pickup-branch-detail");
+    await expect(detail).toBeVisible();
+    await expect(
+      detail.getByRole("radio", {
+        name: method === "Самовывоз" ? "С собой" : "В зале",
+      }),
+    ).toHaveAttribute("aria-checked", "true");
+    await detail.getByRole("button", { name: "Назад" }).click();
+    await expect(dialog.getByTestId("pickup-branch-list")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Заказ на доставку" }),
+    ).toBeVisible();
+  });
+}
+
 async function expectNaturalHeight(
   page: Page,
   dialog: ReturnType<Page["getByRole"]>,
