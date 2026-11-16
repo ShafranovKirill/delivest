@@ -34,9 +34,15 @@ for (const showCity of [true, false]) {
       show_city: showCity,
       operator_address: showCity,
     })
-    await page.route('**/client/delivery/quote**', (route) =>
-      route.fulfill({ json: { data: { status: 'ok', price: 15000, min_order: 0 } } }),
-    )
+    let quotes = 0
+    let quotesWithCoordinates = 0
+    await page.route('**/client/delivery/quote**', (route) => {
+      quotes++
+      if (/[?&](?:latitude|longitude)=/.test(route.request().url())) quotesWithCoordinates++
+      return route.fulfill({ json: { data: { status: 'ok', price: 15000, min_order: 0 } } })
+    })
+    let zones = 0
+    await page.route('**/client/delivery/zones**', (route) => { zones++; return route.continue() })
 
     await page.goto('/e2e')
     await page.getByRole('button', { name: '590 ₽' }).click()
@@ -59,7 +65,10 @@ for (const showCity of [true, false]) {
       return dialogBox!.y + dialogBox!.height - buttonBox!.y - buttonBox!.height
     }).toBeLessThanOrEqual(24)
     await address.fill('Тверская, 7')
-    await expect(page.getByTestId('delivery-quote-caption')).toContainText('150 ₽')
+    await expect(confirm).toBeEnabled()
+    await expect(page.getByTestId('delivery-quote-caption')).toHaveCount(0)
+    expect(quotes).toBe(0)
+    expect(zones).toBe(0)
     await page.screenshot({ path: test.info().outputPath('address-modal.png') })
     await confirm.click()
     if (showCity) return
@@ -68,6 +77,8 @@ for (const showCity of [true, false]) {
     await page.getByRole('button', { name: 'К оформлению заказа' }).click()
     await expect(page.getByLabel('Улица, дом')).toHaveCount(0)
     await expect(page.getByText('740 ₽', { exact: true }).filter({ visible: true }).first()).toBeVisible()
+    expect(quotes).toBeGreaterThan(0)
+    expect(quotesWithCoordinates).toBe(0)
 
     await page.getByRole('button', { name: /Доставка.*Тверская/ }).click()
     await expect(address).toHaveValue(/Тверская/)
@@ -153,7 +164,7 @@ test('manual delivery offers suggestions without opening a map', async ({ page }
   await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
   await page.getByLabel('Улица, дом').fill('Тверская, 7')
   await page.getByRole('option', { name: /Тверская.*7/ }).click()
-  await expect(page.getByTestId('delivery-quote-caption')).toContainText('150 ₽')
+  await expect(page.getByTestId('delivery-quote-caption')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Подтвердить адрес' })).toBeEnabled()
 })
 

@@ -8,6 +8,12 @@ export async function openPickupPreview(page: Page, branchName = 'E2E') {
 }
 
 export async function selectPickupLocation(page: Page) {
-  await openPickupPreview(page)
-  await page.getByTestId('pickup-branch-detail').getByRole('button', { name: 'Заберу здесь' }).click()
+  const list = page.getByTestId('pickup-branch-list')
+  const compact = (await list.getAttribute('data-compact')) === 'true'
+  await list.getByTestId('pickup-branch-row').filter({ has: page.getByText('E2E', { exact: true }) }).click()
+  if (!compact) {
+    const detail = page.getByTestId('pickup-branch-detail')
+    await expect(detail).toBeVisible()
+    await detail.getByRole('button', { name: 'Заберу здесь' }).click()
+  }
 }

@@ -99,3 +99,34 @@ test('pickup without coordinates stays compact and supports list, back and confi
   await selectPickupLocation(page)
   await expect(page.getByTestId('pickup-branch-detail')).toHaveCount(0)
 })
+
+for (const disabledBy of ['branch', 'franchise'] as const) {
+  test(`pickup with map disabled by ${disabledBy} selects directly from the compact list`, async ({ page }) => {
+    await page.route('**/client/franchise', async (route) => {
+      const response = await route.fetch()
+      const body = await response.json()
+      body.data.address_map = disabledBy !== 'franchise'
+      await route.fulfill({ response, json: body })
+    })
+    await page.route(/\/client\/branches(?:\/[^?]+\/select)?$/, async (route) => {
+      const response = await route.fetch()
+      const body = await response.json()
+      const branches = Array.isArray(body.data) ? body.data : [body.data]
+      for (const branch of branches) {
+        if (branch?.branch_info)
+          branch.branch_info.delivery = { ...branch.branch_info.delivery, map_address: disabledBy !== 'branch' }
+      }
+      await route.fulfill({ response, json: body })
+    })
+    await page.goto('/e2e')
+    await page.getByRole('button', { name: '590 ₽' }).click()
+    await page.getByText('Заберу самостоятельно').click()
+    const list = page.getByTestId('pickup-branch-list')
+    await expect(list).toBeVisible()
+    await expect(list).toHaveAttribute('data-compact', 'true')
+    await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
+    await list.getByTestId('pickup-branch-row').filter({ has: page.getByText('E2E', { exact: true }) }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(page.getByTestId('pickup-branch-detail')).toHaveCount(0)
+  })
+}
