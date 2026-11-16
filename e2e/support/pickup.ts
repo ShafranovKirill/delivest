@@ -8,6 +8,9 @@ export async function openPickupPreview(page: Page, branchName = 'E2E') {
 }
 
 export async function selectPickupLocation(page: Page) {
-  await openPickupPreview(page)
-  await page.getByTestId('pickup-branch-detail').getByRole('button', { name: 'Заберу здесь' }).click()
+  const row = page.getByTestId('pickup-branch-list').getByTestId('pickup-branch-row').filter({ has: page.getByText('E2E', { exact: true }) })
+  await expect(row).toBeVisible()
+  await row.click()
+  const detail = page.getByTestId('pickup-branch-detail')
+  if (await detail.isVisible()) await detail.getByRole('button', { name: 'Заберу здесь' }).click()
 }

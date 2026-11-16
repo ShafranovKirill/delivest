@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { selectPickupLocation } from '../support/pickup'
+import { openPickupPreview, selectPickupLocation } from '../support/pickup'
 
 async function configureAddressMode(
   page: Page,
@@ -37,6 +37,10 @@ for (const showCity of [true, false]) {
     await page.route('**/client/delivery/quote**', (route) =>
       route.fulfill({ json: { data: { status: 'ok', price: 15000, min_order: 0 } } }),
     )
+    const quoteRequests: string[] = []
+    page.on('request', (request) => {
+      if (request.url().includes('/client/delivery/quote')) quoteRequests.push(request.url())
+    })
 
     await page.goto('/e2e')
     await page.getByRole('button', { name: '590 ₽' }).click()
@@ -59,7 +63,8 @@ for (const showCity of [true, false]) {
       return dialogBox!.y + dialogBox!.height - buttonBox!.y - buttonBox!.height
     }).toBeLessThanOrEqual(24)
     await address.fill('Тверская, 7')
-    await expect(page.getByTestId('delivery-quote-caption')).toContainText('150 ₽')
+    await expect(dialog.getByTestId('delivery-quote-caption')).toHaveCount(0)
+    expect(quoteRequests).toHaveLength(0)
     await page.screenshot({ path: test.info().outputPath('address-modal.png') })
     await confirm.click()
     if (showCity) return
@@ -67,15 +72,20 @@ for (const showCity of [true, false]) {
     await page.getByRole('button', { name: '590 ₽', exact: true }).filter({ visible: true }).click()
     await page.getByRole('button', { name: 'К оформлению заказа' }).click()
     await expect(page.getByLabel('Улица, дом')).toHaveCount(0)
+    await expect.poll(() => quoteRequests.length).toBeGreaterThan(0)
     await expect(page.getByText('740 ₽', { exact: true }).filter({ visible: true }).first()).toBeVisible()
 
     await page.getByRole('button', { name: /Доставка.*Тверская/ }).click()
     await expect(address).toHaveValue(/Тверская/)
     await expect(address).not.toHaveValue(/Москва/)
     await confirm.click()
-    await page.getByRole('button', { name: /Доставка\s*150/ }).filter({ visible: true }).click()
+    await page.getByRole('button', { name: /Доставка.*Тверская/ }).click()
     await page.getByRole('radio', { name: 'Самовывоз', exact: true }).click()
-    await selectPickupLocation(page)
+    await openPickupPreview(page)
+    const detail = page.getByTestId('pickup-branch-detail')
+    await expect(detail.getByText('Сегодня')).toHaveCount(0)
+    await expect(detail.locator('a[href^="tel:"]')).toHaveCount(0)
+    await detail.getByRole('button', { name: 'Заберу здесь' }).click()
     await expect(page.getByRole('heading', { name: 'Заказ на самовывоз' })).toBeVisible()
     await expect(page.getByText('740 ₽', { exact: true })).toHaveCount(0)
   })
@@ -133,13 +143,21 @@ test('explicit map mode falls back to the compact address picker when the map in
   await expect(page.getByText(/Выбор нового адреса сейчас недоступен/)).toBeVisible()
 })
 
-test('manual delivery offers suggestions without opening a map', async ({ page }) => {
+test('manual delivery uses plain address entry without map, suggestions or quote', async ({ page }) => {
   await configureAddressMode(page, { map_address: false, show_city: false, operator_address: false })
   await page.route('**/client/franchise', async (route) => {
     const response = await route.fetch()
     const body = await response.json()
     body.data.address_map = true
     await route.fulfill({ response, json: body })
+  })
+  const suggestionRequests: string[] = []
+  const quoteRequests: string[] = []
+  const zoneRequests: string[] = []
+  page.on('request', (request) => {
+    if (request.url().includes('/client/geo/suggest')) suggestionRequests.push(request.url())
+    if (request.url().includes('/client/delivery/quote')) quoteRequests.push(request.url())
+    if (request.url().includes('/client/delivery/zones')) zoneRequests.push(request.url())
   })
   await page.route('**/client/geo/suggest**', (route) =>
     route.fulfill({ json: { data: [{ city: 'Москва', street: 'Тверская', house: '7', value: 'Москва, Тверская, 7', latitude: 55.75, longitude: 37.61 }] } }),
@@ -152,9 +170,52 @@ test('manual delivery offers suggestions without opening a map', async ({ page }
   await page.getByText('Указать адрес доставки').click()
   await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
   await page.getByLabel('Улица, дом').fill('Тверская, 7')
-  await page.getByRole('option', { name: /Тверская.*7/ }).click()
-  await expect(page.getByTestId('delivery-quote-caption')).toContainText('150 ₽')
+  await expect(page.getByRole('option', { name: /Тверская.*7/ })).toHaveCount(0)
+  await expect(page.getByTestId('delivery-quote-caption')).toHaveCount(0)
+  expect(suggestionRequests).toHaveLength(0)
+  expect(quoteRequests).toHaveLength(0)
+  expect(zoneRequests).toHaveLength(0)
   await expect(page.getByRole('button', { name: 'Подтвердить адрес' })).toBeEnabled()
+  await page.getByRole('button', { name: 'Подтвердить адрес' }).click()
+  await page.getByRole('button', { name: '590 ₽', exact: true }).filter({ visible: true }).click()
+  await page.getByRole('button', { name: 'К оформлению заказа' }).click()
+  await expect.poll(() => quoteRequests.length).toBeGreaterThan(0)
+  await expect(page.getByText('740 ₽', { exact: true }).filter({ visible: true }).first()).toBeVisible()
+})
+
+test('pickup with manual delivery mode chooses a single-method branch from the compact list', async ({ page }) => {
+  await page.route('**/client/franchise', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.data.address_map = true
+    await route.fulfill({ response, json: body })
+  })
+  await page.route(/\/client\/branches(?:\/[^?]+\/select)?$/, async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    const branches = Array.isArray(body.data) ? body.data : [body.data]
+    for (const branch of branches) {
+      if (branch?.slug === 'e2e') {
+        branch.branch_info.delivery = { map_address: false, show_city: false, operator_address: false, address_mode_set: true }
+        branch.branch_info.fulfillment_methods = ['delivery', 'pickup']
+        branch.branch_info.latitude = 55.75
+        branch.branch_info.longitude = 37.61
+      }
+    }
+    await route.fulfill({ response, json: body })
+  })
+
+  await page.goto('/e2e')
+  await page.getByRole('button', { name: '590 ₽' }).click()
+  await page.getByText('Заберу самостоятельно').click()
+  const dialog = page.getByRole('dialog').filter({ has: page.getByTestId('pickup-branch-list') })
+  await expect(dialog).toBeVisible()
+  await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
+  await expect(dialog.locator('[data-map-placeholder]')).toHaveCount(0)
+  await expect(page.getByTestId('pickup-branch-row').filter({ has: page.getByText('E2E', { exact: true }) })).toContainText('Москва, Тверская улица, 7')
+  await selectPickupLocation(page)
+  await expect(page.getByTestId('pickup-branch-detail')).toHaveCount(0)
+  await expect(dialog).toBeHidden()
 })
 
 test('map style failure keeps address selection usable in a compact dialog', async ({ page }) => {
