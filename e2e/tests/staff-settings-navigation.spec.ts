@@ -170,15 +170,19 @@ test('settings use the existing desktop sidebar and a mobile navigation row', as
   for (const path of paths) {
     await page.goto(`${adminUrl}${path}`)
     await page.locator('[data-phx-main].phx-connected').waitFor()
-    await expect.poll(async () => {
-      return page.locator('#settings-navigation').evaluate(nav => {
-        const active = nav.querySelector('[aria-current="page"]')
-        if (!active) return false
-        const navRect = nav.getBoundingClientRect()
-        const activeRect = active.getBoundingClientRect()
-        return activeRect.left >= navRect.left - 2 && activeRect.right <= navRect.right + 2
-      })
-    }).toBe(true)
+    if (path.startsWith('/staff/settings?')) {
+      await expect(page.locator('#settings-navigation [aria-current="page"]')).toHaveCount(0)
+    } else {
+      await expect.poll(async () => {
+        return page.locator('#settings-navigation').evaluate(nav => {
+          const active = nav.querySelector('[aria-current="page"]')
+          if (!active) return false
+          const navRect = nav.getBoundingClientRect()
+          const activeRect = active.getBoundingClientRect()
+          return activeRect.left >= navRect.left - 2 && activeRect.right <= navRect.right + 2
+        })
+      }).toBe(true)
+    }
     const header = await page.locator('#staff-header').boundingBox()
     const summary = await page.locator('#staff-header #header-branch summary').boundingBox()
     expect(header).not.toBeNull()
@@ -263,7 +267,7 @@ for (const width of [1440, 390]) {
     await expect(nav).toBeVisible()
     await expect(nav.locator(`#${prefix}settings-nav-franchise`)).toHaveAttribute('href', '/staff/franchise')
     await expect(nav.locator(`#${prefix}settings-nav-franchise`)).toHaveText('Франшиза')
-    for (const removed of ['brand', 'hours', 'delivery_zones', 'order_settings', 'loyalty_settings', 'team', 'roles_settings']) {
+    for (const removed of ['features', 'brand', 'hours', 'delivery_zones', 'order_settings', 'loyalty_settings', 'team', 'roles_settings']) {
       await expect(nav.locator(`#${prefix}settings-nav-${removed}`)).toHaveCount(0)
     }
     const transfer = nav.locator(`#${prefix}settings-nav-data_transfer`)
@@ -323,4 +327,20 @@ test('data transfer search uses actual scope instead of the preferred branch', a
   await palette.locator('#command-item-page-data_transfer').click()
   await expect(page).toHaveURL(`${adminUrl}/staff/settings/data-transfer`)
   await expect(page.locator('#data-transfer-branch')).toHaveAttribute('href', /\/staff\/branches\/select\?/)
+})
+
+test('franchise groups appearance and exposes full backup through data transfer', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await page.goto(`${adminUrl}/staff/franchise`)
+  await page.locator('[data-phx-main].phx-connected').waitFor()
+  const appearance = page.locator('#franchise-appearance')
+  await expect(appearance.getByRole('heading', { name: 'Внешний вид', exact: true })).toBeVisible()
+  for (const section of ['brand', 'logo', 'images']) {
+    await expect(appearance.locator(`#franchise-section-${section}`)).toHaveAttribute('href', `/staff/franchise/${section}`)
+  }
+  await expect(page.locator('#franchise-section-snapshot')).toHaveCount(0)
+  await expect(page.locator('#sidebar-settings-nav-features, #settings-nav-features')).toHaveCount(0)
+  await page.locator('#sidebar-settings-nav-data_transfer').click()
+  await expect(page.locator('#data-transfer-franchise')).toBeVisible()
+  await expect(page.locator('#data-transfer-franchise')).toHaveAttribute('href', '/staff/franchise/snapshot')
 })
