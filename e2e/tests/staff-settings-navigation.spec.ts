@@ -269,10 +269,12 @@ for (const width of [1440, 390]) {
     await expect(nav).toBeVisible()
     await expect(nav.locator(`#${prefix}settings-nav-franchise`)).toHaveAttribute('href', '/staff/franchise')
     await expect(nav.locator(`#${prefix}settings-nav-franchise`)).toHaveText('Франшиза')
-    for (const removed of ['features', 'brand', 'hours', 'delivery_zones', 'order_settings', 'loyalty_settings', 'team', 'roles_settings']) {
+    for (const removed of ['features', 'brand', 'hours', 'delivery_zones', 'order_settings', 'loyalty_settings', 'team', 'roles_settings', 'delivery_settings', 'branch_settings']) {
       await expect(nav.locator(`#${prefix}settings-nav-${removed}`)).toHaveCount(0)
     }
-    const transfer = nav.locator(`#${prefix}settings-nav-data_transfer`)
+    const group = nav.locator(`#${prefix}group-data-system`)
+    await group.locator('summary').click()
+    const transfer = group.locator(`#${prefix}settings-nav-data_transfer`)
     await expect(transfer).toHaveAttribute('href', '/staff/settings/data-transfer?branch=e2e')
     await expect(nav.locator(`#${prefix}settings-nav-site_snapshot, #${prefix}settings-nav-instance_backup`)).toHaveCount(0)
     await transfer.click()
@@ -342,6 +344,7 @@ test('franchise groups appearance and exposes full backup through data transfer'
   }
   await expect(page.locator('#franchise-section-snapshot')).toHaveCount(0)
   await expect(page.locator('#sidebar-settings-nav-features, #settings-nav-features')).toHaveCount(0)
+  await page.locator('#sidebar-group-data-system-toggle').click()
   await page.locator('#sidebar-settings-nav-data_transfer').click()
   await expect(page.locator('#data-transfer-franchise')).toBeVisible()
   await expect(page.locator('#data-transfer-franchise')).toHaveAttribute('href', '/staff/franchise/snapshot')
