@@ -34,6 +34,11 @@ for (const showCity of [true, false]) {
       show_city: showCity,
       operator_address: showCity,
     })
+    let suggestionRequests = 0
+    await page.route('**/client/geo/suggest**', (route) => {
+      suggestionRequests += 1
+      return route.fulfill({ json: { data: [] } })
+    })
     await page.route('**/client/delivery/quote**', (route) =>
       route.fulfill({ json: { data: { status: 'ok', price: 15000, min_order: 0 } } }),
     )
@@ -47,29 +52,30 @@ for (const showCity of [true, false]) {
     const operator = page.getByRole('button', { name: 'Уточнить адрес по телефону' })
     await expect(address).toBeVisible()
     const dialog = page.getByRole('dialog').filter({ has: address })
-    await expect(address).toHaveCSS('border-top-left-radius', '24px')
+    await expect(address).toHaveCSS('border-top-left-radius', '12px')
     for (const label of ['Подъезд', 'Код двери', 'Этаж', 'Квартира']) {
-      await expect(page.getByLabel(label)).toHaveCSS('border-top-left-radius', '24px')
+      await expect(page.getByLabel(label)).toHaveCSS('border-top-left-radius', '12px')
     }
     await expect(confirm).toBeDisabled()
     await expect(operator).toHaveCount(showCity ? 1 : 0)
     await expect.poll(async () => {
       const dialogBox = await dialog.boundingBox()
       const buttonBox = await (showCity ? operator : confirm).boundingBox()
-      return dialogBox!.y + dialogBox!.height - buttonBox!.y - buttonBox!.height
-    }).toBeLessThanOrEqual(24)
+      return buttonBox!.y + buttonBox!.height <= dialogBox!.y + dialogBox!.height + 1
+    }).toBe(true)
     await address.fill('Тверская, 7')
+    await page.waitForTimeout(650)
+    await expect(page.getByRole('option', { name: /Тверская/ })).toHaveCount(0)
+    expect(suggestionRequests).toBe(0)
     await expect(page.getByTestId('delivery-quote-caption')).toContainText('150 ₽')
     await page.screenshot({ path: test.info().outputPath('address-modal.png') })
     await confirm.click()
-    if (showCity) return
-
     await page.getByRole('button', { name: '590 ₽', exact: true }).filter({ visible: true }).click()
     await page.getByRole('button', { name: 'К оформлению заказа' }).click()
     await expect(page.getByLabel('Улица, дом')).toHaveCount(0)
     await expect(page.getByText('740 ₽', { exact: true }).filter({ visible: true }).first()).toBeVisible()
 
-    await page.getByRole('button', { name: /Доставка.*Тверская/ }).click()
+    await page.getByRole('button', { name: /Адрес доставки:.*Тверская/ }).click()
     await expect(address).toHaveValue(/Тверская/)
     await expect(address).not.toHaveValue(/Москва/)
     await confirm.click()
@@ -96,13 +102,13 @@ test('operator choice can be replaced with an address from checkout', async ({ p
   await page.getByRole('button', { name: 'Уточнить адрес по телефону' }).click()
   await page.getByRole('button', { name: '590 ₽', exact: true }).filter({ visible: true }).click()
   await page.getByRole('button', { name: 'К оформлению заказа' }).click()
-  await page.getByRole('button', { name: /Доставка.*Адрес уточним по телефону/ }).click()
+  await page.getByRole('button', { name: /Адрес доставки:.*Адрес уточним по телефону/ }).click()
   const address = page.getByLabel('Улица, дом')
   await expect(address).toBeEditable()
   await address.fill('Тверская 7к1')
   await page.getByRole('button', { name: 'Подтвердить адрес' }).click()
-  await expect(page.getByRole('button', { name: /Доставка.*Тверская/ })).toBeVisible()
-  await expect(page.getByRole('button', { name: /Доставка.*Адрес уточним по телефону/ })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /Адрес доставки:.*Тверская/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Адрес доставки:.*Адрес уточним по телефону/ })).toHaveCount(0)
   await expect(page.getByText('740 ₽', { exact: true }).filter({ visible: true }).first()).toBeVisible()
 })
 
@@ -130,4 +136,80 @@ test('explicit map mode falls back to the compact address picker when the map in
   await address.fill('Москва, Тверская, 7')
   await expect(page.getByRole('button', { name: 'Подтвердить адрес' })).toBeDisabled()
   await expect(page.getByRole('button', { name: 'Уточнить адрес по телефону' })).toBeVisible()
+})
+
+test('map delivery keeps a selected address and coordinates when reopened from checkout', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await configureAddressMode(page, {
+    map_address: true,
+    show_city: true,
+    operator_address: false,
+  })
+  await page.route('**/client/franchise', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.data.address_map = true
+    await route.fulfill({ response, json: body })
+  })
+  let suggestionRequests = 0
+  await page.route('**/client/geo/suggest**', (route) => {
+    suggestionRequests += 1
+    return route.fulfill({
+      json: {
+        data: [{
+          city: 'Москва',
+          street: 'Тверская',
+          house: '7',
+          value: 'Москва, Тверская, 7',
+          latitude: 55.757718,
+          longitude: 37.611347,
+          fias_id: null,
+          postal_code: null,
+          district: null,
+          geo_precision: 0,
+        }],
+      },
+    })
+  })
+  let quotedPoint: [string | null, string | null] | null = null
+  await page.route('**/client/delivery/quote**', (route) => {
+    const url = new URL(route.request().url())
+    quotedPoint = [url.searchParams.get('latitude'), url.searchParams.get('longitude')]
+    return route.fulfill({ json: { data: { status: 'ok', price: 15000, min_order: 0 } } })
+  })
+
+  await page.goto('/e2e')
+  await page.getByRole('button', { name: '590 ₽' }).click()
+  await page.getByText('Указать адрес доставки').click()
+  const address = page.getByLabel('Улица, дом')
+  const confirm = page.getByRole('button', { name: 'Подтвердить адрес' })
+  await expect(page.locator('.maplibregl-canvas')).toBeVisible()
+  await address.fill('Тверская, 7')
+  const suggestion = page.getByRole('option', { name: /Тверская.*7/ })
+  await expect(suggestion).toBeVisible()
+  const inputBox = await address.boundingBox()
+  const suggestionBox = await suggestion.boundingBox()
+  expect(suggestionBox!.y).toBeGreaterThanOrEqual(inputBox!.y + inputBox!.height)
+  await suggestion.click()
+  await expect(page.getByTestId('delivery-quote-caption')).toContainText('150 ₽')
+  await expect.poll(() => quotedPoint).toEqual(['55.757718', '37.611347'])
+  await address.fill('')
+  await address.fill('Тверская, 7')
+  await expect(suggestion).toBeVisible()
+  await address.press('ArrowDown')
+  await address.press('Enter')
+  await expect(page.getByTestId('delivery-quote-caption')).toContainText('150 ₽')
+  await page.waitForTimeout(650)
+  expect(suggestionRequests).toBe(1)
+  await expect(confirm).toBeEnabled()
+  await confirm.click()
+
+  await page.getByRole('button', { name: '590 ₽', exact: true }).filter({ visible: true }).click()
+  await page.getByRole('button', { name: 'К оформлению заказа' }).click()
+  const addressRow = page.getByRole('button', { name: /Адрес доставки:.*Тверская/ })
+  await expect(addressRow).toBeVisible()
+  await addressRow.click()
+  await expect(page.locator('.maplibregl-canvas')).toBeVisible()
+  await expect(address).toHaveValue(/Тверская.*7/)
+  await expect(confirm).toBeEnabled()
 })

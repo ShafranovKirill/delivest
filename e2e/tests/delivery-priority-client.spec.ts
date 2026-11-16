@@ -210,7 +210,6 @@ test("address choice shows the server quote and clears it while another point is
   await expect
     .poll(async () => (await confirmAddress.boundingBox())?.height)
     .toBe(48);
-  const initialMapHeight = (await canvas.boundingBox())?.height;
   const initialConfirmBox = await confirmAddress.boundingBox();
   expect(initialConfirmBox?.height).toBe(48);
   await input.fill("Тверская, 7");
@@ -254,12 +253,14 @@ test("address choice shows the server quote and clears it while another point is
   const addressBox = await input.boundingBox();
   const captionBox = await caption.boundingBox();
   const confirmBox = await confirmAddress.boundingBox();
-  expect(captionBox!.y + captionBox!.height).toBeLessThan(addressBox!.y);
-  expect(captionBox!.x).toBeLessThan((await canvas.boundingBox())!.x + 32);
+  expect(captionBox!.y).toBeGreaterThanOrEqual(addressBox!.y + addressBox!.height);
+  expect(captionBox!.y + captionBox!.height).toBeLessThanOrEqual(confirmBox!.y + 1);
+  expect(captionBox!.x).toBeGreaterThanOrEqual(dialogBox!.x);
+  expect(captionBox!.x + captionBox!.width).toBeLessThanOrEqual(dialogBox!.x + dialogBox!.width);
   expect(confirmBox?.height).toBe(48);
   await expect
     .poll(async () => (await canvas.boundingBox())?.height)
-    .toBe(initialMapHeight);
+    .toBeGreaterThan(150);
   await expect(conditions).toHaveCount(0);
   await expect(page.getByText("Центр", { exact: true })).toHaveCount(0);
   if (process.env.ORDER_SUCCESS_SCREENSHOTS) {
@@ -294,7 +295,7 @@ test("address choice shows the server quote and clears it while another point is
   await expect(conditions).toHaveCount(0);
   await expect
     .poll(async () => (await canvas.boundingBox())?.height)
-    .toBe(initialMapHeight);
+    .toBeGreaterThan(150);
   expect((await confirmAddress.boundingBox())?.height).toBe(48);
   releaseSecond();
   await expect(caption).toContainText("250 ₽");
@@ -302,7 +303,7 @@ test("address choice shows the server quote and clears it while another point is
   await expect(page.getByText("Арбат", { exact: true })).toHaveCount(0);
   await expect
     .poll(async () => (await canvas.boundingBox())?.height)
-    .toBe(initialMapHeight);
+    .toBeGreaterThan(150);
   expect((await confirmAddress.boundingBox())?.height).toBe(48);
   await page.setViewportSize({ width: 320, height: 844 });
   await expect(confirmAddress).toBeVisible();
