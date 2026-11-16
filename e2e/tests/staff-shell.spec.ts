@@ -176,6 +176,9 @@ test('mobile sidebar opens from header and closes after navigation', async ({ st
     await expect(sidebar).toBeVisible()
     await expect(page.locator('main h1:visible')).toHaveCount(1)
 
+    if (await page.locator('#sidebar-group-analytics').getAttribute('open') === null) {
+      await page.locator('#sidebar-group-analytics-toggle').click()
+    }
     await page.locator('#main-sidebar nav a[href="/staff/statistics"]').click()
     await expect(page).toHaveURL(/\/staff\/statistics$/)
     await expect(page.locator('html')).not.toHaveAttribute('data-sidebar-open', '')
