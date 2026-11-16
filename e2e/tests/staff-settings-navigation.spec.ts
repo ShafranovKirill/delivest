@@ -5,11 +5,11 @@ import { test } from '../support/test'
 
 const settings = [
   { query: 'фронтпад', id: 'frontpad', path: '/staff/b/e2e/integrations/frontpad', scope: 'E2E' },
-  { query: 'зоны', id: 'delivery_zones', path: '/staff/b/e2e/delivery/zones', scope: 'E2E' },
-  { query: 'график', id: 'hours', path: '/staff/branches/e2e/edit/hours', scope: 'E2E' },
-  { query: 'бренд', id: 'brand', path: '/staff/franchise/brand', scope: 'Сеть' },
-  { query: 'бонусы', id: 'loyalty_settings', path: '/staff/b/e2e/loyalty', scope: 'E2E' },
-  { query: 'права', id: 'roles_settings', path: '/staff/roles', scope: 'Сеть' },
+  { query: 'зоны', id: 'delivery_settings', path: '/staff/b/e2e/delivery', scope: 'E2E' },
+  { query: 'график', id: 'branch_settings', path: '/staff/branches/e2e/edit', scope: 'E2E' },
+  { query: 'бренд', id: 'franchise', path: '/staff/franchise', scope: 'Сеть' },
+  { query: 'бонусы', id: 'loyalty', path: '/staff/marketing/bonuses?branch=e2e', scope: 'E2E' },
+  { query: 'права', id: 'roles', path: '/staff/roles', scope: 'Сеть' },
 ]
 
 async function searchFor(page: Page, query: string) {
@@ -70,7 +70,7 @@ test('settings menu and search resolve through the same destinations', async ({ 
   await page.locator('[data-phx-main].phx-connected').waitFor()
   await expect(page.locator('#sidebar-settings-navigation')).toBeVisible()
   await expect(page.locator('#settings-feature-filter')).toBeVisible()
-  for (const { id, query } of settings.filter((item) => item.scope === 'Сеть')) {
+  for (const { id, query } of settings.filter((item) => item.id === 'franchise')) {
     const menuLink = page.locator(`#sidebar-settings-nav-${id}`)
     await expect(menuLink).toBeVisible()
     const href = await menuLink.getAttribute('href')
@@ -144,7 +144,9 @@ test('settings use the existing desktop sidebar and a mobile navigation row', as
       if (path === '/staff/franchise/brand') {
         for (let index = 0; index < links.length; index++) {
           const original = expectedLinks[index]
-          if (original.href.startsWith('/staff/b/') || /^\/staff\/branches\/[^/]+\/edit/.test(original.href)) {
+          if (original.href.startsWith('/staff/settings/data-transfer?')) {
+            expect(links[index].href).toBe('/staff/settings/data-transfer')
+          } else if (original.href.startsWith('/staff/b/') || /^\/staff\/branches\/[^/]+\/edit/.test(original.href)) {
             expect(links[index].href).toContain('/staff/branches/select?')
             expect(links[index].href).toContain('from=')
           } else expect(links[index].href).toBe(original.href)
@@ -168,15 +170,19 @@ test('settings use the existing desktop sidebar and a mobile navigation row', as
   for (const path of paths) {
     await page.goto(`${adminUrl}${path}`)
     await page.locator('[data-phx-main].phx-connected').waitFor()
-    await expect.poll(async () => {
-      return page.locator('#settings-navigation').evaluate(nav => {
-        const active = nav.querySelector('[aria-current="page"]')
-        if (!active) return false
-        const navRect = nav.getBoundingClientRect()
-        const activeRect = active.getBoundingClientRect()
-        return activeRect.left >= navRect.left - 2 && activeRect.right <= navRect.right + 2
-      })
-    }).toBe(true)
+    if (path.startsWith('/staff/settings?')) {
+      await expect(page.locator('#settings-navigation [aria-current="page"]')).toHaveCount(0)
+    } else {
+      await expect.poll(async () => {
+        return page.locator('#settings-navigation').evaluate(nav => {
+          const active = nav.querySelector('[aria-current="page"]')
+          if (!active) return false
+          const navRect = nav.getBoundingClientRect()
+          const activeRect = active.getBoundingClientRect()
+          return activeRect.left >= navRect.left - 2 && activeRect.right <= navRect.right + 2
+        })
+      }).toBe(true)
+    }
     const header = await page.locator('#staff-header').boundingBox()
     const summary = await page.locator('#staff-header #header-branch summary').boundingBox()
     expect(header).not.toBeNull()
@@ -221,10 +227,125 @@ test('network navigation asks for a branch before opening a scoped section', asy
 
   await page.goto(`${adminUrl}/staff/franchise/brand`)
   await page.locator('[data-phx-main].phx-connected').waitFor()
-  await page.locator('#sidebar-settings-nav-hours').click()
+  await expect(page.locator('#sidebar-settings-nav-branch_settings')).toHaveCount(0)
+  await page.locator('#sidebar-settings-nav-branches').click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/branches`)
+  await page.locator('#branch-settings-list a[href="/staff/branches/e2e-board/edit"]').click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/branches/e2e-board/edit`)
+  await expect(page.locator('#sidebar-settings-nav-branches[aria-current="page"]')).toBeVisible()
+  await expect(page.locator('#settings-nav-branches')).toHaveAttribute('href', '/staff/branches')
+  await expect(page.locator('#settings-nav-branch_settings')).toHaveCount(0)
+  await page.locator('#branch-section-hours').click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/branches/e2e-board/edit/hours`)
+})
+
+test('employees live after finance and outside settings', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await branchPage(page, 'dashboard')
+  const groups = await page.locator('#nav-section-main details[id]').evaluateAll(elements => elements.map(element => element.id))
+  expect(groups.indexOf('sidebar-group-employees')).toBe(groups.indexOf('sidebar-group-finance') + 1)
+  await page.locator('#sidebar-group-employees-toggle').click()
+  await page.locator('#sidebar-section-nav-employee').click()
+  await expect(page).toHaveURL(/\/staff\/employee$/)
+  await expect(page.locator('#sidebar-section-nav-employee')).toHaveAttribute('aria-current', 'page')
+  await page.locator('#sidebar-section-nav-roles').click()
+  await expect(page).toHaveURL(/\/staff\/roles$/)
+  await expect(page.locator('#sidebar-section-nav-roles')).toHaveAttribute('aria-current', 'page')
+  await expect(page.locator('#sidebar-group-settings')).not.toHaveAttribute('open', '')
+  await page.setViewportSize({ width: 390, height: 844 })
+  await expect(page.locator('#staff-section-navigation a[href="/staff/employee"]')).toBeVisible()
+  await expect(page.locator('#staff-section-navigation a[href="/staff/roles"]')).toHaveAttribute('aria-current', 'page')
+})
+
+for (const width of [1440, 390]) {
+  test(`data transfer opens a page with snapshot cards at width ${width}`, async ({ staff }) => {
+    const page = await staff('e2e_admin')
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto(`${adminUrl}/staff/settings?branch=e2e`)
+    await page.locator('[data-phx-main].phx-connected').waitFor()
+    const prefix = width > 1000 ? 'sidebar-' : ''
+    const nav = page.locator(`#${prefix}settings-navigation`)
+    await expect(nav).toBeVisible()
+    await expect(nav.locator(`#${prefix}settings-nav-franchise`)).toHaveAttribute('href', '/staff/franchise')
+    await expect(nav.locator(`#${prefix}settings-nav-franchise`)).toHaveText('Франшиза')
+    for (const removed of ['features', 'brand', 'hours', 'delivery_zones', 'order_settings', 'loyalty_settings', 'team', 'roles_settings', 'delivery_settings', 'branch_settings']) {
+      await expect(nav.locator(`#${prefix}settings-nav-${removed}`)).toHaveCount(0)
+    }
+    const group = nav.locator(`#${prefix}group-data-system`)
+    await group.locator('summary').click()
+    const transfer = group.locator(`#${prefix}settings-nav-data_transfer`)
+    await expect(transfer).toHaveAttribute('href', '/staff/settings/data-transfer?branch=e2e')
+    await expect(nav.locator(`#${prefix}settings-nav-site_snapshot, #${prefix}settings-nav-instance_backup`)).toHaveCount(0)
+    await transfer.click()
+    await expect(page).toHaveURL(`${adminUrl}/staff/settings/data-transfer?branch=e2e`)
+    await expect(transfer).toHaveAttribute('aria-current', 'page')
+    await expect(page.locator('main h1')).toHaveText('Перенос данных')
+    const branch = page.locator('#data-transfer-branch')
+    const franchise = page.locator('#data-transfer-franchise')
+    await expect(branch).toBeVisible()
+    await expect(branch).toContainText('Слепок филиала')
+    await expect(branch).toHaveAttribute('href', '/staff/branches/e2e/edit/snapshot')
+    await expect(franchise).toContainText('Слепок франшизы')
+    await expect(franchise).toHaveAttribute('href', '/staff/franchise/snapshot')
+    await page.screenshot({ path: test.info().outputPath('data-transfer-page.png'), animations: 'disabled' })
+    await branch.click()
+    await expect(page).toHaveURL(/\/staff\/branches\/e2e\/edit\/snapshot$/)
+    await expect(transfer).toHaveAttribute('aria-current', 'page')
+    await transfer.click()
+    await expect(branch).toBeVisible()
+    await franchise.click()
+    await expect(page).toHaveURL(/\/staff\/franchise\/snapshot$/)
+    await expect(transfer).toHaveAttribute('aria-current', 'page')
+  })
+}
+
+test('data transfer updates the branch snapshot destination when scope changes', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await page.goto(`${adminUrl}/staff/settings/data-transfer?branch=e2e`)
+  await page.locator('[data-phx-main].phx-connected').waitFor()
+  await page.locator('#header-branch summary').click()
+  await page.locator('#header-branch-menu a').filter({ hasText: 'E2E Board' }).click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/settings/data-transfer?branch=e2e-board`)
+  await expect(page.locator('#data-transfer-branch')).toHaveAttribute('href', '/staff/branches/e2e-board/edit/snapshot')
+  await page.locator('#header-branch summary').click()
+  await page.locator('#header-branch-all').click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/settings/data-transfer`)
+  await expect(page.locator('#data-transfer-branch')).toHaveAttribute('href', /\/staff\/branches\/select\?/)
+  await page.locator('#data-transfer-branch').click()
   await expect(page.locator('#branch-select-dialog')).toBeVisible()
   await page.locator('#branch-select-dialog').getByRole('heading', { name: 'E2E Board', exact: true }).locator('..').click()
-  await expect(page).toHaveURL(`${adminUrl}/staff/branches/e2e-board/edit/hours`)
-  await expect(page.locator('#sidebar-settings-nav-hours[aria-current="page"]')).toBeVisible()
-  await expect(page.locator('#settings-nav-branch_settings')).toHaveAttribute('href', '/staff/branches/e2e-board/edit')
+  await expect(page).toHaveURL(`${adminUrl}/staff/branches/e2e-board/edit/snapshot`)
+})
+
+test('data transfer search uses actual scope instead of the preferred branch', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await branchPage(page, 'dashboard')
+  let palette = await searchFor(page, 'Перенос данных')
+  await expect(palette.locator('#command-item-page-data_transfer')).toHaveAttribute('href', '/staff/settings/data-transfer?branch=e2e')
+  await page.keyboard.press('Escape')
+  await page.goto(`${adminUrl}/staff/franchise`)
+  await page.locator('[data-phx-main].phx-connected').waitFor()
+  palette = await searchFor(page, 'Перенос данных')
+  await expect(palette.locator('#command-item-page-data_transfer')).toHaveAttribute('href', '/staff/settings/data-transfer')
+  await palette.locator('#command-item-page-data_transfer').click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/settings/data-transfer`)
+  await expect(page.locator('#data-transfer-branch')).toHaveAttribute('href', /\/staff\/branches\/select\?/)
+})
+
+test('franchise groups appearance and exposes full backup through data transfer', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await page.goto(`${adminUrl}/staff/franchise`)
+  await page.locator('[data-phx-main].phx-connected').waitFor()
+  const appearance = page.locator('#franchise-appearance')
+  await expect(appearance.getByRole('heading', { name: 'Внешний вид', exact: true })).toBeVisible()
+  for (const section of ['brand', 'logo', 'images']) {
+    await expect(appearance.locator(`#franchise-section-${section}`)).toHaveAttribute('href', `/staff/franchise/${section}`)
+  }
+  await expect(page.locator('#franchise-section-snapshot')).toHaveCount(0)
+  await expect(page.locator('#sidebar-settings-nav-features, #settings-nav-features')).toHaveCount(0)
+  await page.locator('#sidebar-group-data-system-toggle').click()
+  await page.locator('#sidebar-settings-nav-data_transfer').click()
+  await expect(page.locator('#data-transfer-franchise')).toBeVisible()
+  await expect(page.locator('#data-transfer-franchise')).toHaveAttribute('href', '/staff/franchise/snapshot')
 })

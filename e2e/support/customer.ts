@@ -37,7 +37,7 @@ export const placeOrder = async (page: Page, fulfillment: Fulfillment, mobile = 
 
   await expect(page).toHaveURL(/checkout/, { timeout: 30_000 });
   if (mobile) {
-    await expect(page.getByRole("button", { name: "Другое время" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Время (самовывоза|доставки):/ })).toBeVisible();
     await page.getByRole("button", { name: "1 товар" }).click();
     const composition = page.getByRole("heading", { name: "Состав заказа" }).locator("..");
     await expect(composition.getByText("Маргарита")).toBeVisible();
