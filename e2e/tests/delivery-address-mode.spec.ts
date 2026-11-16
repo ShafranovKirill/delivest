@@ -93,6 +93,48 @@ for (const showCity of [true, false]) {
   })
 }
 
+test('mobile map-free picker keeps one compact height across delivery and pickup', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await configureAddressMode(page, { map_address: false, show_city: true, operator_address: true })
+  await page.goto('/e2e')
+  await page.getByRole('button', { name: '590 ₽' }).click()
+  await page.getByText('Указать адрес доставки').click()
+
+  const dialog = page.getByRole('dialog').filter({ has: page.getByRole('radiogroup') })
+  const modes = dialog.getByRole('radiogroup').first()
+  const bounds = async () => {
+    const box = await dialog.boundingBox()
+    expect(box).not.toBeNull()
+    expect(box!.height).toBeLessThanOrEqual(416.5)
+    return { top: box!.y, height: box!.height }
+  }
+  await expectBottomSheet(page, dialog)
+  await expect(dialog.getByLabel('Улица, дом')).toBeVisible()
+  const delivery = await bounds()
+  const operator = dialog.getByRole('button', { name: 'Уточнить адрес по телефону' })
+  await operator.scrollIntoViewIfNeeded()
+  await expect(operator).toBeVisible()
+
+  await modes.getByRole('radio', { name: 'Самовывоз' }).click()
+  await expect(dialog.getByTestId('pickup-branch-list')).toBeVisible()
+  const pickup = await bounds()
+  expect(Math.abs(pickup.top - delivery.top)).toBeLessThanOrEqual(1)
+  expect(Math.abs(pickup.height - delivery.height)).toBeLessThanOrEqual(1)
+
+  await modes.getByRole('radio', { name: 'Доставка' }).click()
+  await expect(dialog.getByLabel('Улица, дом')).toBeVisible()
+  const returned = await bounds()
+  expect(Math.abs(returned.top - delivery.top)).toBeLessThanOrEqual(1)
+  await operator.scrollIntoViewIfNeeded()
+  await expect(operator).toBeVisible()
+
+  await page.setViewportSize({ width: 320, height: 480 })
+  await expect.poll(async () => (await dialog.boundingBox())?.height ?? 0).toBeLessThanOrEqual(408.5)
+  await modes.getByRole('radio', { name: 'Самовывоз' }).click()
+  await expect(dialog.getByTestId('pickup-branch-list')).toBeVisible()
+  await expect.poll(async () => (await dialog.boundingBox())?.height ?? 0).toBeLessThanOrEqual(408.5)
+})
+
 test('operator choice can be replaced with an address from checkout', async ({ page }) => {
   await configureAddressMode(page, {
     map_address: false,
