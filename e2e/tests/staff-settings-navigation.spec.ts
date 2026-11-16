@@ -144,8 +144,8 @@ test('settings use the existing desktop sidebar and a mobile navigation row', as
       if (path === '/staff/franchise/brand') {
         for (let index = 0; index < links.length; index++) {
           const original = expectedLinks[index]
-          if (original.href.startsWith('/staff/settings/data-transfer?')) {
-            expect(links[index].href).toBe('/staff/settings/data-transfer')
+          if (original.href.startsWith('/staff/settings/data-system?')) {
+            expect(links[index].href).toBe('/staff/settings/data-system')
           } else if (original.href.startsWith('/staff/b/') || /^\/staff\/branches\/[^/]+\/edit/.test(original.href)) {
             expect(links[index].href).toContain('/staff/branches/select?')
             expect(links[index].href).toContain('from=')
@@ -272,9 +272,10 @@ for (const width of [1440, 390]) {
     for (const removed of ['features', 'brand', 'hours', 'delivery_zones', 'order_settings', 'loyalty_settings', 'team', 'roles_settings', 'delivery_settings', 'branch_settings']) {
       await expect(nav.locator(`#${prefix}settings-nav-${removed}`)).toHaveCount(0)
     }
-    const group = nav.locator(`#${prefix}group-data-system`)
-    await group.locator('summary').click()
-    const transfer = group.locator(`#${prefix}settings-nav-data_transfer`)
+    const group = nav.locator(`#${prefix}settings-nav-data_system`)
+    await group.click()
+    await expect(page.locator('#data-system-action-events')).toHaveAttribute('aria-current', 'page')
+    const transfer = page.locator('#data-system-action-data_transfer')
     await expect(transfer).toHaveAttribute('href', '/staff/settings/data-transfer?branch=e2e')
     await expect(nav.locator(`#${prefix}settings-nav-site_snapshot, #${prefix}settings-nav-instance_backup`)).toHaveCount(0)
     await transfer.click()
@@ -291,12 +292,13 @@ for (const width of [1440, 390]) {
     await page.screenshot({ path: test.info().outputPath('data-transfer-page.png'), animations: 'disabled' })
     await branch.click()
     await expect(page).toHaveURL(/\/staff\/branches\/e2e\/edit\/snapshot$/)
-    await expect(transfer).toHaveAttribute('aria-current', 'page')
+    await expect(group).toHaveAttribute('aria-current', 'page')
+    await group.click()
     await transfer.click()
     await expect(branch).toBeVisible()
     await franchise.click()
     await expect(page).toHaveURL(/\/staff\/franchise\/snapshot$/)
-    await expect(transfer).toHaveAttribute('aria-current', 'page')
+    await expect(group).toHaveAttribute('aria-current', 'page')
   })
 }
 
@@ -344,8 +346,8 @@ test('franchise groups appearance and exposes full backup through data transfer'
   }
   await expect(page.locator('#franchise-section-snapshot')).toHaveCount(0)
   await expect(page.locator('#sidebar-settings-nav-features, #settings-nav-features')).toHaveCount(0)
-  await page.locator('#sidebar-group-data-system-toggle').click()
-  await page.locator('#sidebar-settings-nav-data_transfer').click()
+  await page.locator('#sidebar-settings-nav-data_system').click()
+  await page.locator('#data-system-action-data_transfer').click()
   await expect(page.locator('#data-transfer-franchise')).toBeVisible()
   await expect(page.locator('#data-transfer-franchise')).toHaveAttribute('href', '/staff/franchise/snapshot')
 })

@@ -76,8 +76,8 @@ test('unsaved courier settings guard scope and settings navigation, then a saved
   await expect(page).toHaveURL(/\/staff\/b\/e2e\/delivery$/)
   await page.locator('#delivery-couriers-card').click()
   await expect(search).toHaveValue(next)
-  await page.locator('#sidebar-group-data-system-toggle').click()
-  await page.locator('#sidebar-settings-nav-data_transfer').click()
+  await page.locator('#sidebar-settings-nav-data_system').click()
+  await page.locator('#data-system-action-data_transfer').click()
   await expect(page).toHaveURL(/\/staff\/settings\/data-transfer\?branch=e2e$/)
   await expect(dialog).toBeHidden()
 
@@ -95,8 +95,7 @@ test('failed same-page brand save stays dirty, successful save clears the guard'
 
   const name = page.locator('#franchise-settings-form input[name="settings[name]"]')
   const save = page.locator('#franchise-settings-form button[type="submit"]')
-  const settingsLink = page.locator('#sidebar-settings-navigation #sidebar-settings-nav-data_transfer')
-  await page.locator('#sidebar-group-data-system-toggle').click()
+  const settingsLink = page.locator('#sidebar-settings-navigation #sidebar-settings-nav-data_system')
   const dialog = page.locator('#staff-unsaved-dialog')
   const initial = await name.inputValue()
   const invalidName = 'X'.repeat(61)
@@ -121,7 +120,7 @@ test('failed same-page brand save stays dirty, successful save clears the guard'
   await expectBrandSave(page)
   await expect(page).toHaveURL(/\/staff\/franchise\/brand$/)
   await settingsLink.click()
-  await expect(page).toHaveURL(/\/staff\/settings\/data-transfer$/)
+  await expect(page).toHaveURL(/\/staff\/settings\/data-system$/)
   await expect(dialog).toBeHidden()
 
   await page.goto(`${adminUrl}/staff/franchise/brand`)

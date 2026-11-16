@@ -234,7 +234,8 @@ test('sidebar accordion saves desktop width and hidden sidebar keeps the navigat
   await expect(page.locator('#sidebar-section-nav-couriers')).toBeVisible()
   await expect(deliveryNav.locator('a[href$="/delivery/zones"]')).toHaveCount(0)
   await branchPage(page, 'delivery/zones')
-  await expect(page.locator('#sidebar-settings-nav-delivery_settings')).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByRole('heading', { name: 'Зоны доставки' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Назад' })).toHaveAttribute('href', '/staff/b/e2e/delivery')
 })
 
 test('product row actions stay accessible on the left of a horizontally scrolled table', async ({ staff }) => {
