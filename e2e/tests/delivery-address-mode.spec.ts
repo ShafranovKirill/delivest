@@ -317,3 +317,38 @@ test('mobile map-free pickup uses a bottom sheet with backdrop dismissal', async
   await page.mouse.click(8, 8)
   await expect(dialog).toHaveCount(0)
 })
+
+test('pickup with manual delivery mode chooses a single-method branch from the compact list', async ({ page }) => {
+  await page.route('**/client/franchise', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.data.address_map = true
+    await route.fulfill({ response, json: body })
+  })
+  await page.route(/\/client\/branches(?:\/[^?]+\/select)?$/, async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    const branches = Array.isArray(body.data) ? body.data : [body.data]
+    for (const branch of branches) {
+      if (branch?.slug === 'e2e') {
+        branch.branch_info.delivery = { map_address: false, show_city: false, operator_address: false, address_mode_set: true }
+        branch.branch_info.fulfillment_methods = ['delivery', 'pickup']
+        branch.branch_info.latitude = 55.75
+        branch.branch_info.longitude = 37.61
+      }
+    }
+    await route.fulfill({ response, json: body })
+  })
+
+  await page.goto('/e2e')
+  await page.getByRole('button', { name: '590 ₽' }).click()
+  await page.getByText('Заберу самостоятельно').click()
+  const dialog = page.getByRole('dialog').filter({ has: page.getByTestId('pickup-branch-list') })
+  await expect(dialog).toBeVisible()
+  await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
+  await expect(dialog.locator('[data-map-placeholder]')).toHaveCount(0)
+  await expect(page.getByTestId('pickup-branch-row').filter({ has: page.getByText('E2E', { exact: true }) })).toContainText('Москва, Тверская улица, 7')
+  await selectPickupLocation(page)
+  await expect(page.getByTestId('pickup-branch-detail')).toHaveCount(0)
+  await expect(dialog).toBeHidden()
+})
