@@ -310,8 +310,15 @@ test('data transfer updates the branch snapshot destination when scope changes',
   await page.locator('#header-branch-menu a').filter({ hasText: 'E2E Board' }).click()
   await expect(page).toHaveURL(`${adminUrl}/staff/settings/data-transfer?branch=e2e-board`)
   await expect(page.locator('#data-transfer-branch')).toHaveAttribute('href', '/staff/branches/e2e-board/edit/snapshot')
+  await page.locator('[data-phx-main].phx-connected').waitFor()
+  await expect(page.locator('#header-branch summary')).toHaveAttribute('aria-label', 'E2E Board')
   await page.locator('#header-branch summary').click()
-  await page.locator('#header-branch-all').click()
+  const allBranches = page.locator('#header-branch-all')
+  await expect.poll(() => allBranches.evaluate((link) => {
+    const box = link.getBoundingClientRect()
+    return document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)?.closest('#header-branch-all') === link
+  })).toBe(true)
+  await allBranches.click()
   await expect(page).toHaveURL(`${adminUrl}/staff/settings/data-transfer`)
   await expect(page.locator('#data-transfer-branch')).toHaveAttribute('href', /\/staff\/branches\/select\?/)
   await page.locator('#data-transfer-branch').click()

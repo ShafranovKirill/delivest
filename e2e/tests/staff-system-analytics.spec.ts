@@ -8,18 +8,18 @@ test('data and system exposes metrics, journal, raw logs and errors', async ({ s
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto(`${adminUrl}/staff/diagnostics`)
   await page.locator('[data-phx-main].phx-connected').waitFor()
-  const sidebar = page.locator('#main-sidebar')
+  const navigation = page.locator('main #data-system-navigation')
 
   for (const path of ['/staff/logs/errors', '/staff/logs', '/staff/logs/raw', '/staff/diagnostics']) {
-    const link = sidebar.locator(`a[href="${path}"]`)
+    const link = navigation.locator(`a[href="${path}"]`)
     await expect(link).toHaveCount(1)
     await link.click()
     await expect(page).toHaveURL(`${adminUrl}${path}`)
-    await expect(sidebar.locator(`a[href="${path}"]`)).toHaveAttribute('aria-current', 'page')
+    await expect(navigation.locator(`a[href="${path}"]`)).toHaveAttribute('aria-current', 'page')
   }
 
   await page.setViewportSize({ width: 390, height: 844 })
-  const errorLink = page.locator('#staff-context-navigation a[href="/staff/logs/errors"]')
+  const errorLink = navigation.locator('a[href="/staff/logs/errors"]')
   await expect(errorLink).toHaveCount(1)
   await errorLink.click()
   await expect(page).toHaveURL(`${adminUrl}/staff/logs/errors`)
