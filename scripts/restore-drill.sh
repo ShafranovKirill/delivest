@@ -6,7 +6,7 @@ if [[ "${1:-}" != "--run" || $# -ne 1 ]]; then
   exit 2
 fi
 
-for tool in docker aws curl mix cmp awk; do
+for tool in docker aws curl mix cmp awk python3; do
   command -v "$tool" >/dev/null || { echo "missing required tool: $tool" >&2; exit 2; }
 done
 docker info >/dev/null
@@ -108,7 +108,31 @@ printf 'private-before\n' > "$work/private-before"
 s3 s3 cp "$work/public-before" s3://drill-public/fixture.txt >/dev/null
 s3 s3 cp "$work/private-before" s3://drill-private/fixture.txt >/dev/null
 
-dc exec -T postgres psql -U drill -d drill -v ON_ERROR_STOP=1 -c 'CREATE TABLE schema_migrations (version bigint PRIMARY KEY); INSERT INTO schema_migrations VALUES (20261107000000); CREATE TABLE drill_payload (value text NOT NULL); INSERT INTO drill_payload VALUES ('"'"'before'"'"');' >/dev/null
+dc exec -T postgres psql -U drill -d drill -v ON_ERROR_STOP=1 -c 'CREATE TABLE schema_migrations (version bigint PRIMARY KEY); CREATE TABLE drill_payload (value text NOT NULL); INSERT INTO drill_payload VALUES ('"'"'before'"'"');' >/dev/null
+
+# Model a real pre-baseline deployment and a target that has only the baseline chain.
+python3 - "$repo" "$work" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+repo, work = map(Path, sys.argv[1:])
+baseline = (repo / 'server/lib/delivest/repo/baseline.ex').read_text()
+legacy = re.findall(r'\b\d{14}\b', re.search(r'@legacy_versions ~w\((.*?)\)', baseline, re.S).group(1))
+assert len(legacy) == 88
+baseline_chain = [f'202612100000{n:02d}' for n in range(2, 11)]
+later = sorted(p.name[:14] for p in (repo / 'server/priv/repo/migrations').glob('*.exs')
+               if p.name[:14].isdigit() and baseline_chain[-1] < p.name[:14] <= '20261210000043')
+assert len(later) == 31
+target = baseline_chain + later
+source = legacy + ['20261121000003'] + target
+assert len(source) == 129 and len(target) == 40 and len(set(source)) == 129
+for name, versions in [('source-ledger.sql', source), ('target-ledger.sql', target)]:
+    values = ','.join(f'({v})' for v in versions)
+    (work / name).write_text('TRUNCATE schema_migrations; INSERT INTO schema_migrations(version) VALUES ' + values + ';\n')
+PY
+dc exec -T postgres psql -U drill -d drill -v ON_ERROR_STOP=1 < "$work/source-ledger.sql" >/dev/null
+[[ "$(dc exec -T postgres psql -U drill -d drill -Atqc 'SELECT count(*) FROM schema_migrations')" == 129 ]]
 
 run_backup() {
   local action=$1 source=$2
@@ -133,6 +157,8 @@ run_backup() {
 
 run_backup export "$archive"
 wait_s3
+dc exec -T postgres psql -U drill -d drill -v ON_ERROR_STOP=1 < "$work/target-ledger.sql" >/dev/null
+[[ "$(dc exec -T postgres psql -U drill -d drill -Atqc 'SELECT count(*) FROM schema_migrations')" == 40 ]]
 dc exec -T postgres psql -U drill -d drill -v ON_ERROR_STOP=1 -c "UPDATE drill_payload SET value = 'mutated';" >/dev/null
 printf 'public-mutated\n' > "$work/public-mutated"
 printf 'private-mutated\n' > "$work/private-mutated"
@@ -144,11 +170,14 @@ wait_object_equals drill-private "$work/private-mutated"
 run_backup import "$archive"
 wait_s3
 [[ "$(dc exec -T postgres psql -U drill -d drill -Atqc 'SELECT value FROM drill_payload')" == before ]]
+[[ "$(dc exec -T postgres psql -U drill -d drill -Atqc 'SELECT count(*) FROM schema_migrations')" == 129 ]]
+[[ "$(dc exec -T postgres psql -U drill -d drill -Atqc 'SELECT count(*) FROM schema_migrations WHERE version = 20261121000003')" == 1 ]]
 s3 s3 cp s3://drill-public/fixture.txt "$work/public-restored" >/dev/null
 s3 s3 cp s3://drill-private/fixture.txt "$work/private-restored" >/dev/null
 cmp "$work/public-before" "$work/public-restored"
 cmp "$work/private-before" "$work/private-restored"
 echo 'restore verified: DB and public/private object bytes'
+echo 'restore verified: historical 129-version source to 40-version baseline target'
 
 dc exec -T postgres psql -U drill -d drill -v ON_ERROR_STOP=1 -c "UPDATE drill_payload SET value = 'guard';" >/dev/null
 printf 'public-guard\n' > "$work/public-guard"
