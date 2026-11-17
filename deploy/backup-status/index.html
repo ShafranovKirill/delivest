@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Состояние полного слепка · Delivest</title>
+    <link rel="stylesheet" href="/_backup-status/monitor.css" />
+    <script src="/_backup-status/monitor.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <span class="brand">Delivest <span class="brand-dot">●</span></span>
+        <a id="admin-link" href="__ADMIN_ORIGIN__/staff/franchise/snapshot" rel="noreferrer">В админку <span aria-hidden="true">↗</span></a>
+      </header>
+
+      <section class="hero" aria-labelledby="title">
+        <p id="action" class="eyebrow">ПОЛНЫЙ СЛЕПОК ИНСТАНСА</p>
+        <h1 id="title">Состояние задания</h1>
+        <p id="summary" class="summary" role="status" aria-live="polite">Подключаемся к агенту…</p>
+        <div class="signals">
+          <span id="connection" class="signal">Проверяем связь</span>
+          <span id="agent" class="signal">Проверяем агент</span>
+          <span id="updated" class="muted"></span>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="progress-title">
+        <div class="section-heading">
+          <h2 id="progress-title">Ход задания</h2>
+          <span id="phase" class="phase">Ожидание</span>
+        </div>
+        <ol id="steps" class="steps"></ol>
+      </section>
+
+      <section class="panel advice" aria-labelledby="advice-title">
+        <h2 id="advice-title">Что делать дальше</h2>
+        <p id="advice">Оставьте эту страницу открытой. Данные обновятся автоматически.</p>
+      </section>
+      <p class="footnote">Страница работает независимо от приложения. Если связь пропадёт, последнее известное состояние останется на экране.</p>
+    </main>
+  </body>
+</html>

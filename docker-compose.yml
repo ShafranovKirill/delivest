@@ -32,8 +32,11 @@ services:
       - DATABASE_URL=ecto://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}
       - INSTANCE_BACKUP_DIR=/instance-backups
       - INSTANCE_BACKUP_MANAGED=true
+      - INSTANCE_BACKUP_MONITOR_ENABLED=true
+      - INSTANCE_BACKUP_MONITOR_MARKER=/backup-monitor/monitor-enabled
     volumes:
       - instance_backups:/instance-backups
+      - /var/www/delivest-backup-status/${COMPOSE_PROJECT_NAME:-delivest}:/backup-monitor:ro
     depends_on:
       - postgres
       - s3
@@ -99,6 +102,7 @@ services:
     restart: always
     environment:
       - INSTANCE_BACKUP_DIR=/instance-backups
+      - INSTANCE_BACKUP_MONITOR_DIR=/backup-monitor
       - BASTION_URL=${BASTION_URL:-}
       - BASTION_TOKEN=${BASTION_TOKEN:-}
       - INSTANCE_NAME=${INSTANCE_NAME:-}
@@ -111,6 +115,7 @@ services:
       - ${PWD}:${PWD}
       - agent_data:/data
       - instance_backups:/instance-backups
+      - /var/www/delivest-backup-status/${COMPOSE_PROJECT_NAME:-delivest}:/backup-monitor
     networks:
       - delivest-network
 
