@@ -20,15 +20,14 @@ async function createLink(staff: Page) {
   return { row, url, linkId, slug }
 }
 
-async function rebuildUntilVisible(page: Page, path: string, selector: string) {
+async function waitForReport(page: Page, path: string, selector: string) {
   await branchPage(page, path)
   await expect(page.locator('#statistics-report')).toBeVisible()
-  await page.locator('#statistics-rebuild').click()
-  await expect.poll(async () => {
-    await page.reload()
-    await page.locator('[data-phx-main].phx-connected').waitFor()
-    return page.locator(selector).count()
-  }, { timeout: 90_000, intervals: [500, 1_000, 2_000] }).toBeGreaterThan(0)
+  await page.locator('[data-phx-main].phx-connected').waitFor({ state: 'attached' })
+  await expect(page.locator(selector).first()).toBeVisible({ timeout: 90_000 })
+  await expect(page.locator('#statistics-report-refreshing')).toHaveCount(0, { timeout: 90_000 })
+  await expect(page.locator('#statistics-report-refresh-delayed')).toHaveCount(0)
+  await expect(page.locator('#statistics-report-retry')).toHaveCount(0)
 }
 
 async function selectStaffTheme(page: Page, theme: 'light' | 'dark') {
@@ -141,12 +140,10 @@ test('advertising redirect, verified phone, checkout and OMS completion preserve
   await advance(card, 'Выдан')
   await expectStatus(card, 'Выполнен')
 
-  await rebuildUntilVisible(admin, `statistics?tab=sources&period=today&link_id=${linkId}`,
+  await waitForReport(admin, `statistics?tab=sources&period=today&link_id=${linkId}`,
     '#statistics-report-table tbody tr')
   const source = admin.locator('#statistics-report-table tbody tr', { hasText: slug })
   await expect.poll(async () => {
-    await admin.reload()
-    await admin.locator('[data-phx-main].phx-connected').waitFor()
     if (await source.count() !== 1) return 0
     const values = await source.locator('td').allInnerTexts()
     if (values.length < 5) return 0
@@ -173,10 +170,10 @@ test('advertising redirect, verified phone, checkout and OMS completion preserve
     body: await admin.screenshot({ fullPage: true, animations: 'disabled' }), contentType: 'image/png',
   })
 
-  await rebuildUntilVisible(admin, 'statistics?tab=funnel&period=today', '#statistics-funnel-path')
+  await waitForReport(admin, 'statistics?tab=funnel&period=today', '#statistics-funnel-path')
   await expect(admin.locator('#statistics-funnel-outcomes')).toBeVisible()
 
-  await rebuildUntilVisible(admin, 'statistics?tab=channels&period=today&channel=app',
+  await waitForReport(admin, 'statistics?tab=channels&period=today&channel=app',
     '#statistics-report-table tbody tr')
   await expect(admin.locator('#statistics-report-summary')).toBeVisible()
 

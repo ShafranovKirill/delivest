@@ -34,7 +34,7 @@ test('analytics expands from another page and opens its planned reports', async 
     await expect(page.locator('#analytics-placeholder')).toContainText('Раздел в разработке')
     await expect(link).toHaveAttribute('aria-current', 'page')
     await expect(group.locator('a[aria-current="page"]')).toHaveCount(1)
-    await expect(page.locator('#statistics-report, #statistics-filter, #statistics-rebuild')).toHaveCount(0)
+    await expect(page.locator('#statistics-report, #statistics-filter')).toHaveCount(0)
   }
   await page.locator('#sidebar-section-nav-statistics').click()
   await expect(page).toHaveURL(`${adminUrl}/staff/statistics`)
