@@ -49,7 +49,7 @@ docker run --rm -v "$tmp:/test" \
       if [ -n "$type" ]; then
         printf "%s\n" "$headers" | grep -qi "Content-Type: $type"
       fi
-      case "$path" in /_backup-status/*)
+      case "$expected" in 200)
         printf "%s\n" "$headers" | grep -qi "Cache-Control: no-store"
         printf "%s\n" "$headers" | grep -qi "Referrer-Policy: no-referrer"
       esac
