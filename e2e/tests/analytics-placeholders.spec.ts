@@ -38,7 +38,11 @@ test('analytics expands from another page and opens its live reports', async ({ 
   }
   await page.locator('#sidebar-section-nav-statistics').click()
   await expect(page).toHaveURL(`${adminUrl}/staff/statistics`)
-  await expect(page.locator('#statistics-report')).toBeVisible()
+  await expect(page.locator('#statistics-sales-tabs')).toBeVisible()
+  await expect(page.locator('#statistics-tab-sales[aria-current="page"]')).toBeVisible()
+  for (const label of ['Выручка', 'Заказы', 'Средний чек', 'Продано позиций', 'Выручка по дням', 'Заказы по часам']) {
+    await expect(page.locator('main')).toContainText(label)
+  }
   await expect(page.locator('#analytics-placeholder')).toHaveCount(0)
   await expect(page.locator('#sidebar-section-nav-statistics')).toHaveAttribute('aria-current', 'page')
   await expect(group.locator('a[aria-current="page"]')).toHaveCount(1)

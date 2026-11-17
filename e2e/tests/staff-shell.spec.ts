@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test'
-import { adminUrl } from '../support/env'
+import { adminUrl, branchSlug } from '../support/env'
 import { branchPage } from '../support/staff'
 import { test } from '../support/test'
 
@@ -179,8 +179,10 @@ test('mobile sidebar opens from header and closes after navigation', async ({ st
     if (await page.locator('#sidebar-group-analytics').getAttribute('open') === null) {
       await page.locator('#sidebar-group-analytics-toggle').click()
     }
-    await page.locator('#main-sidebar nav a[href="/staff/statistics"]').click()
-    await expect(page).toHaveURL(/\/staff\/statistics$/)
+    const statistics = page.locator('#main-sidebar #sidebar-section-nav-statistics')
+    await expect(statistics).toHaveAttribute('href', `/staff/b/${branchSlug}/statistics`)
+    await statistics.click()
+    await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/statistics`)
     await expect(page.locator('html')).not.toHaveAttribute('data-sidebar-open', '')
     await expect(sidebar).toBeHidden()
     await expect(openToggle).toBeVisible()
