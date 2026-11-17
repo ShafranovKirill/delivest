@@ -52,6 +52,9 @@ grep -q '/app.js' "$tmp/missing"
 [[ $(curl -sS "$base/__seo/content" -o /dev/null -w '%{http_code}') == 204 ]]
 curl -fsS "$base/catalog/center.xml" | grep -q '<yml_catalog'
 logs=$(docker logs "$name-client" 2>&1)
-! grep -q 'yclid=untrusted' <<< "$logs"
+if grep -q 'yclid=untrusted' <<< "$logs"; then
+  printf 'Catalog nginx leaked an untrusted identifier into logs.\n' >&2
+  exit 1
+fi
 docker exec "$name-client" nginx -t
 printf 'Catalog nginx: canonical product/category HTML + SPA, real 404, internal-only fragments, public feed passed.\n'
