@@ -81,7 +81,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps chromium
           pnpm typecheck
-          pnpm exec playwright test --max-failures=1
+          pnpm exec playwright test
 
       - uses: actions/upload-artifact@v4
         if: always()

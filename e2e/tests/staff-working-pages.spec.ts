@@ -6,7 +6,7 @@ const pages = [
   { name: 'orders', path: `/staff/b/${branchSlug}/orders?period=all`, marker: '#orders-search' },
   { name: 'clients', path: '/staff/clients', marker: '#clients-filter-form' },
   { name: 'receipts', path: `/staff/b/${branchSlug}/finance/receipts`, marker: '#receipts-filter-form' },
-  { name: 'analytics', path: `/staff/b/${branchSlug}/statistics?tab=sources&period=today`, marker: '#statistics-report' },
+  { name: 'analytics', path: `/staff/b/${branchSlug}/analytics/sources?period=today`, marker: '#statistics-report' },
   { name: 'settings', path: `/staff/branches/${branchSlug}/edit/general`, marker: '#branch-form' },
 ] as const
 

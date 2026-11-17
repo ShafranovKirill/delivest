@@ -1,16 +1,16 @@
 import { expect, test } from '../support/test'
-import { adminUrl } from '../support/env'
+import { adminUrl, branchSlug } from '../support/env'
 import { branchPage } from '../support/staff'
 
 const sections = [
-  { key: 'channels', title: 'Каналы продаж' },
-  { key: 'sources', title: 'Источники' },
-  { key: 'funnel', title: 'Воронка' },
-  { key: 'customers', title: 'Покупатели' },
-  { key: 'comparison', title: 'Сравнение филиалов' },
+  { key: 'channels', navLabel: 'Каналы продаж', pageTitle: 'Каналы продаж', route: `/staff/b/${branchSlug}/analytics/channels` },
+  { key: 'sources', navLabel: 'Источники и реклама', pageTitle: 'Источники', route: `/staff/b/${branchSlug}/analytics/sources` },
+  { key: 'funnel', navLabel: 'Воронка заказа', pageTitle: 'Воронка заказа', route: `/staff/b/${branchSlug}/analytics/funnel` },
+  { key: 'customers', navLabel: 'Покупатели', pageTitle: 'Покупатели', route: `/staff/b/${branchSlug}/analytics/customers` },
+  { key: 'comparison', navLabel: 'Сравнение филиалов', pageTitle: 'Сравнение филиалов', route: '/staff/analytics/comparison' },
 ]
 
-test('analytics expands from another page and opens its planned reports', async ({ staff }) => {
+test('analytics expands from another page and opens its live reports', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.setViewportSize({ width: 1440, height: 900 })
   await branchPage(page, 'products')
@@ -27,14 +27,14 @@ test('analytics expands from another page and opens its planned reports', async 
   await expect(group.locator('a')).toHaveCount(6)
   for (const section of sections) {
     const link = page.locator(`#sidebar-section-nav-analytics_${section.key}`)
-    await expect(link).toHaveText(section.title)
+    await expect(link).toHaveText(section.navLabel)
     await link.click()
-    await expect(page).toHaveURL(`${adminUrl}/staff/analytics/${section.key}`)
-    await expect(page.locator('main h1')).toHaveText(section.title)
-    await expect(page.locator('#analytics-placeholder')).toContainText('Раздел в разработке')
+    await expect(page).toHaveURL(`${adminUrl}${section.route}`)
+    await expect(page.locator('main h1')).toHaveText(section.pageTitle)
+    await expect(page.locator('#statistics-report')).toBeVisible()
+    await expect(page.locator('#analytics-placeholder')).toHaveCount(0)
     await expect(link).toHaveAttribute('aria-current', 'page')
     await expect(group.locator('a[aria-current="page"]')).toHaveCount(1)
-    await expect(page.locator('#statistics-report, #statistics-filter')).toHaveCount(0)
   }
   await page.locator('#sidebar-section-nav-statistics').click()
   await expect(page).toHaveURL(`${adminUrl}/staff/statistics`)
@@ -44,7 +44,7 @@ test('analytics expands from another page and opens its planned reports', async 
   await expect(group.locator('a[aria-current="page"]')).toHaveCount(1)
 })
 
-test('planned analytics reports use the existing mobile navigation row', async ({ staff }) => {
+test('live analytics reports use the existing mobile navigation row', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.setViewportSize({ width: 390, height: 844 })
   await branchPage(page, 'dashboard')
@@ -58,8 +58,10 @@ test('planned analytics reports use the existing mobile navigation row', async (
   for (const section of sections) {
     const link = navigation.locator(`#section-nav-analytics_${section.key}`)
     await link.click()
-    await expect(page.locator('main h1')).toHaveText(section.title)
-    await expect(page.locator('#analytics-placeholder')).toBeVisible()
+    await expect(page).toHaveURL(`${adminUrl}${section.route}`)
+    await expect(page.locator('main h1')).toHaveText(section.pageTitle)
+    await expect(page.locator('#statistics-report')).toBeVisible()
+    await expect(page.locator('#analytics-placeholder')).toHaveCount(0)
     await expect(link).toHaveAttribute('aria-current', 'page')
     await expect(navigation.locator('a[aria-current="page"]')).toHaveCount(1)
   }

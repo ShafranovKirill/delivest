@@ -39,15 +39,15 @@ test('Frontpad is a CRM provider within integrations without a duplicate setting
   await expect(page.locator('#settings-nav-frontpad, #sidebar-settings-nav-frontpad')).toHaveCount(0)
 })
 
-test('branch analytics opens franchise statistics with the same period and no branch restriction', async ({ staff }) => {
+test('branch analytics opens franchise comparison with the same period and no branch restriction', async ({ staff }) => {
   const page = await staff('e2e_admin')
   const branchReport = 'statistics?tab=sales&period=custom&from=2026-11-01&to=2026-11-14'
   await page.setViewportSize({ width: 1440, height: 900 })
   await branchPage(page, branchReport)
-  const franchise = page.locator('#main-sidebar a[href*="tab=franchise"]')
+  const franchise = page.locator('#main-sidebar #sidebar-section-nav-analytics_comparison')
   await expect(franchise).toHaveCount(1)
   const target = new URL((await franchise.getAttribute('href'))!, adminUrl)
-  expect(target.pathname).toBe('/staff/statistics')
+  expect(target.pathname).toBe('/staff/analytics/comparison')
   expect(target.searchParams.get('period')).toBe('custom')
   expect(target.searchParams.get('from')).toBe('2026-11-01')
   expect(target.searchParams.get('to')).toBe('2026-11-14')
@@ -55,11 +55,13 @@ test('branch analytics opens franchise statistics with the same period and no br
   expect(target.searchParams.has('branch_ids')).toBe(false)
   await franchise.click()
   await expect(page).toHaveURL(target.href)
-  await expect(page.locator('main #staff-page-header')).toContainText('Все филиалы')
+  await expect(page.locator('main h1')).toHaveText('Сравнение филиалов')
+  await expect(page.locator('#header-branch summary')).toHaveAttribute('aria-label', 'Все доступные филиалы')
 
   await page.setViewportSize({ width: 390, height: 844 })
   await branchPage(page, branchReport)
-  await page.locator('#staff-context-navigation a[href*="tab=franchise"]').click()
+  await page.locator('#staff-context-navigation #section-nav-analytics_comparison').click()
   await expect(page).toHaveURL(target.href)
-  await expect(page.locator('main #staff-page-header')).toContainText('Все филиалы')
+  await expect(page.locator('main h1')).toHaveText('Сравнение филиалов')
+  await expect(page.locator('#header-branch summary')).toHaveAttribute('aria-label', 'Все доступные филиалы')
 })
