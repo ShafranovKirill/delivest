@@ -1,3 +1,17 @@
+# Аналитика: настройки администратора и продажи всей сети — 18 ноября 2026
+
+Новый согласованный объём: admin-only вкладка «Аналитика и отслеживание» в настройках филиала; сетевые настройки во франшизе; общая статистика продаж всей сети. Реализовано локально в ветках root/server `codex/analytics-settings-network-sales`. Server commit `823f604d`, база server origin/develop `2f4570cc`.
+
+Филиал: `/staff/branches/:slug/edit/analytics` — segments, analytics_funnel, analytics_extended, analytics_links. Франшиза: `/staff/franchise/analytics` — analytics_franchise на уровне сети и выбранных филиалов. Свежая проверка admin на каждой операции, allowlist, audit actor; выключение с подтверждением сохраняет историю. Включение родительского модуля при сохранённых включённых дочерних настройках других филиалов требует явного подтверждения со списком и fingerprint; устаревшее подтверждение перепроверяется под блокировкой.
+
+`/staff/statistics`: базовые sales/products/categories больше не требуют analytics_franchise; только statistics.read+statistics.network и авторизованные филиалы. Явный пункт «Продажи всей сети» доступен при выбранном филиале, выбор все/один филиал и периода. Поддельные/вложенные параметры фильтра fail-closed; расширенные отчёты сохранили gates. Клиентский SPA и агент не менялись.
+
+Проверки финального кода: адресный `mix precommit` (settings context, Features, settings UI, statistics index+reports, navigation, branch edit, franchise index) — **105 тестов, 0 ошибок**; compile warnings-as-errors, format, admin.inventory, Credo и diff check успешны. PostgreSQL test partition analyticssettings20261118 на 127.0.0.1:5432. Лог `/tmp/delivest-analyticssettings-precommit.log`; context изолированно 8/0. Главный агент просмотрел diff и фактический лог, независимое ревью исправлений проведено. Полный preflight/E2E и браузерная проверка не выполнялись.
+
+Push/PR/merge и production для этой новой задачи не выполнялись. Предыдущий выпуск Bastion со слепками уже установлен отдельно; разрешение того выпуска не переносится автоматически на эту задачу. Для последующей интеграции соблюдать AGENTS.md: отдельная команда «Пуш в Девелоп», проверки на финальном коде, сначала server commit, затем gitlink root.
+
+---
+
 # Delivest — передача единой сборки
 
 ## Реквизиты Яндекс Директа и Метрики в БД — 18 ноября 2026 (MSK)
