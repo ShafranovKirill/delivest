@@ -10,6 +10,8 @@
 
 Пользователь явно разрешил загрузить изменения в Develop и выпустить релиз. Финальный полный `make preflight` без PLAYWRIGHT_ARGS: **135 passed (10.2m)**, typecheck client/e2e и сборки прошли; лог `../preflight-analytics-release-final.log`. Старые ожидания 6 пунктов аналитики обновлены на 7 с проверкой новой сетевой ссылки, root commit `92dca89`. Перед отправкой главный агент проверил diff, логи и свежие remote refs; деревья чисты. Выпуск готовится из develop в main, ожидаемая версия 1.14.0; CI должен проверить и опубликовать manifest/образы до production. Резервные копии 4 production БД/config сохранены и проверены pg_restore --list в `/root/release-backups/analytics-1.14.0-20261118` на 62.113.37.149. Обновление через штатный Bastion.Updates с дополнительным свежим DB backup/health/rollback, сначала demo, затем остальные. Агентские адреса bastion.delivest.ru сохранять.
 
+Финальная поправка перед выпуском: server `077262a2` (после `bd515a9d`). Исправлены только тесты: аудит сравнивает новые записи своего теста; Audit PubSub тест изолирован; Yandex bounded refresh завершён явным вызовом в тесте. Первоначальный CI выявил эти ошибки, его Release остановлен до публикации. Официальный полный server mix precommit seed26499/maxcases8: **2155 tests,0 failures,7 excluded**, format/compile/inventory/Credo успешны, `/tmp/delivest-analyticsrelease-final-precommit.log`. Полный root make preflight на финальном checkout повторён: **135 passed (11.1m)**, лог `../preflight-analytics-release-audit-final.log`. Рабочий код приложения после `823f604d` не менялся. Главный агент независимо просмотрел все три test diff и итоговые логи.
+
 ---
 
 # Delivest — передача единой сборки
