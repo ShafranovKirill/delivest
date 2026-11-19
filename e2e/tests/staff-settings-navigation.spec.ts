@@ -352,7 +352,9 @@ test('franchise groups appearance and exposes full backup through data transfer'
     await expect(appearance.locator(`#franchise-section-${section}`)).toHaveAttribute('href', `/staff/franchise/${section}`)
   }
   await expect(page.locator('#franchise-section-snapshot')).toHaveCount(0)
-  await expect(page.locator('#sidebar-settings-nav-features, #settings-nav-features')).toHaveCount(0)
+  await expect(page.locator('[id^="sidebar-settings-nav-"]').filter({
+    hasText: /Интеграции|Возможности|Данные и система/,
+  })).toHaveText(['Интеграции', 'Возможности', 'Данные и система'])
   await page.locator('#sidebar-settings-nav-data_system').click()
   await page.locator('#data-system-action-data_transfer').click()
   await expect(page.locator('#data-transfer-franchise')).toBeVisible()
