@@ -1,0 +1,139 @@
+{
+  "captured_at": "2026-11-19T19:55:26.962261+00:00",
+  "sources": {
+    "before_server": "df1b349b889944848f110708fef53f63a768f028",
+    "before_client": "097a28b9cd39fa97043e077221ed87b8c1ca8dc1",
+    "after_server": "f2b2107d446f358ed1cb340bf9290f353dc7cf39",
+    "after_client": "deaca400f613db2ec97e956a2557739fb7181515"
+  },
+  "method": {
+    "fixtures": "Clones of one schema50 database; same 3 demo branches, 30 menu products, 5 categories, 6 banners, same 36 WebP files in dedicated local MinIO. After clone migrated to schema53.",
+    "browser": "Chromium headless, 390x844, ru-RU, Europe/Moscow; 10/2 Mbit, CDP latency80ms; SW blocked. Production client builds, identical env-config.js to localhost4000.",
+    "sequence": "before-a, after-a, after-b, before-b; 7 fresh contexts per block, then same-context reload; backend restarted and one excluded warmup per block.",
+    "menu_timing": "Navigation start until first real product card visible; not full image completion or interactivity. Standard median across 14 samples per mode/revision.",
+    "capture_window": "Additional 2500ms after menu visible for API/resource counts; not total bytes for all subsequent browsing.",
+    "server": "Same loopback ports3000/4000, PostgreSQL17 localhost55439, MinIO18333; ERL_FLAGS=+S 4:4; reload/watchers off, warning logging, Oban manual; storefront revision polling remains enabled.",
+    "load": "Warm API replay:100 scenarios,5 visitors, no browser/network throttling. BEAM CPU only, PostgreSQL/browser/S3 CPU not measured. Two successful before samples and three after samples.",
+    "excluded": "Initial env-config404 exploratory timing discarded and recaptured after HTTP200. Third consecutive initial before load got429, excluded; rate limiter not disabled. User stopped further measurement before a replacement third before sample."
+  },
+  "browser": {
+    "before": {
+      "files": [
+        "paired-before-a.json",
+        "paired-before-b.json"
+      ],
+      "cold-browser": {
+        "samples": 14,
+        "median_ms": 1187.0,
+        "min_ms": 1171,
+        "max_ms": 1203,
+        "api_requests": [
+          9
+        ],
+        "api_bytes_median": 9535.0,
+        "all_http_bytes_median": 3041997.0
+      },
+      "warm-reload": {
+        "samples": 14,
+        "median_ms": 1074.0,
+        "min_ms": 1062,
+        "max_ms": 1080,
+        "api_requests": [
+          9
+        ],
+        "api_bytes_median": 9386.0,
+        "all_http_bytes_median": 16748.0
+      }
+    },
+    "after": {
+      "files": [
+        "paired-after-a.json",
+        "paired-after-b.json"
+      ],
+      "cold-browser": {
+        "samples": 14,
+        "median_ms": 977.5,
+        "min_ms": 966,
+        "max_ms": 1067,
+        "api_requests": [
+          2
+        ],
+        "api_bytes_median": 5476.0,
+        "all_http_bytes_median": 3037865.0
+      },
+      "warm-reload": {
+        "samples": 14,
+        "median_ms": 820.5,
+        "min_ms": 809,
+        "max_ms": 905,
+        "api_requests": [
+          2
+        ],
+        "api_bytes_median": 5326.0,
+        "all_http_bytes_median": 2509520.0
+      }
+    }
+  },
+  "load": {
+    "before": {
+      "samples": 2,
+      "cpu_seconds_median": 6.299999999999999,
+      "cpu_seconds_all": [
+        6.3999999999999995,
+        6.199999999999999
+      ],
+      "elapsed_ms_median": 1562.0,
+      "http_requests_per_100": [
+        900
+      ]
+    },
+    "after": {
+      "samples": 3,
+      "cpu_seconds_median": 1.6500000000000004,
+      "cpu_seconds_all": [
+        1.6800000000000006,
+        1.6100000000000003,
+        1.6500000000000004
+      ],
+      "elapsed_ms_median": 396,
+      "http_requests_per_100": [
+        200
+      ]
+    }
+  },
+  "idle": {
+    "before": {
+      "duration_ms": 61002,
+      "api_requests": 3,
+      "api_bytes": 1626,
+      "backend_cpu_seconds": 0.5800000000000001
+    },
+    "after": {
+      "duration_ms": 61001,
+      "api_requests": 0,
+      "api_bytes": 0,
+      "backend_cpu_seconds": 0.5300000000000002
+    }
+  },
+  "resource_anomaly": {
+    "after_warm_image_requests": [
+      36
+    ],
+    "additional_image_urls_vs_cold": [
+      21
+    ],
+    "additional_image_bytes_median": 2497548.0,
+    "finding": "Current reload fetches new image URLs; not repeated transfer of the cached cold URLs. Hydration/native lazy loading cause is a hypothesis, not proven. No source fix in measurement task."
+  },
+  "improvements": {
+    "cold-browser": {
+      "saved_ms": 209.5,
+      "reduction_percent": 17.649536647009267
+    },
+    "warm-reload": {
+      "saved_ms": 253.5,
+      "reduction_percent": 23.60335195530726
+    },
+    "backend_cpu_reduction_percent": 73.8095238095238
+  }
+}

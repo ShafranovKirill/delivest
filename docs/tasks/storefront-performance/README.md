@@ -63,13 +63,58 @@ would add one to every handler and incorrectly report 47.
 
 ## After implementation
 
-Final paired measurement is pending. A candidate browser smoke check observed exactly two successful startup GETs (public and private), but it predates subsequent cart changes. Do not treat it as final timing acceptance. Cart progress and the current stop point are in [CART_README.md](CART_README.md).
+Matched measurements completed on 19 November 2026; aggregate data and exact
+source commits are in `paired-summary.json`. The historical baseline above is
+retained separately. This comparison rebuilds both clients and uses database
+clones with the same 3 branches, 30 menu products, 5 categories, 6 banners and
+36 photos in isolated local MinIO. Current schema53; identical runtime config.
+
+| Metric | Before | After | Reduction |
+| --- | ---: | ---: | ---: |
+| First product visible, fresh browser, median | 1.187 s | 0.978 s | 0.210 s / 17.6% |
+| Same-browser reload, median | 1.074 s | 0.821 s | 0.254 s / 23.6% |
+| Startup API calls | 9 | 2 | 77.8% |
+| Startup API response transfer, fresh browser | 9535 bytes | 5476 bytes | 42.6% |
+| BEAM CPU per 100 warm API scenarios, median | 6.30 CPU-s | 1.65 CPU-s | 73.8% |
+| Elapsed time of 100 warm API scenarios, median | 1.562 s | 0.396 s | 74.6% |
+| Idle API calls over 61 seconds | 3 | 0 | 3 config polls removed |
+
+Browser order: before-a, after-a, after-b, before-b; seven fresh contexts per
+block, each followed by reload: 14 samples per revision/mode. Backend restart
+and one excluded warmup per block. Same mobile viewport, network and 2500ms
+post-menu capture window as above; no full-image-completion or interaction
+latency claim. Accepted captures have zero API, page or other HTTP errors.
+Raw traces: `paired-{before,after}-{a,b}.json`.
+
+API replay is separate: five visitors, 100 warm scenarios, no network throttling;
+two successful before samples and three after (`paired-*-load-*.json`). An
+initial third consecutive before batch reached HTTP429 and was excluded; rate
+limiting was not disabled. Further measurement stopped at the user's request.
+CPU includes BEAM background work, not PostgreSQL/browser/S3. Idle BEAM CPU was
+0.58 / 0.53 CPU-s in single 61-second observations; this does not establish an
+idle CPU improvement. Shared revision polling and sockets remain active.
+
+**Observed follow-up:** current reload requests 36 images vs 15 initially;
+21 new URLs transfer another 2,497,548 bytes. Previously fetched photos transfer
+zero bytes, so this is not evidence of broken image cache. The cause of extra
+fetches is unconfirmed (hydration/native lazy-load is a hypothesis). Fresh-page
+transfer remains about 3.04 MB; reload capture rises from about 16.7 KB to
+2.51 MB. API savings must not be reported as equivalent whole-page savings.
+
+Run `scripts/storefront-benchmark-server.exs` from the intended server worktree:
+allowlisted startup DBs on loopback55439, endpoint4000, four BEAM schedulers,
+warning logging, reload/watchers off, Oban manual. `scripts/storefront-idle.mjs`
+records idle requests and optional BEAM CPU/RSS. Dedicated containers
+`delivest-cart-completion-pg-20261119` and
+`delivest-storefront-benchmark-s3-20261119` are stopped, data preserved. Baseline
+ran in detached worktrees; main client/backend sources remain current.
+Full preflight/E2E and push were not run.
 
 Cart continuation has a separate final-source SQL comparison in
 `cart-completion-before.json` and `cart-completion-after.json`; its method,
 transaction overhead and checkout epoch-fence cost are documented in
-[CART_README.md](CART_README.md). These cart measurements do not complete the
-pending storefront browser/CPU comparison.
+[CART_README.md](CART_README.md). Cart SQL and the completed browser/CPU
+comparison above are separate measurement series.
 
 ## Limits
 
