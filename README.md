@@ -27,6 +27,14 @@ The agent reports the version of every running container, and the bastion shows 
 
 ---
 
+## Состояние оптимизации витрины — 19 ноября 2026
+
+Рабочая ветка — `codex/storefront-bootstrap`, от `develop` (`59c4d89`). Сохранены публичная загрузка меню и приватная загрузка сессии: в адресной браузерной проверке **2 HTTP вместо 9**. Реализованы кеши и версии публичных данных, обновления через сокет и пакетная аналитика. Это рабочая версия, не релиз и не полное выполнение всего ТЗ.
+
+**Оптимизация корзины выполнена примерно на 80% и сохранена отдельным WIP-коммитом.** Остались отдельные операции, независимое ревью и финальные замеры. Подробности и первый шаг продолжения: [README корзины](docs/tasks/storefront-performance/CART_README.md). Исходные замеры и ограничения: [отчёт производительности](docs/tasks/storefront-performance/README.md).
+
+По явной команде пользователя текущая отправка в `origin` выполняется **без новых тестов, полного preflight и полного E2E**. Ранее пройденные проверки относятся к промежуточным версиям; финальная версия целиком не проверена. Слияния в `develop`/`main` и deployment не разрешены.
+
 ## Local development
 
 Needs Docker, Elixir with Erlang, Node with pnpm and tmux. Postgres, S3 storage and the backup agent run in Docker (`server/docker-compose.yml`); the server and client run in the console with code reloading. `make infra` builds and starts the local agent. Keep `server/.instance-backups` on the host: it carries backup jobs and archives shared with the Phoenix process. The local Seaweed image is pinned to the same version as production, and `make infra` updates it before backups are used. Restart the local Phoenix process after updating the backup setup; `make dev` only attaches to an existing tmux session and does not restart it.
