@@ -116,6 +116,41 @@ transaction overhead and checkout epoch-fence cost are documented in
 [CART_README.md](CART_README.md). Cart SQL and the completed browser/CPU
 comparison above are separate measurement series.
 
+## Image reload follow-up — 19 November 2026
+
+The extra-image follow-up above is fixed locally. The existing `loading="lazy"`
+hint did not prevent distant images from being requested on reload when the
+bootstrap populated the menu before Vue mounted. Reproduction showed 15 photo
+URLs on initial navigation and 36 on reload, with scrollY remaining zero and
+some requested images over 2500 px below the viewport. A static DOM/CSS control
+did not reproduce the increase; the browser's internal cause is not established.
+
+Product images and story thumbnails now receive their source only within an
+IntersectionObserver margin of 1250 px. Already exposed sources remain available
+when scrolling away; a replacement source waits if the element is distant.
+Browsers without IntersectionObserver use the original eager source assignment.
+Native lazy loading remains an additional hint.
+
+Two independent reviewer runs with the original measurement runner produced
+15 photo URLs on both initial navigation and reload, **zero new photo URLs and
+zero transferred photo bytes on reload**, versus the previous 21 new URLs and
+2,497,548 bytes. Both startup API requests remain present. Compact evidence is
+in `reload-images-summary.json`; these small runs do not establish a new latency
+or CPU result. An initial reviewer run with a missing preview `env-config.js`
+was excluded; the accepted runs have no HTTP or page errors.
+
+Run the targeted browser regression against the isolated fixture and built
+preview (ensure `env-config.js` exists after building):
+
+```sh
+node scripts/storefront-image-regression.mjs http://localhost:3000/demo-center
+```
+
+It checks reload, distant photos, scrolling, product and story viewers, and the
+fallback without IntersectionObserver. Client build/type checking and targeted
+ESLint passed; build warns about existing large chunks and ESLint reports a
+missing `.oxlintrc.json`. Full preflight/E2E and integration remain pending.
+
 ## Limits
 
 Local demo data is a small catalog. These numbers do not establish performance
