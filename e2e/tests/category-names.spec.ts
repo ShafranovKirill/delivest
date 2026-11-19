@@ -5,12 +5,12 @@ const longName = 'ОченьДлинноеНазваниеКатегорииБе
 const twoWordName = 'ОченьДлинноеНазваниеКатегории СНеобычайноДлиннымВторымСловом'
 
 async function mockCategories(page: Page, names: string[]) {
-  await page.route(/\/client\/branches\/[^/]+\/menu(?:\?|$)/, async (route) => {
+  await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
     const response = await route.fetch()
     const body = await response.json()
-    const first = body.data.find((category: { products?: unknown[] }) => category.products?.length)
+    const first = body.menu.find((category: { products?: unknown[] }) => category.products?.length)
     if (!first) throw new Error('Fixture menu has no category with products')
-    body.data = names.map((name, index) => ({ ...first, id: `${first.id}-${index}`, name }))
+    body.menu = names.map((name, index) => ({ ...first, id: `${first.id}-${index}`, name }))
     await route.fulfill({ response, json: body })
   })
 }

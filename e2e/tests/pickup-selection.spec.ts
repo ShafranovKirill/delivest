@@ -1,30 +1,40 @@
 import { expect, test } from '../support/test'
+import type { Page } from '@playwright/test'
 import { openPickupPreview, selectPickupLocation } from '../support/pickup'
 
 const screenshots = process.env.ORDER_SUCCESS_SCREENSHOTS
 
+type BranchFixture = { id: string; slug: string; name: string; branch_info: Record<string, any> }
+type StorefrontFixture = {
+  franchise: { address_map: boolean }
+  branches: BranchFixture[]
+  selected_branch: BranchFixture | null
+}
+
+async function mockStorefront(page: Page, mutate: (body: StorefrontFixture) => void) {
+  await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json() as StorefrontFixture
+    mutate(body)
+    await route.fulfill({ response, json: body })
+  })
+}
+
 for (const [name, width] of [['mobile', 390], ['desktop', 1280]] as const) {
   test(`${name} pickup previews another branch without selecting it`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 })
-    await page.route('**/client/franchise', async (route) => {
-      const response = await route.fetch()
-      const body = await response.json()
-      body.data.address_map = true
-      await route.fulfill({ response, json: body })
-    })
-    await page.route('**/client/branches', async (route) => {
-      const response = await route.fetch()
-      const body = await response.json()
-      body.data = body.data.filter((item: { name: string }) => item.name !== 'E2E Board')
-      const branch = body.data.find((item: { slug: string }) => item.slug === 'e2e')
-      body.data.push({
+    await mockStorefront(page, (body) => {
+      const branch = body.branches.find((item) => item.slug === 'e2e')
+      if (!branch) throw new Error('Fixture branch e2e is missing')
+      body.franchise.address_map = true
+      body.branches = body.branches.filter((item) => item.name !== 'E2E Board')
+      body.branches.push({
         ...branch,
         id: '22222222-2222-4222-8222-222222222222',
         slug: 'e2e-board',
         name: 'E2E Board',
         branch_info: { ...branch.branch_info, address: 'Москва, Арбат, 10', latitude: 55.752, longitude: 37.591 },
       })
-      await route.fulfill({ response, json: body })
     })
     await page.route('**/styles/liberty', (route) => route.fulfill({ json: {
       version: 8,
@@ -73,20 +83,15 @@ for (const [name, width] of [['mobile', 390], ['desktop', 1280]] as const) {
 
 test('pickup without coordinates stays compact and supports list, back and confirm', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.route('**/client/franchise', async (route) => {
-    const response = await route.fetch()
-    const body = await response.json()
-    body.data.address_map = true
-    await route.fulfill({ response, json: body })
-  })
-  await page.route('**/client/branches', async (route) => {
-    const response = await route.fetch()
-    const body = await response.json()
-    body.data = body.data.map((branch: { branch_info?: Record<string, unknown> }) => ({
+  await mockStorefront(page, (body) => {
+    body.franchise.address_map = true
+    body.branches = body.branches.map((branch) => ({
       ...branch,
       branch_info: { ...branch.branch_info, latitude: null, longitude: null, address: null },
     }))
-    await route.fulfill({ response, json: body })
+    if (body.selected_branch) body.selected_branch.branch_info = {
+      ...body.selected_branch.branch_info, latitude: null, longitude: null, address: null,
+    }
   })
   await page.goto('/e2e')
   await page.getByRole('button', { name: '590 ₽' }).click()
@@ -103,20 +108,15 @@ test('pickup without coordinates stays compact and supports list, back and confi
 test('mobile pickup detail without a map keeps its confirmation at the bottom while scrolling', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 480 })
   const address = `Москва, ${'Очень длинная улица с длинным адресом, '.repeat(18)}дом 7`
-  await page.route('**/client/franchise', async (route) => {
-    const response = await route.fetch()
-    const body = await response.json()
-    body.data.address_map = true
-    await route.fulfill({ response, json: body })
-  })
-  await page.route('**/client/branches', async (route) => {
-    const response = await route.fetch()
-    const body = await response.json()
-    body.data = body.data.map((branch: { branch_info?: Record<string, unknown> }) => ({
+  await mockStorefront(page, (body) => {
+    body.franchise.address_map = true
+    body.branches = body.branches.map((branch) => ({
       ...branch,
       branch_info: { ...branch.branch_info, latitude: null, longitude: null, address },
     }))
-    await route.fulfill({ response, json: body })
+    if (body.selected_branch) body.selected_branch.branch_info = {
+      ...body.selected_branch.branch_info, latitude: null, longitude: null, address,
+    }
   })
 
   await page.goto('/e2e')
@@ -151,21 +151,12 @@ test('mobile pickup detail without a map keeps its confirmation at the bottom wh
 
 for (const disabledBy of ['branch', 'franchise'] as const) {
   test(`pickup with map disabled by ${disabledBy} previews before confirmation`, async ({ page }) => {
-    await page.route('**/client/franchise', async (route) => {
-      const response = await route.fetch()
-      const body = await response.json()
-      body.data.address_map = disabledBy !== 'franchise'
-      await route.fulfill({ response, json: body })
-    })
-    await page.route(/\/client\/branches(?:\/[^?]+\/select)?$/, async (route) => {
-      const response = await route.fetch()
-      const body = await response.json()
-      const branches = Array.isArray(body.data) ? body.data : [body.data]
-      for (const branch of branches) {
+    await mockStorefront(page, (body) => {
+      body.franchise.address_map = disabledBy !== 'franchise'
+      for (const branch of [...body.branches, body.selected_branch]) {
         if (branch?.branch_info)
           branch.branch_info.delivery = { ...branch.branch_info.delivery, map_address: disabledBy !== 'branch' }
       }
-      await route.fulfill({ response, json: body })
     })
     await page.goto('/e2e')
     await page.getByRole('button', { name: '590 ₽' }).click()

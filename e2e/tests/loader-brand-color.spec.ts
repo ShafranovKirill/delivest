@@ -43,7 +43,7 @@ for (const cached of [false, true])
 
       let release!: () => void
       const gate = new Promise<void>((resolve) => (release = resolve))
-      await page.route('**/client/franchise', async (route) => {
+      await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
         await gate
         await route.continue()
       })
@@ -121,7 +121,7 @@ for (const { name, cache, mode, expectedColor } of [
     )
     let release!: () => void
     const gate = new Promise<void>((resolve) => (release = resolve))
-    await page.route('**/client/franchise', async (route) => {
+    await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
       await gate
       await route.continue()
     })
@@ -153,6 +153,26 @@ for (const { name, cache, mode, expectedColor } of [
 test('switching branches keeps franchise colors and changing theme selects its dark color', async ({
   page,
 }) => {
+  const secondBranchId = '00000000-0000-4000-8000-000000000003'
+  let secondBranch: Record<string, unknown> | undefined
+  await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
+    const requestedSecond = new URL(route.request().url()).searchParams.get('slug') === 'e2e-second'
+    const url = requestedSecond ? route.request().url().replace('slug=e2e-second', `slug=${branchSlug}`) : undefined
+    const response = await route.fetch(url ? { url } : undefined)
+    const body = await response.json()
+    secondBranch = {
+      ...body.branches.find(
+        (branch: { slug: string }) => branch.slug === branchSlug,
+      ),
+      id: secondBranchId,
+      slug: 'e2e-second',
+      name: 'E2E Second',
+    }
+    body.branches.push(secondBranch)
+    if (requestedSecond) body.selected_branch = secondBranch
+    await route.fulfill({ response, json: body })
+  })
+
   await page.goto(`/${branchSlug}`)
   await expect(page.locator('.boot')).toHaveCount(0)
   const lightColor = await page
@@ -163,31 +183,6 @@ test('switching branches keeps franchise colors and changing theme selects its d
     .evaluate((html) => html.style.getPropertyValue('--boot-color-dark'))
   expect(lightColor).toMatch(/^#[0-9a-fA-F]{6}$/)
   expect(darkColor).toMatch(/^#[0-9a-fA-F]{6}$/)
-
-  const secondBranchId = '00000000-0000-4000-8000-000000000003'
-  let secondBranch: Record<string, unknown> | undefined
-  await page.route('**/client/branches', async (route) => {
-    const response = await route.fetch()
-    const body = await response.json()
-    secondBranch = {
-      ...body.data.find(
-        (branch: { slug: string }) => branch.slug === branchSlug,
-      ),
-      id: secondBranchId,
-      slug: 'e2e-second',
-      name: 'E2E Second',
-    }
-    await route.fulfill({
-      response,
-      json: { data: [...body.data, secondBranch] },
-    })
-  })
-  await page.route(
-    `**/client/branches/${secondBranchId}/select`,
-    async (route) => {
-      await route.fulfill({ json: { data: secondBranch } })
-    },
-  )
 
   await page.getByRole('button', { name: 'E2E', exact: true }).first().click()
   await page

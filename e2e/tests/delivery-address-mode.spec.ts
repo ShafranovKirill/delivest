@@ -5,11 +5,14 @@ import { selectPickupLocation } from '../support/pickup'
 async function configureAddressMode(
   page: Page,
   settings: { map_address: boolean; show_city: boolean; operator_address: boolean },
+  addressMap?: boolean,
 ) {
-  await page.route(/\/client\/branches(?:\/[^?]+\/select)?$/, async (route) => {
+  await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
     const response = await route.fetch()
     const body = await response.json()
-    const branches = Array.isArray(body.data) ? body.data : [body.data]
+    const branches = [...body.branches, body.selected_branch]
+
+    if (addressMap !== undefined) body.franchise.address_map = addressMap
 
     for (const branch of branches) {
       if (branch?.slug === 'e2e' && branch.branch_info) {
@@ -17,6 +20,15 @@ async function configureAddressMode(
       }
     }
 
+    await route.fulfill({ response, json: body })
+  })
+}
+
+async function configureFranchiseAddressMap(page: Page, addressMap: boolean) {
+  await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.franchise.address_map = addressMap
     await route.fulfill({ response, json: body })
   })
 }
@@ -55,13 +67,7 @@ for (const mapAddress of [false, true]) {
         map_address: mapAddress,
         show_city: true,
         operator_address: true,
-      })
-      await page.route('**/client/franchise', async (route) => {
-        const response = await route.fetch()
-        const body = await response.json()
-        body.data.address_map = mapAddress
-        await route.fulfill({ response, json: body })
-      })
+      }, mapAddress)
       await page.route('**/client/geo/suggest**', (route) => route.fulfill({ json: { data: [] } }))
       await page.goto('/e2e')
       await expect(page.locator('html')).toHaveClass(theme === 'dark' ? /dark/ : /^(?!.*\bdark\b)/)
@@ -253,13 +259,7 @@ test('explicit map mode falls back to the compact address picker when the map in
     map_address: true,
     show_city: true,
     operator_address: true,
-  })
-  await page.route('**/client/franchise', async (route) => {
-    const response = await route.fetch()
-    const body = await response.json()
-    body.data.address_map = false
-    await route.fulfill({ response, json: body })
-  })
+  }, false)
 
   await page.goto('/e2e')
   await page.getByRole('button', { name: '590 ₽' }).click()
@@ -274,13 +274,7 @@ test('explicit map mode falls back to the compact address picker when the map in
 })
 
 test('manual delivery offers suggestions without opening a map', async ({ page }) => {
-  await configureAddressMode(page, { map_address: false, show_city: false, operator_address: false })
-  await page.route('**/client/franchise', async (route) => {
-    const response = await route.fetch()
-    const body = await response.json()
-    body.data.address_map = true
-    await route.fulfill({ response, json: body })
-  })
+  await configureAddressMode(page, { map_address: false, show_city: false, operator_address: false }, true)
   await page.route('**/client/geo/suggest**', (route) =>
     route.fulfill({ json: { data: [{ city: 'Москва', street: 'Тверская', house: '7', value: 'Москва, Тверская, 7', latitude: 55.75, longitude: 37.61 }] } }),
   )
@@ -299,13 +293,7 @@ test('manual delivery offers suggestions without opening a map', async ({ page }
 
 test('map style failure keeps address selection usable in a compact dialog', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 })
-  await configureAddressMode(page, { map_address: true, show_city: true, operator_address: false })
-  await page.route('**/client/franchise', async (route) => {
-    const response = await route.fetch()
-    const body = await response.json()
-    body.data.address_map = true
-    await route.fulfill({ response, json: body })
-  })
+  await configureAddressMode(page, { map_address: true, show_city: true, operator_address: false }, true)
   await page.route('**/styles/liberty', (route) => route.abort())
   await page.route('**/client/geo/suggest**', (route) =>
     route.fulfill({ json: { data: [{ city: 'Москва', street: 'Тверская', house: '7', value: 'Москва, Тверская, 7', latitude: 55.75, longitude: 37.61 }] } }),
@@ -349,12 +337,7 @@ test('mobile map-free delivery uses a bottom sheet with handle dismissal', async
 
 test('mobile map-free pickup uses a bottom sheet with backdrop dismissal', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 })
-  await page.route('**/client/franchise', async (route) => {
-    const response = await route.fetch()
-    const body = await response.json()
-    body.data.address_map = false
-    await route.fulfill({ response, json: body })
-  })
+  await configureFranchiseAddressMap(page, false)
   await page.goto('/e2e')
   await page.getByRole('button', { name: '590 ₽' }).click()
   await page.getByText('Заберу самостоятельно').click()
@@ -370,16 +353,11 @@ test('mobile map-free pickup uses a bottom sheet with backdrop dismissal', async
 })
 
 test('pickup with manual delivery mode previews a single-method branch before confirmation', async ({ page }) => {
-  await page.route('**/client/franchise', async (route) => {
+  await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
     const response = await route.fetch()
     const body = await response.json()
-    body.data.address_map = true
-    await route.fulfill({ response, json: body })
-  })
-  await page.route(/\/client\/branches(?:\/[^?]+\/select)?$/, async (route) => {
-    const response = await route.fetch()
-    const body = await response.json()
-    const branches = Array.isArray(body.data) ? body.data : [body.data]
+    body.franchise.address_map = true
+    const branches = [...body.branches, body.selected_branch]
     for (const branch of branches) {
       if (branch?.slug === 'e2e') {
         branch.branch_info.delivery = { map_address: false, show_city: false, operator_address: false, address_mode_set: true }

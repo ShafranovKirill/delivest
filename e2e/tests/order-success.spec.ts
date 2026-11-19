@@ -161,14 +161,17 @@ for (const [name, width, height, mobile] of [
         await expect(page.locator('[data-order-step]')).toHaveCount(4)
 
         useMockedOrder = true
-        await page.route('**/client/branches/slug/e2e/select', async (route) => {
+        await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
           const response = await route.fetch()
           const body = (await response.json()) as {
-            data: { branch_info: { loyalty?: Record<string, unknown> } }
+            selected_branch: { slug: string; branch_info: { loyalty?: Record<string, unknown> } } | null
+            branches: Array<{ slug: string; branch_info: { loyalty?: Record<string, unknown> } }>
           }
-          body.data.branch_info.loyalty = {
-            ...body.data.branch_info.loyalty,
-            enabled: true,
+          for (const branch of [...body.branches, body.selected_branch]) {
+            if (branch?.slug === 'e2e') branch.branch_info.loyalty = {
+              ...branch.branch_info.loyalty,
+              enabled: true,
+            }
           }
           await route.fulfill({ response, json: body })
         })
