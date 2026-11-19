@@ -249,3 +249,51 @@ for the largest production menu, many nodes, or 100 simultaneous visitors.
 Browser timing is distinct from handler SQL and background revision checks.
 The final report must state background database cost separately from warm
 handler savings and must not equate HTTP reduction with CPU reduction.
+
+## Temporal storefront revisions — 20 November 2026
+
+The revision worker now reads the epoch, persisted section revisions and temporal
+boundaries in one PostgreSQL statement, giving all three the same MVCC snapshot.
+The snapshot stores the latest elapsed boundary per section/scope and every
+future boundary. Menu boundaries come from product and modifier stop expiry and
+enabled, nondeleted promotion start/end; branches use active branch intake pause
+and load expiry; franchise uses the Yandex rating expiry. A revision's temporal
+component is the latest timestamp already reached, calculated from the snapshot
+on each request. A node that first polls after a boundary therefore derives the
+same revision as a node that had polled before it. No request SQL or timer event
+is needed to advance the phase.
+
+Timers continue to clear affected caches and broadcast changes. Their schedule
+is reconciled on each poll without replacing unchanged timers, and obsolete or
+duplicate timer messages do not change a revision. A delayed timer can leave
+an old Cachex entry briefly allocated, but the changed revision selects a new
+key; the existing loader consistency fence and boundary checks still apply.
+The rating projection additionally checks its seven-day expiry with exact UTC
+time to avoid the old one-second stale interval caused by `Rating.current/1`'s
+second-granularity default.
+
+Background cost is one combined read per worker every five seconds and on
+revision notifications/synchronization. Its temporal CTE scans the boundary
+sources and returns all future timestamps plus at most one elapsed timestamp
+per section/scope; memory and transfer remain proportional to future scheduled
+boundaries. This is not a constant-size snapshot or a measured production
+query-latency claim. Warm conditional HTTP requests still execute zero
+application SQL in the existing telemetry test. The boundary tests simulate
+independent node-local snapshot/timer histories in one VM; a real multi-node
+cluster was not exercised.
+
+Scoped server validation on the isolated PostgreSQL test partition at
+`127.0.0.1:55439` passed compile with warnings-as-errors, format, inventory,
+strict Credo and 30 HTTP tests with zero failures. The known background worker
+Sandbox ownership warning appeared during test startup. Reproduce with:
+
+```sh
+cd server
+ERL_FLAGS='+S 4:4' TEST_DB_HOST=127.0.0.1 TEST_DB_PORT=55439 MIX_TEST_PARTITION=temporal20261120 mix precommit test/delivest_web/controllers/client/storefront_sections_test.exs test/delivest_web/controllers/client/storefront_bootstrap_test.exs
+```
+
+The primary agent independently repeated both HTTP suites on the final code:
+30 tests, zero failures (`/tmp/delivest-temporal-review.log`). The code is ready
+locally, pending the project's usual integration checks.
+
+No full preflight, full E2E, push, merge or PR was run.
