@@ -69,7 +69,8 @@ test('settings menu and search resolve through the same destinations', async ({ 
   await page.goto(`${adminUrl}/staff/settings`)
   await page.locator('[data-phx-main].phx-connected').waitFor()
   await expect(page.locator('#sidebar-settings-navigation')).toBeVisible()
-  await expect(page.locator('#settings-feature-filter')).toBeVisible()
+  await expect(page.locator('#sidebar-settings-nav-features[aria-current="page"]')).toBeVisible()
+  await expect(page.locator('#settings-features')).toBeVisible()
   for (const { id, query } of settings.filter((item) => item.id === 'franchise')) {
     const menuLink = page.locator(`#sidebar-settings-nav-${id}`)
     await expect(menuLink).toBeVisible()
@@ -144,7 +145,9 @@ test('settings use the existing desktop sidebar and a mobile navigation row', as
       if (path === '/staff/franchise/brand') {
         for (let index = 0; index < links.length; index++) {
           const original = expectedLinks[index]
-          if (original.href.startsWith('/staff/settings/data-system?')) {
+          if (original.id === 'sidebar-settings-nav-features') {
+            expect(['/staff/settings?branch=e2e', '/staff/settings?branch=e2e-board']).toContain(links[index].href)
+          } else if (original.href.startsWith('/staff/settings/data-system?')) {
             expect(links[index].href).toBe('/staff/settings/data-system')
           } else if (original.href.startsWith('/staff/b/') || /^\/staff\/branches\/[^/]+\/edit/.test(original.href)) {
             expect(links[index].href).toContain('/staff/branches/select?')
@@ -171,7 +174,8 @@ test('settings use the existing desktop sidebar and a mobile navigation row', as
     await page.goto(`${adminUrl}${path}`)
     await page.locator('[data-phx-main].phx-connected').waitFor()
     if (path.startsWith('/staff/settings?')) {
-      await expect(page.locator('#settings-navigation [aria-current="page"]')).toHaveCount(0)
+      await expect(page.locator('#settings-navigation [aria-current="page"]')).toHaveCount(1)
+      await expect(page.locator('#settings-nav-features')).toHaveAttribute('aria-current', 'page')
     } else {
       await expect.poll(async () => {
         return page.locator('#settings-navigation').evaluate(nav => {
@@ -269,7 +273,9 @@ for (const width of [1440, 390]) {
     await expect(nav).toBeVisible()
     await expect(nav.locator(`#${prefix}settings-nav-franchise`)).toHaveAttribute('href', '/staff/franchise')
     await expect(nav.locator(`#${prefix}settings-nav-franchise`)).toHaveText('Франшиза')
-    for (const removed of ['features', 'brand', 'hours', 'delivery_zones', 'order_settings', 'loyalty_settings', 'team', 'roles_settings', 'delivery_settings', 'branch_settings']) {
+    await expect(nav.locator(`#${prefix}settings-nav-features`)).toHaveAttribute('href', '/staff/settings?branch=e2e')
+    await expect(nav.locator(`#${prefix}settings-nav-features`)).toHaveText('Возможности')
+    for (const removed of ['brand', 'hours', 'delivery_zones', 'order_settings', 'loyalty_settings', 'team', 'roles_settings', 'delivery_settings', 'branch_settings']) {
       await expect(nav.locator(`#${prefix}settings-nav-${removed}`)).toHaveCount(0)
     }
     const group = nav.locator(`#${prefix}settings-nav-data_system`)
