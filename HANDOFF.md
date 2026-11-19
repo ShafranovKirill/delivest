@@ -556,3 +556,37 @@ Notion canonical spec: https://app.notion.com/p/41031ec95e4481b5b776d0e5d9b09657
 Отправляются ветки root/client/server `codex/storefront-bootstrap`, серверные `codex/storefront-sql-batching` (`e624dba9`), `codex/storefront-analytics-batching` (`37e62d41`), `codex/storefront-read-projections` (`54b456b8`, ТОЛЬКО подготовленная рабочая копия, ETag-ресурсы не реализованы). Также сохраняется созданная ранее root-ветка `codex/sync-release-v1.15.0`. Промежуточные серверные ветки уже включены в объединённую основную рабочую ветку с последующими исправлениями; продолжать с root `codex/storefront-bootstrap` и закреплёнными подмодулями.
 
 Одноразовые БД, временные /tmp-логи, deps и _build в Git не включены. Метрики без секретов сохранены JSON в docs/tasks/storefront-performance. Независимых исполнителей больше не запускать до просьбы продолжить; активные агенты остановлены.
+
+### Продолжение корзины — 19 ноября 2026 (MSK)
+
+По просьбе пользователя найдена свежая `codex/storefront-bootstrap` и продолжена
+сохранённая корзина. Рабочая ветка root/server — `codex/cart-completion`;
+root создан от свежего origin/develop с перенесёнными двумя checkpoint-коммитами,
+server WIP перенесён на свежий origin/develop. Исходные ветки сохранены, чужих
+незакоммиченных изменений не было. Клиент остаётся на `deaca40`.
+
+Server: `9e7c2741` завершает session-scoped remove/context/repeat;
+`70963e44` удерживает epoch при checkout и предотвращает публикацию общего
+кэша из транзакций; `f2b2107d` обновляет только source-line references admin
+inventory и автоформатирование одного analytics-теста. Главный агент проверил
+итоговый diff, тесты и фактические логи. Финальный адресный `mix precommit`
+с 14 полными файлами — 97 тестов, 0 ошибок, compile/inventory/Credo успешны.
+Команда для повтора и известное предупреждение Sandbox записаны в
+`docs/tasks/storefront-performance/CART_README.md`.
+
+Новые парные замеры на одинаковых клонах отдельной fixture-БД (3 филиала,
+10 товаров, одна группа модификаторов) — `cart-completion-before.json` и
+`cart-completion-after.json`. SQL обработчика: add 11→10, modifiers/replace
+13→12, warm cart 4→3, public code 15→13, invalid code 6→5. Checkout 43→44:
+добавлен один запрос для удержания эпохи, ускорение checkout не заявляется.
+BEGIN/COMMIT учитываются отдельно; суммы/скидки/позиции/статусы совпали во всех
+7 сценариях. Старую серию с 30 товарами не смешивать с новой. Полные браузерные
+замеры загрузки/CPU и остальные пункты storefront ТЗ остаются незавершёнными.
+
+Проверки изолированы в новом PostgreSQL-контейнере
+`delivest-cart-completion-pg-20261119` на loopback55439; тестовая БД
+`delivest_testcartcompletion20261119`, benchmark-БД из allowlist. Контейнер
+после работы остановлен, данные сохранены; для повтора нужен `docker start`.
+Полный preflight/E2E, push, PR, merge не выполнялись: до команды
+«Пуш в Девелоп» разрешены только адресные локальные проверки. Доработка корзины
+готова локально, готовность к интеграции и релизу полными проверками ещё не подтверждена.

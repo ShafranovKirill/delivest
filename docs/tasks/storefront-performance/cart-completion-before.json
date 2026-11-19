@@ -1,0 +1,178 @@
+{
+  "series": "cart-completion-20261119",
+  "source": "df1b349b",
+  "method": {
+    "fixtures": "Identical schema50 database clones; local F01 seed (3 branches, 10 products) plus one optional modifier group with one 6000-price modifier on the product first ordered by UUID. Fixture snapshot also includes previous benchmark-generated carts, one checkout and public-code promotion, identical in both clones. After database migrated to schema53 before requests.",
+    "runtime": "PostgreSQL17 dedicated loopback55439; Elixir dev, ERL_FLAGS=+S 4:4; reloadable_apps=[]; Oban testing=manual; same cart_sql_measure.exs v1 wrapper on both source checkouts.",
+    "samples_per_scenario": 1,
+    "timing_limit": "Concurrent local test activity; elapsed_us is incidental, no latency/CPU acceptance claim.",
+    "telemetry": "All processes; excludes schema_migrations introspection; begin/commit/rollback reported separately. Checkout background delivery SQL varies."
+  },
+  "measurements": [
+    {
+      "mode": "cart_sql_measure_v1",
+      "database": "delivest_f01_demo_perf_before_20261119",
+      "branch_slug": "demo-center",
+      "menu_products": 10,
+      "modifier_choice": true
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "plain_add",
+      "sql_data_all_processes": 11,
+      "sql_data_handler_process": 11,
+      "sql_transaction_control": 0,
+      "sql_sources": {
+        "branches": 1,
+        "cart_items": 2,
+        "carts": 2,
+        "modifier_stops": 1,
+        "product_modifier_groups": 2,
+        "products": 3
+      },
+      "elapsed_us": 28236,
+      "response_bytes": 820,
+      "item_count": 1,
+      "total_amount": 59000,
+      "discount_amount": 0
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "warm_nonempty_cart",
+      "sql_data_all_processes": 4,
+      "sql_data_handler_process": 4,
+      "sql_transaction_control": 0,
+      "sql_sources": {
+        "cart_items": 1,
+        "carts": 2,
+        "products": 1
+      },
+      "elapsed_us": 12114,
+      "response_bytes": 820,
+      "item_count": 1,
+      "total_amount": 59000,
+      "discount_amount": 0
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "modifier_add",
+      "sql_data_all_processes": 13,
+      "sql_data_handler_process": 13,
+      "sql_transaction_control": 0,
+      "sql_sources": {
+        "branches": 1,
+        "cart_items": 2,
+        "carts": 2,
+        "modifier_stops": 1,
+        "modifiers": 2,
+        "product_modifier_groups": 2,
+        "products": 3
+      },
+      "elapsed_us": 24337,
+      "response_bytes": 984,
+      "item_count": 1,
+      "total_amount": 37000,
+      "discount_amount": 0
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "modifier_replace",
+      "sql_data_all_processes": 13,
+      "sql_data_handler_process": 13,
+      "sql_transaction_control": 0,
+      "sql_sources": {
+        "branches": 1,
+        "cart_items": 2,
+        "carts": 2,
+        "modifier_stops": 1,
+        "modifiers": 2,
+        "product_modifier_groups": 2,
+        "products": 3
+      },
+      "elapsed_us": 23352,
+      "response_bytes": 984,
+      "item_count": 1,
+      "total_amount": 37000,
+      "discount_amount": 0
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "valid_public_code",
+      "sql_data_all_processes": 15,
+      "sql_data_handler_process": 15,
+      "sql_transaction_control": 2,
+      "sql_sources": {
+        "branches": 1,
+        "cart_items": 2,
+        "carts": 5,
+        "product_modifier_groups": 1,
+        "products": 4,
+        "promo_codes": 2
+      },
+      "elapsed_us": 25740,
+      "response_bytes": 1066,
+      "item_count": 1,
+      "total_amount": 53100,
+      "discount_amount": 5900
+    },
+    {
+      "error": "promo_not_found",
+      "status": 422,
+      "case": "invalid_code",
+      "sql_data_all_processes": 6,
+      "sql_data_handler_process": 6,
+      "sql_transaction_control": 0,
+      "sql_sources": {
+        "cart_items": 1,
+        "carts": 2,
+        "products": 2,
+        "promo_codes": 1
+      },
+      "elapsed_us": 11396,
+      "response_bytes": 55,
+      "item_count": null,
+      "total_amount": null,
+      "discount_amount": null
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "cash_pickup_checkout",
+      "sql_data_all_processes": 45,
+      "sql_data_handler_process": 43,
+      "sql_transaction_control": 4,
+      "sql_sources": {
+        "audit_events": 1,
+        "branches": 5,
+        "cart_items": 1,
+        "carts": 2,
+        "categories": 1,
+        "deliveries": 2,
+        "domain_events": 2,
+        "event_deliveries": 2,
+        "feature_gates": 5,
+        "oban_jobs": 2,
+        "order_item_modifiers": 2,
+        "order_items": 3,
+        "order_payments": 1,
+        "orders": 3,
+        "product_modifier_groups": 1,
+        "products": 2,
+        "promo_redemptions": 2,
+        "raw_sql": 6,
+        "yandex_ads_settings": 1,
+        "yookassa_settings": 1
+      },
+      "elapsed_us": 154599,
+      "response_bytes": 814,
+      "item_count": 1,
+      "total_amount": 59000,
+      "discount_amount": 0
+    }
+  ]
+}

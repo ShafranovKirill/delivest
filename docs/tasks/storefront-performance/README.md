@@ -65,6 +65,12 @@ would add one to every handler and incorrectly report 47.
 
 Final paired measurement is pending. A candidate browser smoke check observed exactly two successful startup GETs (public and private), but it predates subsequent cart changes. Do not treat it as final timing acceptance. Cart progress and the current stop point are in [CART_README.md](CART_README.md).
 
+Cart continuation has a separate final-source SQL comparison in
+`cart-completion-before.json` and `cart-completion-after.json`; its method,
+transaction overhead and checkout epoch-fence cost are documented in
+[CART_README.md](CART_README.md). These cart measurements do not complete the
+pending storefront browser/CPU comparison.
+
 ## Limits
 
 Local demo data is a small catalog. These numbers do not establish performance
