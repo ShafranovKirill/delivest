@@ -674,3 +674,38 @@ rollout flags и hidden-tab SDK/F04 остаются отдельными отк
 
 Коммиты server `3d1ef5b1`, client `38aef64`; родитель закрепляет оба gitlink.
 Изолированный PostgreSQL-контейнер после проверок остановлен, данные сохранены.
+
+### Пакетная публичная конфигурация Яндекса — 20 ноября 2026 (MSK)
+
+Root/server ветки `codex/yandex-public-config-batching` созданы от свежего
+origin/develop с переносом прежних checkpoint. Client остаётся на завершённом
+ETag-коммите `38aef64`, клиентский код в этом этапе не менялся.
+
+`Features.snapshots/2` проверяет scope один раз и одним запросом получает
+объединение gate dependencies вместе с generations. `YandexAds.public_config/1`
+использует эти три snapshot одновременно для feature_version и полей browser,
+capture, ecommerce; повторных enabled?/feature_token чтений при сборке нет.
+Настройки читаются один раз; существующая миграция legacy secrets сохранена.
+Privacy, credential errors, выбранные филиалы, dependency gates и hash format
+сохранены. Publication locking и mutation flow не менялись.
+
+Telemetry на одинаковых fixtures сравнивает старую формулу с новой: disabled
+7→3 SQL, enabled browser/conversions/ecommerce 11→3. Конфигурация и
+feature_version полностью совпадают. Это стоимость сборщика, не новый замер
+CPU/latency или всей загрузки витрины. Прогретая storefront projection уже
+обходится без SQL; соответствующие bootstrap/ETag проверки остались зелёными.
+
+Адресный mix precommit (5 полных файлов): 72 tests, 0 failures;
+compile warnings-as-errors, inventory, strict Credo и diff-check успешны.
+Главный агент самостоятельно просмотрел diff и повторил те же 72 теста:
+0 failures. Логи /tmp/delivest-yandex-batch-precommit.log и
+/tmp/delivest-yandex-batch-root-tests.log. Прежнее тестовое предупреждение
+OwnershipError фонового revision worker сохраняется, проверки не упали.
+Команды повторения и ограничения — docs/tasks/storefront-performance/README.md.
+
+Этап готов локально. Полный preflight/E2E и push/merge/PR не запускались;
+интеграция только по «Пуш в Девелоп». Остаются temporal_phase multi-node,
+независимые rollout flags, hidden-tab SDK/F04 и итоговый масштабный профиль.
+
+Серверный коммит `f8ecfad5`; родитель закрепляет gitlink. Изолированный
+PostgreSQL-контейнер после проверки остановлен, данные сохранены.

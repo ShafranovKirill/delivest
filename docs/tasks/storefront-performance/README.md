@@ -202,6 +202,46 @@ pnpm build
 Multi-node temporal-phase determinism, complete batched public Yandex config,
 independent rollout flags and hidden-tab SDK verification remain separate work.
 
+## Public Yandex configuration batching — 20 November 2026
+
+`YandexAds.public_config/1` now reads all three public stream permission
+snapshots together. `Features.snapshots/2` validates the branch once and reads
+the union of dependency gates once, including the generations used for tokens.
+The same snapshots supply browser, conversions and ecommerce decisions and the
+existing `feature_version` hash. Settings are read once per configuration;
+credential, privacy, branch selection and dependency rules remain in effect.
+There is no new permission cache and publication locks are unchanged.
+
+Telemetry assertions compare the previous formula with the new implementation
+on identical fixtures, counting SQL in the calling process:
+
+| Configuration | Previous formula | Batched implementation |
+| --- | ---: | ---: |
+| Disabled streams | 7 | 3 |
+| Browser, conversions and ecommerce enabled | 11 | 3 |
+
+These counts cover normal settings reads without legacy secret migration.
+Legacy credential migration may perform its existing additional reads/writes.
+They measure configuration assembly, not whole-request CPU or latency. Warm
+storefront projections already avoid rebuilding configuration; their zero-SQL
+and ETag tests remain passing. Full response and byte-for-byte feature-version
+parity are checked against the previous formula, including privacy, selection,
+gate off/on and unreadable credentials.
+
+Scoped `mix precommit` passed compile with warnings-as-errors, inventory and
+strict Credo checks plus 72 tests. The primary agent reviewed the diff and
+independently repeated all 72 tests with zero failures. The known background
+revision-worker Sandbox ownership warning remains. Repeat with:
+
+```sh
+cd server
+ERL_FLAGS='+S 4:4' TEST_DB_HOST=127.0.0.1 TEST_DB_PORT=55439 MIX_TEST_PARTITION=yandexbatch20261119 mix precommit test/delivest/features_snapshots_test.exs test/delivest/integrations/yandex_ads_public_config_batch_test.exs test/delivest/integrations/yandex_ads_test.exs test/delivest_web/controllers/client/storefront_sections_test.exs test/delivest_web/controllers/client/storefront_bootstrap_test.exs
+```
+
+No client changes, full preflight/E2E or integration were performed. Multi-node
+temporal phases, independent rollout flags and hidden-tab SDK/F04 checks remain
+open. Earlier follow-up lists above are historical snapshots.
+
 ## Limits
 
 Local demo data is a small catalog. These numbers do not establish performance
