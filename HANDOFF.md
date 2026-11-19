@@ -644,3 +644,33 @@ API остаётся 2. Сводка: docs/tasks/storefront-performance/reload-i
 остальные пункты ТЗ из предыдущего раздела остаются открытыми.
 Клиентский фикс: 4285ebd. Временные API/preview и оба изолированных benchmark
 контейнера после проверки остановлены; данные сохранены.
+
+### ETag публичных секций — 19 ноября 2026 (MSK)
+
+Ветки root/server/client `codex/storefront-etag` созданы от свежего
+origin/develop; прежние checkpoint-коммиты перенесены, исходные ветки сохранены.
+Пять адресных публичных ресурсов `/client/storefront/v1/sections/:section`
+(franchise, branches, menu, stories, advertising) используют существующие
+проекции и weak ETag с branch/locale/revision scope. Совпавший If-None-Match
+даёт 304 без тела после проверок активности, ревизий и временных границ.
+Клиентские refresh подключены, кеш ограничен 32 записями в памяти; поздние
+ответы и abort не публикуют данные, 304 обновляет серверный lease.
+Меню и реклама не продлевают lease сверх valid_until. Bootstrap/manifest
+и private session сохраняют прежние контракты; первый refresh может быть200.
+
+Главный агент просмотрел diff, самостоятельно подтвердил26 серверных и31
+клиентский тест без ошибок и успешный pnpm build/typecheck. Адресный server
+mix precommit (compile/inventory/Credo) и клиентский ESLint успешны.
+Логи: /tmp/delivest-etag-server-check.log, /tmp/delivest-etag-root-tests.log,
+/tmp/delivest-etag-root-client-final.log, /tmp/delivest-etag-root-build.log.
+Известные предупреждения: Sandbox OwnershipError фонового revision refresh,
+крупные chunks и отсутствующий .oxlintrc.json; проверки не упали.
+Документация контракта и повторяемые команды — storefront-performance/README.md.
+
+Этап готов локально. Полный preflight/E2E, push/merge/PR не выполнялись,
+интеграция только по «Пуш в Девелоп». Новые CPU/latency замеры не проводились.
+Пакетная публичная конфигурация Яндекса, temporal_phase multi-node, независимые
+rollout flags и hidden-tab SDK/F04 остаются отдельными открытыми пунктами.
+
+Коммиты server `3d1ef5b1`, client `38aef64`; родитель закрепляет оба gitlink.
+Изолированный PostgreSQL-контейнер после проверок остановлен, данные сохранены.

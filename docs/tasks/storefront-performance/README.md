@@ -151,6 +151,57 @@ fallback without IntersectionObserver. Client build/type checking and targeted
 ESLint passed; build warns about existing large chunks and ESLint reports a
 missing `.oxlintrc.json`. Full preflight/E2E and integration remain pending.
 
+## Section ETag follow-up — 19 November 2026
+
+Public section resources are available at
+`GET /client/storefront/v1/sections/{franchise|branches|menu|stories|advertising}`.
+Menu, stories and advertising require `branch_id`; menu also accepts `locale`.
+They load the existing section projections directly. Branch lists retain full
+public details required when refreshing the active branch.
+
+Responses contain `data`, `revision` and `valid_until`. A weak ETag identifies
+schema version, section, branch, menu locale and revision. `If-None-Match`
+accepts matching weak/strong validators, lists and `*`; a match returns an empty
+304 with ETag and `X-Storefront-Valid-Until`. The lease can change while the data
+identity stays the same. Cache-Control is `public, no-cache, must-revalidate`;
+errors are `no-store`. Active-branch, revision and temporal-boundary checks run
+before accepting a validator. Bootstrap, manifest and private session contracts
+remain unchanged.
+
+Client refreshes use conditional public requests with omitted credentials and
+an in-memory cache limited to 32 entries. Branch/locale keys, cancellation and
+request generations fence stale responses. Unexpected 304 without local data
+gets one unconditional retry, then fails. Menu and advertising validity stays
+within the server-confirmed lease, including after 304. Disabling storefront
+bootstrap retains legacy services. No persistent section cache is introduced;
+the first section refresh after bootstrap can still return 200. This change
+therefore does not claim fewer startup requests or measured CPU/latency savings.
+
+Validation: scoped server `mix precommit` passed (26 tests, compile with
+warnings-as-errors, inventory check and strict Credo); the primary agent repeated
+both test files with 26 passing tests. The primary agent also repeated six client
+files with 31 passing tests and completed `pnpm build` (including type checking).
+Targeted ESLint and diff checks passed. Existing test Sandbox ownership and build
+chunk-size warnings remain. No full preflight/E2E, push, merge or PR was run.
+
+Reproduce server checks in the isolated test partition on loopback55439:
+
+```sh
+cd server
+ERL_FLAGS='+S 4:4' TEST_DB_HOST=127.0.0.1 TEST_DB_PORT=55439 MIX_TEST_PARTITION=etag20261119 mix precommit test/delivest_web/controllers/client/storefront_sections_test.exs test/delivest_web/controllers/client/storefront_bootstrap_test.exs
+```
+
+Client checks:
+
+```sh
+cd client
+pnpm exec vitest run tests/storefront-sections.test.ts tests/storefront-bootstrap.test.ts tests/storefront-branch-race.test.ts tests/storefront-private-seed.test.ts tests/menu-locale.test.ts tests/metrika-store.test.ts
+pnpm build
+```
+
+Multi-node temporal-phase determinism, complete batched public Yandex config,
+independent rollout flags and hidden-tab SDK verification remain separate work.
+
 ## Limits
 
 Local demo data is a small catalog. These numbers do not establish performance
