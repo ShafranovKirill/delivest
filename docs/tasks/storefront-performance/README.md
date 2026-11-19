@@ -297,3 +297,63 @@ The primary agent independently repeated both HTTP suites on the final code:
 locally, pending the project's usual integration checks.
 
 No full preflight, full E2E, push, merge or PR was run.
+
+## Independent storefront rollout controls — 20 November 2026
+
+The client now reads three independent runtime flags, with build-time fallback:
+`VITE_STOREFRONT_BOOTSTRAP` controls public/private bootstrap and section reads,
+`VITE_STOREFRONT_UPDATES` controls only the storefront push channel, and
+`VITE_FUNNEL_BATCHING` controls batch versus ordered single-event funnel
+delivery. All default on. If updates is absent, it inherits the global
+bootstrap flag for compatibility with old `VITE_STOREFRONT_BOOTSTRAP=false`
+deployments. Explicit updates `true` can enable subscription while reads are
+off. These flags do not grant analytics permission; existing collection and
+capture gates remain authoritative.
+
+Each flag has an optional comma-separated UUID allowlist with the same prefix
+and `_BRANCH_IDS` suffix. An absent or empty list enables all branches when its
+global flag is on; invalid booleans and invalid configured UUID lists fail
+closed. Runtime `window._env` takes priority over build values, and a missing
+or empty runtime value preserves the build fallback. After changing deployment
+environment variables, recreate the client container to regenerate
+`env-config.js`, then reload client pages. Already-open tabs do not pick up
+changes automatically; there is no live admin control. The container entrypoint
+emits only set rollout variables with JSON-safe string escaping.
+
+With a restricted reads allowlist, unknown branch selection, franchise and
+branch lists use legacy endpoints. A direct slug first gets the legacy branch
+list to resolve its UUID, then uses bootstrap for a pilot branch. A saved pilot
+UUID can use bootstrap on root without that extra list request. Nonpilot menu,
+stories, advertising and private session use legacy paths; franchise refreshes
+its persisted value through the legacy endpoint. Reads on with
+updates off retains HTTP manifest polling; reads off with updates on keeps the
+push channel and manifest polling while applying changes through legacy data
+services. Both off uses legacy data without storefront metadata requests.
+Funnel batching off sends one event at a time through the existing single-event
+endpoint, retaining ordered delivery, owner acknowledgement fencing and the
+20-event pending cap.
+
+Scoped validation passed: 59 client tests across policy, storefront startup,
+sections, branch races, private seed, update modes, socket epoch, Metrika and
+funnel suites; `pnpm build` including type checking; scoped ESLint; `sh -n`
+for the entrypoint; and one Node runtime config escaping test. ESLint exited
+zero but printed its existing missing `.oxlintrc.json` notice. The build also
+printed its existing large-chunk notice. Reproduce with:
+
+```sh
+cd client
+pnpm exec vitest run tests/storefront-policy.test.ts tests/storefront-bootstrap.test.ts tests/storefront-sections.test.ts tests/storefront-branch-race.test.ts tests/storefront-private-seed.test.ts tests/storefront-updates-rollout.test.ts tests/socket-epoch.test.ts tests/metrika-store.test.ts tests/funnel-analytics.test.ts tests/funnel-service.test.ts tests/menu-locale.test.ts
+pnpm build
+cd ..
+sh -n docker-entrypoint.sh
+node --test scripts/runtime-env-config.test.mjs
+```
+
+The primary agent independently repeated the final checks: 59 tests across 11
+files, zero failures (`/tmp/delivest-rollout-review-tests.log`); `pnpm build`
+passed (`/tmp/delivest-rollout-review-build.log`); the Node runtime test passed
+1/1; `sh -n`, `docker compose --env-file .env.example config --quiet`, and diff
+checks also passed. The code is ready locally, pending the project's usual
+integration checks.
+
+No full preflight, full E2E, push, merge or PR was run for this stage.
