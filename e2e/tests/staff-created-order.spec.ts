@@ -1,6 +1,35 @@
 import { expect, test } from '../support/test'
 import { branchPage } from '../support/staff'
 
+test('on mobile a new order scrolls inside the catalog and the checkout form', async ({ staff }) => {
+  const operator = await staff('e2e_operator')
+  await operator.setViewportSize({ width: 390, height: 480 })
+  await branchPage(operator, 'orders/new')
+
+  const workspace = operator.locator('#order-workspace')
+  const catalog = workspace.locator('#catalog-products')
+  const search = workspace.locator('#catalog-search')
+  const [checkoutTab, checkoutButton] = await workspace.locator('button[phx-value-tab="details"]').all()
+  const initialSearchTop = (await search.boundingBox())!.y
+  const catalogBox = (await catalog.boundingBox())!
+  await operator.mouse.move(catalogBox.x + catalogBox.width / 2, catalogBox.y + catalogBox.height / 2)
+  await operator.mouse.wheel(0, 600)
+  await expect.poll(() => catalog.evaluate(list => list.scrollTop)).toBeGreaterThan(0)
+  expect((await search.boundingBox())!.y).toBe(initialSearchTop)
+  expect(await operator.evaluate(() => window.scrollY)).toBe(0)
+
+  await workspace.locator('[phx-click="toggle_mobile_cart"]').click()
+  await expect(checkoutButton).toBeInViewport({ ratio: 1 })
+  await checkoutTab.click()
+  const form = workspace.locator('#order-checkout-scroll')
+  const formBox = (await form.boundingBox())!
+  await operator.mouse.move(formBox.x + formBox.width / 2, formBox.y + formBox.height / 2)
+  await operator.mouse.wheel(0, 600)
+  await expect.poll(() => form.evaluate(panel => panel.scrollTop)).toBeGreaterThan(0)
+  expect(await operator.evaluate(() => window.scrollY)).toBe(0)
+  await expect(workspace.locator('button[type="submit"][form="order-details-form"]')).toBeInViewport()
+})
+
 test('an order created by an operator reaches the kitchen without manual confirmation', async ({ staff }) => {
   const operator = await staff('e2e_operator')
   await operator.setViewportSize({ width: 1440, height: 1000 })

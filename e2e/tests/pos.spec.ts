@@ -2,6 +2,41 @@ import { expect, test } from '../support/test'
 import { adminUrl } from '../support/env'
 import { branchPage, expectStatus, orderCard, tagged } from '../support/staff'
 
+test('the cashier can use the POS in a fixed workspace and toggle fullscreen', async ({ staff }) => {
+  const cashier = await staff('e2e_cashier')
+  const pos = cashier.locator('#pos')
+
+  for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 650 }, { width: 320, height: 568 }]) {
+    await cashier.setViewportSize(viewport)
+    await branchPage(cashier, 'pos')
+
+    await expect.poll(() => pos.evaluate((element) => {
+      const { top, bottom } = element.getBoundingClientRect()
+      return top >= 0 && bottom <= window.innerHeight + 1 &&
+        getComputedStyle(document.documentElement).overflowY === 'hidden'
+    })).toBe(true)
+
+    await cashier.locator('[id^="pos-product-"]', { hasText: 'Маргарита' }).click()
+    await expect(cashier.locator('#pos-check-total')).toContainText('590')
+    await cashier.locator('#pos-pay').click()
+    await expect(pos.locator('#pos-payment')).toBeVisible()
+    await expect.poll(() => cashier.evaluate(() => window.scrollY)).toBe(0)
+    await cashier.locator('#pos-tab-sale').click()
+    await cashier.locator('#pos-check [phx-click="less"]').click()
+    await expect(cashier.locator('#pos-check-total')).toHaveText('0 ₽')
+  }
+
+  const fullscreen = cashier.locator('#pos-fullscreen')
+  await fullscreen.click()
+  await expect(cashier.locator('#pos:fullscreen')).toBeVisible()
+  await cashier.locator('#pos-tab-handout').click()
+  await expect(pos.locator('#pos-handout')).toBeVisible()
+  await expect(fullscreen).toHaveAttribute('aria-pressed', 'true')
+  await fullscreen.click()
+  await expect(cashier.locator('#pos:fullscreen')).toHaveCount(0)
+  await expect(pos.locator('#pos-handout')).toBeVisible()
+})
+
 test('the cashier sells for cash, the kitchen cooks and the cashier hands the order out with a receipt', async ({
   page,
   staff,
