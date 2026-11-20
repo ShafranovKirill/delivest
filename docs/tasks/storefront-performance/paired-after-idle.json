@@ -1,0 +1,56 @@
+{
+  "label": "paired-after",
+  "captured_at": "2026-11-19T19:49:03.796Z",
+  "url": "http://localhost:3000/demo-center",
+  "api_origin": "http://localhost:4000",
+  "duration_ms": 61001,
+  "network": {
+    "down_mbps": 10,
+    "up_mbps": 2,
+    "cdp_latency_ms": 80
+  },
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "service_workers": "blocked",
+  "settle_ms": 2500,
+  "startup": {
+    "requests": 2,
+    "get_requests": 2,
+    "encoded_bytes": 5476
+  },
+  "idle": {
+    "requests": 0,
+    "get_requests": 0,
+    "encoded_bytes": 0
+  },
+  "backend": {
+    "pid": 335195,
+    "cpu_seconds": 0.5300000000000002,
+    "rss_kib_before": 133548,
+    "rss_kib_after": 132672,
+    "cpu_tick_seconds": 0.01
+  },
+  "requests": [
+    {
+      "phase": "startup",
+      "method": "GET",
+      "path": "/client/storefront/v1/bootstrap?slug=demo-center&locale=ru",
+      "status": 200,
+      "duration_ms": 89,
+      "encoded_bytes": 4731,
+      "complete": true
+    },
+    {
+      "phase": "startup",
+      "method": "GET",
+      "path": "/client/session/bootstrap?branch_id=31d6907a-5774-458d-b59b-52b3ee27ec64",
+      "status": 200,
+      "duration_ms": 92,
+      "encoded_bytes": 745,
+      "complete": true
+    }
+  ],
+  "page_errors": []
+}

@@ -1,0 +1,180 @@
+{
+  "status": "checkpoint, not final acceptance",
+  "records": [
+    {
+      "mode": "cart_sql_measure_v1",
+      "database": "delivest_f01_demo_perf_before_20261119",
+      "branch_slug": "demo-center",
+      "menu_products": 30,
+      "modifier_choice": true
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "plain_add",
+      "sql_data_all_processes": 14,
+      "sql_data_handler_process": 14,
+      "sql_transaction_control": 0,
+      "sql_sources": {
+        "branches": 1,
+        "cart_items": 2,
+        "carts": 2,
+        "media_files": 1,
+        "modifier_stops": 1,
+        "modifiers": 2,
+        "product_modifier_groups": 2,
+        "products": 3
+      },
+      "elapsed_us": 59757,
+      "response_bytes": 908,
+      "item_count": 1,
+      "total_amount": 39000,
+      "discount_amount": 0
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "warm_nonempty_cart",
+      "sql_data_all_processes": 4,
+      "sql_data_handler_process": 4,
+      "sql_transaction_control": 0,
+      "sql_sources": {
+        "cart_items": 1,
+        "carts": 2,
+        "products": 1
+      },
+      "elapsed_us": 33602,
+      "response_bytes": 908,
+      "item_count": 1,
+      "total_amount": 39000,
+      "discount_amount": 0
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "modifier_add",
+      "sql_data_all_processes": 14,
+      "sql_data_handler_process": 14,
+      "sql_transaction_control": 0,
+      "sql_sources": {
+        "branches": 1,
+        "cart_items": 2,
+        "carts": 2,
+        "media_files": 1,
+        "modifier_stops": 1,
+        "modifiers": 2,
+        "product_modifier_groups": 2,
+        "products": 3
+      },
+      "elapsed_us": 142332,
+      "response_bytes": 1064,
+      "item_count": 1,
+      "total_amount": 45000,
+      "discount_amount": 0
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "modifier_replace",
+      "sql_data_all_processes": 14,
+      "sql_data_handler_process": 14,
+      "sql_transaction_control": 0,
+      "sql_sources": {
+        "branches": 1,
+        "cart_items": 2,
+        "carts": 2,
+        "media_files": 1,
+        "modifier_stops": 1,
+        "modifiers": 2,
+        "product_modifier_groups": 2,
+        "products": 3
+      },
+      "elapsed_us": 38702,
+      "response_bytes": 1064,
+      "item_count": 1,
+      "total_amount": 45000,
+      "discount_amount": 0
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "valid_public_code",
+      "sql_data_all_processes": 20,
+      "sql_data_handler_process": 17,
+      "sql_transaction_control": 4,
+      "sql_sources": {
+        "branches": 1,
+        "cart_items": 2,
+        "carts": 5,
+        "media_files": 1,
+        "modifiers": 1,
+        "oban_jobs": 2,
+        "product_modifier_groups": 1,
+        "products": 4,
+        "promo_codes": 2,
+        "raw_sql": 1
+      },
+      "elapsed_us": 46222,
+      "response_bytes": 1158,
+      "item_count": 1,
+      "total_amount": 35100,
+      "discount_amount": 3900
+    },
+    {
+      "error": "promo_not_found",
+      "status": 422,
+      "case": "invalid_code",
+      "sql_data_all_processes": 6,
+      "sql_data_handler_process": 6,
+      "sql_transaction_control": 0,
+      "sql_sources": {
+        "cart_items": 1,
+        "carts": 2,
+        "products": 2,
+        "promo_codes": 1
+      },
+      "elapsed_us": 43673,
+      "response_bytes": 55,
+      "item_count": null,
+      "total_amount": null,
+      "discount_amount": null
+    },
+    {
+      "error": null,
+      "status": 200,
+      "case": "cash_pickup_checkout",
+      "sql_data_all_processes": 84,
+      "sql_data_handler_process": 46,
+      "sql_transaction_control": 12,
+      "sql_sources": {
+        "audit_events": 1,
+        "branches": 5,
+        "cart_items": 1,
+        "carts": 2,
+        "categories": 1,
+        "deliveries": 2,
+        "domain_events": 6,
+        "event_deliveries": 13,
+        "feature_gates": 5,
+        "media_files": 2,
+        "modifiers": 1,
+        "oban_jobs": 6,
+        "order_item_modifiers": 2,
+        "order_items": 3,
+        "order_payments": 1,
+        "orders": 6,
+        "product_modifier_groups": 1,
+        "products": 2,
+        "promo_redemptions": 2,
+        "raw_sql": 20,
+        "yandex_ads_settings": 1,
+        "yookassa_settings": 1
+      },
+      "elapsed_us": 177781,
+      "response_bytes": 902,
+      "item_count": 1,
+      "total_amount": 39000,
+      "discount_amount": 0
+    }
+  ]
+}

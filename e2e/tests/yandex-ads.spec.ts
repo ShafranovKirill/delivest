@@ -11,7 +11,13 @@ test('a direct product opens while the background menu fails', async ({ page, re
   expect(product).toBeTruthy()
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
-  await page.route(`**/client/branches/${branch.id}/menu`, route => route.abort())
+  await page.route('**/client/storefront/v1/bootstrap?*', async route => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.menu = null
+    await route.fulfill({ response, json: body })
+  })
+  await page.route('**/client/storefront/v1/sections/menu?*', route => route.abort())
   await page.goto(`/${branchSlug}/product/${product.id}`)
   await expect(page.getByRole('dialog').getByRole('heading', { name: product.name, exact: true })).toBeVisible()
   expect(errors).toEqual([])
@@ -25,9 +31,14 @@ test('disabled Metrika makes no provider or identity requests', async ({ page })
       unexpected.push(request.url())
     }
   })
-  await page.route('**/advertising/config', route => route.fulfill({ json: {
-    data: { enabled: false, counter_id: null, generation: 1, ecommerce: false, capture: false, collection_basis: 'disabled' },
-  } }))
+  await page.route('**/client/storefront/v1/bootstrap?*', async route => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.advertising = {
+      enabled: false, counter_id: null, generation: 1, ecommerce: false, capture: false, collection_basis: 'disabled',
+    }
+    await route.fulfill({ response, json: body })
+  })
   await page.goto(`/${branchSlug}?yclid=123456789`)
   await expect(page.locator('.boot')).toHaveCount(0)
   await expect(page.getByRole('button', { name: '590 ₽' }).first()).toBeVisible()

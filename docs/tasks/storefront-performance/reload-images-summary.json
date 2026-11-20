@@ -1,0 +1,184 @@
+{
+  "scope": "Local Chromium mobile fixture: 30 products, 6 stories, warm backend, no scroll; not a production or cross-browser claim.",
+  "method": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "network": {
+      "down_mbps": 10,
+      "up_mbps": 2,
+      "cdp_latency_ms": 80
+    },
+    "settle_ms": 2500,
+    "service_workers": "blocked"
+  },
+  "before_source": "paired-after-a.json (current bootstrap before image fix, retained historical series)",
+  "before": [
+    {
+      "run": 1,
+      "mode": "cold-browser",
+      "photo_urls": 15,
+      "photo_transfer_bytes": 2656992,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 1,
+      "mode": "warm-reload",
+      "photo_urls": 36,
+      "photo_transfer_bytes": 2497548,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 2,
+      "mode": "cold-browser",
+      "photo_urls": 15,
+      "photo_transfer_bytes": 2656992,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 2,
+      "mode": "warm-reload",
+      "photo_urls": 36,
+      "photo_transfer_bytes": 2497548,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 3,
+      "mode": "cold-browser",
+      "photo_urls": 15,
+      "photo_transfer_bytes": 2656992,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 3,
+      "mode": "warm-reload",
+      "photo_urls": 36,
+      "photo_transfer_bytes": 2497548,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 4,
+      "mode": "cold-browser",
+      "photo_urls": 15,
+      "photo_transfer_bytes": 2656992,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 4,
+      "mode": "warm-reload",
+      "photo_urls": 36,
+      "photo_transfer_bytes": 2497548,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 5,
+      "mode": "cold-browser",
+      "photo_urls": 15,
+      "photo_transfer_bytes": 2656992,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 5,
+      "mode": "warm-reload",
+      "photo_urls": 36,
+      "photo_transfer_bytes": 2497548,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 6,
+      "mode": "cold-browser",
+      "photo_urls": 15,
+      "photo_transfer_bytes": 2656992,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 6,
+      "mode": "warm-reload",
+      "photo_urls": 36,
+      "photo_transfer_bytes": 2497548,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 7,
+      "mode": "cold-browser",
+      "photo_urls": 15,
+      "photo_transfer_bytes": 2656992,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 7,
+      "mode": "warm-reload",
+      "photo_urls": 36,
+      "photo_transfer_bytes": 2497548,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    }
+  ],
+  "after_source": "Independent reviewer storefront-measure.mjs --runs=2 on fixed preview, env-config.js HTTP 200; first attempt with env-config.js 404 excluded",
+  "after": [
+    {
+      "run": 1,
+      "mode": "cold-browser",
+      "photo_urls": 15,
+      "photo_transfer_bytes": 2656992,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 1,
+      "mode": "warm-reload",
+      "photo_urls": 15,
+      "photo_transfer_bytes": 0,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 2,
+      "mode": "cold-browser",
+      "photo_urls": 15,
+      "photo_transfer_bytes": 2656992,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    },
+    {
+      "run": 2,
+      "mode": "warm-reload",
+      "photo_urls": 15,
+      "photo_transfer_bytes": 0,
+      "api_requests": 2,
+      "http_errors": [],
+      "page_errors": []
+    }
+  ]
+}

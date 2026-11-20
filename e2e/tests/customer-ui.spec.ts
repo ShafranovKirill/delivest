@@ -4,10 +4,10 @@ import type { Page } from '@playwright/test'
 type Theme = 'light' | 'dark'
 
 async function serveFranchiseTheme(page: Page, theme: Theme) {
-  await page.route('**/client/franchise', async (route) => {
+  await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
     const response = await route.fetch()
     const body = await response.json()
-    body.data.default_theme = theme
+    body.franchise.default_theme = theme
     await route.fulfill({ response, json: body })
   })
 }
@@ -36,7 +36,7 @@ test('mobile theme toggle persists a personal choice over the franchise default'
   await expect(page.locator('html')).not.toHaveClass(/\bdark\b/)
   expect(await page.evaluate(() => localStorage.getItem('delivest-theme'))).toBe('light')
 
-  const refreshed = page.waitForResponse(/\/client\/franchise$/)
+  const refreshed = page.waitForResponse(/\/client\/storefront\/v1\/bootstrap\?/)
   await page.reload()
   await refreshed
   await expect(page.locator('html')).not.toHaveClass(/\bdark\b/)
@@ -52,12 +52,12 @@ test('cached franchise theme follows a delayed server refresh until the visitor 
   const refreshGate = new Promise<void>((resolve) => { releaseRefresh = resolve })
   let refreshStarted!: () => void
   const started = new Promise<void>((resolve) => { refreshStarted = resolve })
-  await page.route('**/client/franchise', async (route) => {
+  await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
     refreshStarted()
     await refreshGate
     const response = await route.fetch()
     const body = await response.json()
-    body.data.default_theme = 'dark'
+    body.franchise.default_theme = 'dark'
     await route.fulfill({ response, json: body })
   })
 
@@ -105,7 +105,13 @@ test('empty delayed stories do not move the category bar after the menu has load
   let stocksStarted!: () => void
   const started = new Promise<void>((resolve) => { stocksStarted = resolve })
 
-  await page.route(/\/client\/[^/]+\/stocks(?:\?|$)/, async (route) => {
+  await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
+    const response = await route.fetch()
+    const body = await response.json()
+    body.stories = null
+    await route.fulfill({ response, json: body })
+  })
+  await page.route('**/client/storefront/v1/sections/stories?*', async (route) => {
     stocksStarted()
     await stockGate
     const response = await route.fetch()
@@ -122,7 +128,7 @@ test('empty delayed stories do not move the category bar after the menu has load
   expect(before).not.toBeNull()
   expect(await page.locator('main > div:first-child .p-skeleton').count()).toBe(0)
 
-  const stocksFinished = page.waitForResponse(/\/client\/[^/]+\/stocks(?:\?|$)/)
+  const stocksFinished = page.waitForResponse(/\/client\/storefront\/v1\/sections\/stories\?/)
   releaseStocks()
   await stocksFinished
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))

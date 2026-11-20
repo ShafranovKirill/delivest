@@ -8,6 +8,8 @@ const pageTwoUrl = `${productsUrl}?page=2&page_size=10`
 const rows = (page: import('@playwright/test').Page) => page.locator('tbody#products tr[id]')
 const names = async (page: import('@playwright/test').Page) =>
   rows(page).locator('td[data-column="name"] a').allTextContents()
+const waitForLiveView = (page: import('@playwright/test').Page) =>
+  page.locator('[data-phx-main].phx-connected').waitFor()
 
 const expectFirstPage = async (page: import('@playwright/test').Page) => {
   await expect(rows(page)).toHaveCount(10)
@@ -17,6 +19,7 @@ const expectFirstPage = async (page: import('@playwright/test').Page) => {
 test('staff product pagination preserves pages, filters, sorting, and browser history', async ({ staff }) => {
   const page = await staff('e2e_pagination')
   await page.goto(pageOneUrl)
+  await waitForLiveView(page)
   await expectFirstPage(page)
   const firstPageNames = await names(page)
   expect(firstPageNames).toHaveLength(10)
@@ -34,29 +37,35 @@ test('staff product pagination preserves pages, filters, sorting, and browser hi
 
   const deepLink = page.url()
   await page.reload()
+  await waitForLiveView(page)
   await expect(rows(page)).toHaveCount(1)
   await expect(names(page)).resolves.toEqual(secondPageNames)
   await page.goBack()
+  await waitForLiveView(page)
   await expectFirstPage(page)
   await expect(names(page)).resolves.toEqual(firstPageNames)
 
   await page.goto(pageTwoUrl)
+  await waitForLiveView(page)
   await page.locator('#products-filter input[name="search"]').fill('Pagination 01')
   await expect(page).toHaveURL(/(?:\?|&)page=1(?:&|$)/)
   await expect(rows(page)).toHaveCount(1)
   await expect(names(page)).resolves.toEqual(['Pagination 01'])
 
   await page.goto(pageTwoUrl)
+  await waitForLiveView(page)
   await page.locator('#products-filter select[name="category_id"]').selectOption({ label: 'E2E Pagination A' })
   await expect(page).toHaveURL(/(?:\?|&)page=1(?:&|$)/)
   await expect(rows(page)).toHaveCount(6)
 
   await page.goto(pageTwoUrl)
+  await waitForLiveView(page)
   await page.locator('#products-filter select[name="is_active"]').selectOption('true')
   await expect(page).toHaveURL(/(?:\?|&)page=1(?:&|$)/)
   await expect(rows(page)).toHaveCount(6)
 
   await page.goto(pageTwoUrl)
+  await waitForLiveView(page)
   const nameSort = page.locator('table thead th[data-column="name"] a')
   await nameSort.click()
   await expectFirstPage(page)
