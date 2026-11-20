@@ -11,7 +11,7 @@ bastion_dir="$(cd "$repo_dir/../delivest-bastion/bastion" && pwd)"
 
 export TEST_DB_PORT MIX_TEST_PARTITION ERL_FLAGS
 
-(cd "$agent_dir" && MIX_ENV=test mix compile)
+(cd "$agent_dir" && MIX_ENV="test" mix compile)
 
 export RELEASE_PROTOCOL_INTEGRATION=1
 export RELEASE_AGENT_BEAM_ROOT="$agent_dir/_build/test/lib"
