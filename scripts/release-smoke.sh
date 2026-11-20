@@ -92,6 +92,8 @@ grep -qi 'Content-Type:.*javascript' <<< "$headers"
 runtime_config=$("${compose_cmd[@]}" exec -T gateway wget -qO- --header='Host: shop.smoke.local' http://127.0.0.1/env-config.js)
 [[ "$runtime_config" == *'http://api.smoke.local'* ]]
 "${compose_cmd[@]}" exec -T gateway wget -qO- --header='Host: api.smoke.local' --header='X-Forwarded-Proto: https' http://127.0.0.1/health >/dev/null
+"${compose_cmd[@]}" exec -T gateway wget -qO- --header='Host: api.smoke.local' --header='X-Forwarded-Proto: https' 'http://127.0.0.1/client/storefront/v1/bootstrap?locale=ru' |
+  jq -e '(.schema_version == 1) and (.branches | type == "array") and (.branches | length == 0) and (.selected_branch == null) and (.menu == null)' >/dev/null
 test "$("${compose_cmd[@]}" ps --status running --services | sort)" = "$(printf '%s\n' agent client gateway postgres s3 server | sort)"
 "${compose_cmd[@]}" exec -T agent docker --version
 "${compose_cmd[@]}" exec -T agent docker compose version
