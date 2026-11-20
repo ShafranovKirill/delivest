@@ -1,5 +1,6 @@
 .env
 .delivest-release-manifest.json
+.delivest-manual-release/
 scripts/__pycache__/
 .env.*
 !.env.example

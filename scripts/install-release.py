@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Prepare an exact published Delivest release for a manual Compose deployment."""
 import argparse
+from datetime import datetime, timezone
 import fcntl
 import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -107,6 +109,60 @@ def restore_env(root, content, mode):
             os.unlink(temp)
 
 
+def save_previous(root, old_head, old_env, old_env_mode, manifest):
+    base = root / ".delivest-manual-release"
+    base.mkdir(mode=0o700, exist_ok=True)
+    base.chmod(0o700)
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    pending = Path(tempfile.mkdtemp(prefix=f".{timestamp}-", dir=base))
+    saved = pending.with_name(pending.name[1:])
+    try:
+        metadata = {
+            "previous_head": old_head,
+            "previous_env_present": old_env is not None,
+            "previous_env_mode": old_env_mode if old_env is not None else None,
+            "target_manifest": manifest,
+        }
+        for name, content in (("previous.json", json.dumps(metadata, sort_keys=True).encode() + b"\n"),
+                              ("previous.env", old_env)):
+            if content is None:
+                continue
+            fd, temporary = tempfile.mkstemp(prefix=f".{name}-", dir=pending)
+            try:
+                os.fchmod(fd, 0o600)
+                with os.fdopen(fd, "wb") as file:
+                    file.write(content)
+                    file.flush()
+                    os.fsync(file.fileno())
+                os.replace(temporary, pending / name)
+            finally:
+                if os.path.exists(temporary):
+                    os.unlink(temporary)
+        directory_fd = os.open(pending, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+        os.replace(pending, saved)
+        directory_fd = os.open(base, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+        return saved
+    except Exception:
+        if pending.exists():
+            shutil.rmtree(pending)
+        raise
+
+
+def checkout_clean(root):
+    status = run("git", "-C", str(root), "status", "--porcelain")
+    if not status:
+        return True
+    return status.splitlines() == ["M agent"] and not run("git", "-C", str(root / "agent"), "status", "--porcelain")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("version", help="published release version, without v")
@@ -133,16 +189,18 @@ def main():
         tree = dict(line.split("\t", 1)[::-1] for line in run("git", "-C", str(root), "ls-tree", manifest["root_sha"]).splitlines())
         if any(tree.get(component) != f"160000 commit {manifest['gitlinks'][component]}" for component in COMPONENTS):
             raise ValueError("manifest gitlinks do not match root SHA")
-        if run("git", "-C", str(root), "status", "--porcelain"):
+        if not checkout_clean(root):
             raise ValueError("checkout must be clean before manual installation")
         for ref in refs.values():
             subprocess.run(["docker", "pull", ref], check=True)
         old_head = run("git", "-C", str(root), "rev-parse", "HEAD")
         old_env = (root / ".env").read_bytes() if (root / ".env").exists() else None
         old_env_mode = (root / ".env").stat().st_mode & 0o660 if old_env is not None else 0o600
+        previous = save_previous(root, old_head, old_env, old_env_mode, manifest)
+        print(f"Previous configuration saved in {previous}", flush=True)
         try:
             run("git", "-C", str(root), "checkout", "--detach", manifest["root_sha"])
-            run("git", "-C", str(root), "submodule", "update", "--init", "server", "client")
+            run("git", "-C", str(root), "submodule", "update", "--init", "server", "client", "agent")
             persist_refs(root, refs)
             config = json.loads(subprocess.check_output(["docker", "compose", "config", "--format", "json"], cwd=root, text=True))
             if any(config.get("services", {}).get(component, {}).get("image") != refs[component] for component in COMPONENTS):
@@ -151,7 +209,7 @@ def main():
         except Exception:
             restore_env(root, old_env, old_env_mode)
             run("git", "-C", str(root), "checkout", "--detach", old_head)
-            run("git", "-C", str(root), "submodule", "update", "--init", "server", "client")
+            run("git", "-C", str(root), "submodule", "update", "--init", "server", "client", "agent")
             raise
         if args.apply:
             subprocess.run(["docker", "compose", "up", "-d", "--no-deps", "server", "client", "gateway"], cwd=root, check=True)
