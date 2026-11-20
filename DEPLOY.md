@@ -280,3 +280,23 @@ S3_PUBLIC_HOST=files.pizza.example.com
 | картинки не загружаются | `docker logs delivest-s3`, совпадают ли `S3_HOST` и `S3_PUBLIC_HOST` с доменом |
 | нет входа по звонку | ключи Zvonok в `.env`, адрес постбэка, `docker logs delivest_server | grep -i zvonok` |
 | конфликт `server_name` в nginx | удалите старые конфиги этих доменов из `/etc/nginx/sites-enabled/` |
+
+### Проверка обновления с данными
+
+Release запускает `scripts/release-upgrade.sh` после проверки контейнеров и до публикации тегов. Job выбирает последний опубликованный стабильный релиз с меньшей версией, проверяет его manifest и gitlinks, сравнивает миграции server и поднимает изолированный Compose. Временный заказ, корзина, филиал и связанные объекты S3 создаются на предыдущей версии. После перехода на кандидат проверяются чтение старого заказа и файлов, а также запись и чтение нового заказа. Для совместимой миграции предыдущий server дополнительно читает обновлённую БД без применения обратных миграций. Результат доступен в artifact `release-upgrade-result/report.json`; отсутствие предшественника помечается `baseline_only` только при пустом списке опубликованных стабильных релизов.
+
+Если миграции server изменились, заполните `deploy/release-upgrade-policy.json` точными `base_server_sha`, `candidate_server_sha` и `compatibility` (`compatible` или `incompatible`). Несовместимый переход требует строки `required_backup`, `restore_procedure` и `orders_after_backup`; release notes включают их для оператора. Удаление полей, которые читает прежний server, лучше разбить на два релиза. Проверка восстановления PostgreSQL и файлов проводится отдельно скриптом `scripts/restore-drill.sh --run` и не заменяет проверку перехода между образами.
+
+### Репетиция восстановления
+
+Раз в неделю и по ручному запуску GitHub Actions `Restore drill` собирает server из текущего SHA и в отдельном Compose-проекте проверяет `DelivestAgent.FullBackup.export/import`. Создаются заказ и связанные с ним файлы в публичном и приватном S3. После backup создаётся второй заказ; после восстановления первый заказ и байты обоих файлов должны сохраниться, второй заказ должен отсутствовать. Это показывает границу потери данных: заказы, принятые после точки backup, при восстановлении этого архива исчезнут.
+
+Локально требуются Docker Compose, Elixir/Mix с зависимостями `agent`, Python 3, `timeout` и `openssl`. Запускайте с выбранным точным образом server (digest из manifest):
+
+```bash
+DRILL_SERVER_IMAGE=ghcr.io/shafranovkirill/delivest-server@sha256:<digest> \
+DRILL_REPORT_DIR=/tmp/delivest-restore-report \
+bash scripts/restore-drill.sh --run
+```
+
+Скрипт удаляет тестовые контейнеры и тома при любом исходе. `report.json` содержит длительность backup, restore и всего прогона, а также отдельные результаты `container_rollback` и `data_restore`. `container_rollback: not_run` означает, что возврат контейнеров этим drill не проверялся; успешный restore данных нельзя выводить из простого возврата контейнеров. При сбое сохраняются короткие логи синтетического Compose-проекта. Старый сценарий проверки исторического ledger и отклонения повреждённого архива доступен отдельно через `bash scripts/restore-drill-legacy.sh --run`.

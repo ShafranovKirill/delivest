@@ -1,42 +1,90 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ "${1:-}" != "--run" || $# -ne 1 ]]; then
-  echo "usage: $0 --run (isolated Docker Compose backup/restore drill)" >&2
+if [[ "${1:-}" != '--run' || $# -ne 1 ]]; then
+  echo "usage: DRILL_SERVER_IMAGE=<image> DRILL_REPORT_DIR=<directory> $0 --run" >&2
   exit 2
 fi
 
-for tool in docker aws curl mix cmp awk python3; do
+for tool in docker mix python3 timeout openssl; do
   command -v "$tool" >/dev/null || { echo "missing required tool: $tool" >&2; exit 2; }
 done
+: "${DRILL_SERVER_IMAGE:?set DRILL_SERVER_IMAGE to the server image under test}"
 docker info >/dev/null
-docker image inspect postgres:16-alpine >/dev/null
-docker image inspect chrislusf/seaweedfs:4.50@sha256:c2658820e763294a9e9de7b36c81e59b879e3459148351aee4e31a126ca64860 >/dev/null
-
-repo=$(cd "$(dirname "$0")/.." && pwd)
-started_at=$(date +%s)
-work=$(mktemp -d /tmp/delivest-s5-drill.XXXXXX)
-project="delivest_s5_drill_$(basename "$work" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9')"
+repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+work=$(mktemp -d "${RUNNER_TEMP:-/tmp}/delivest-restore-drill.XXXXXX")
+project="restore-drill-$(basename "$work" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9')"
 compose="$work/compose.yml"
 archive="$work/full.tar"
+report_dir=${DRILL_REPORT_DIR:-"${RUNNER_TEMP:-/tmp}/restore-drill-report"}
+mkdir -p "$report_dir"
+started_at=$(date +%s)
+phase=preparing
+backup_seconds=0
+restore_seconds=0
+data_restore=not_run
+container_rollback=not_run
+pre_backup_check=pending
+post_backup_check=pending
+restored_check=pending
+failure=''
 
+# The only persistent output is a report and, on failure, synthetic-container logs.
 cleanup() {
   local status=$?
-  if [[ $status -ne 0 ]]; then
-    local evidence
-    evidence="/tmp/delivest-s5-drill-failure-$(basename "$work").log"
-    { dc ps; dc logs --tail 100; } > "$evidence" 2>&1 || true
-    echo "drill failed; Compose evidence: $evidence" >&2
+  trap - EXIT
+  if (( status != 0 )); then
+    failure="failed during $phase (exit $status)"
+    if [[ "$phase" == exporting_backup && -n "${step_start:-}" ]]; then backup_seconds=$(( $(date +%s) - step_start )); fi
+    if [[ "$phase" == restoring_data && -n "${step_start:-}" ]]; then restore_seconds=$(( $(date +%s) - step_start )); fi
+    if [[ "$phase" == restoring_data || "$phase" == verifying_restore ]]; then data_restore=failed; fi
+    { dc ps; dc logs --tail=80; } > "$report_dir/compose.log" 2>&1 || true
   fi
-  docker compose -p "$project" -f "$compose" down -v --remove-orphans >/dev/null 2>&1 || true
+  REPORT_STATUS=$status REPORT_FAILURE="$failure" REPORT_PHASE=$phase \
+  REPORT_BACKUP_SECONDS=$backup_seconds REPORT_RESTORE_SECONDS=$restore_seconds \
+  REPORT_TOTAL_SECONDS=$(( $(date +%s) - started_at )) \
+  REPORT_DATA_RESTORE=$data_restore REPORT_CONTAINER_ROLLBACK=$container_rollback \
+  REPORT_PRE_CHECK="$pre_backup_check" REPORT_POST_CHECK="$post_backup_check" \
+  REPORT_RESTORED_CHECK="$restored_check" \
+  REPORT_IMAGE="$DRILL_SERVER_IMAGE" REPORT_OUTPUT="$report_dir/report.json" python3 - <<'PY'
+import json, os
+from pathlib import Path
+p = Path(os.environ['REPORT_OUTPUT'])
+p.write_text(json.dumps({
+  'status': 'passed' if os.environ['REPORT_STATUS'] == '0' else 'failed',
+  'phase': os.environ['REPORT_PHASE'],
+  'failure': os.environ['REPORT_FAILURE'] or None,
+  'server_image': os.environ['REPORT_IMAGE'],
+  'backup_seconds': int(os.environ['REPORT_BACKUP_SECONDS']),
+  'restore_seconds': int(os.environ['REPORT_RESTORE_SECONDS']),
+  'total_seconds': int(os.environ['REPORT_TOTAL_SECONDS']),
+  'container_rollback': os.environ['REPORT_CONTAINER_ROLLBACK'],
+  'data_restore': os.environ['REPORT_DATA_RESTORE'],
+  'checks': {
+    'pre_backup_order_and_object': os.environ['REPORT_PRE_CHECK'],
+    'post_backup_order_absent_after_restore': os.environ['REPORT_POST_CHECK'],
+    'restored_order_and_object_bytes': os.environ['REPORT_RESTORED_CHECK']
+  }
+}, indent=2) + '\n')
+PY
+  timeout 60 docker compose -p "$project" -f "$compose" down -v --remove-orphans >/dev/null 2>&1 || true
   rm -rf "$work"
+  if (( status != 0 )); then echo "restore drill failed; report: $report_dir/report.json" >&2; fi
+  exit "$status"
 }
 trap cleanup EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
 
+dc() { timeout 180 docker compose -p "$project" -f "$compose" "$@"; }
+export DRILL_SERVER_IMAGE
+export DRILL_SECRET
+DRILL_SECRET=$(openssl rand -hex 64)
+export DRILL_FIXTURES="$repo/scripts"
 cat > "$compose" <<'YAML'
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
     environment:
       POSTGRES_USER: drill
       POSTGRES_PASSWORD: drill-local-only
@@ -54,149 +102,105 @@ services:
         exec weed server -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -dir=/data
     environment:
       S3_BUCKET: drill-public
-    ports:
-      - "127.0.0.1::8333"
     volumes:
       - s3_data:/data
+  server:
+    image: ${DRILL_SERVER_IMAGE:?}
+    environment:
+      PHX_SERVER: "true"
+      PHX_HOST: api.restore.local
+      SECRET_KEY_BASE: ${DRILL_SECRET:?}
+      DATABASE_URL: ecto://drill:drill-local-only@postgres/drill
+      S3_ACCESS_KEY: drillAccess
+      S3_SECRET_KEY: drillSecretLocalOnly
+      S3_HOST: s3
+      S3_PUBLIC_HOST: s3
+      S3_SCHEME: http://
+      S3_PORT: "8333"
+      S3_PORT_EXTERNAL: "8333"
+      S3_BUCKET: drill-public
+      S3_PRIVATE_BUCKET: drill-private
+      CLIENT_ORIGIN: http://shop.restore.local
+    volumes:
+      - ${DRILL_FIXTURES:?}:/ci-fixtures:ro
+    depends_on:
+      - postgres
+      - s3
 volumes:
   postgres_data:
   s3_data:
 YAML
 
-dc() { docker compose -p "$project" -f "$compose" "$@"; }
-echo "drill project=$project work=$work"
-dc up -d --pull never
-
+phase=starting
+# All resources belong to this unique Compose project; no host or production volumes are mounted.
+timeout 300 docker compose -p "$project" -f "$compose" up -d --pull missing postgres s3
 for _ in {1..60}; do
   if dc exec -T postgres pg_isready -U drill -d drill >/dev/null 2>&1; then break; fi
   sleep 1
 done
-dc exec -T postgres pg_isready -U drill -d drill
-
-export AWS_ACCESS_KEY_ID=drillAccess AWS_SECRET_ACCESS_KEY=drillSecretLocalOnly AWS_DEFAULT_REGION=us-east-1 AWS_MAX_ATTEMPTS=1
-s3() {
-  local current_port
-  current_port=$(dc port s3 8333 | tail -1 | awk -F: '{print $NF}')
-  aws --endpoint-url "http://127.0.0.1:$current_port" --cli-connect-timeout 2 --cli-read-timeout 5 "$@"
-}
-wait_s3() {
-  for _ in {1..60}; do
-    if s3 s3api list-buckets >/dev/null 2>&1; then return 0; fi
-    sleep 1
+dc exec -T postgres pg_isready -U drill -d drill >/dev/null
+timeout 300 docker compose -p "$project" -f "$compose" up -d --pull missing server
+wait_server() {
+  for _ in {1..120}; do
+    if [[ "$(dc ps --status running --services | sort)" == "$(printf '%s\n' postgres s3 server | sort)" ]] &&
+       dc exec -T postgres psql -U drill -d drill -Atqc "SELECT count(*) FROM schema_migrations" 2>/dev/null | grep -Eq '^[1-9][0-9]*$' &&
+       timeout 10 docker compose -p "$project" -f "$compose" exec -T server bin/delivest rpc 'Delivest.Repo.query!("SELECT 1")' >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 2
   done
-  echo 'S3 did not become ready' >&2
-  dc ps >&2
-  dc logs s3 --tail 80 >&2
+  echo 'server readiness timed out' >&2
   return 1
 }
-wait_object_equals() {
-  local bucket=$1 expected=$2 observed
-  observed="$work/observed-$(basename "$expected")"
-  for _ in {1..30}; do
-    if s3 s3 cp "s3://$bucket/fixture.txt" "$observed" >/dev/null 2>&1 &&
-      cmp -s "$expected" "$observed"; then return 0; fi
-    sleep 1
-  done
-  echo "S3 object $bucket/fixture.txt did not match $expected" >&2
-  return 1
+wait_server
+
+fixture() {
+  local action=$1 key=$2
+  timeout 90 docker compose -p "$project" -f "$compose" exec -T server env -u PHX_SERVER bin/delivest eval \
+    'Code.eval_file("/ci-fixtures/release-upgrade-fixture.exs")' -- "$action" "$key"
 }
-wait_s3
-s3 s3api create-bucket --bucket drill-public >/dev/null
-s3 s3api create-bucket --bucket drill-private >/dev/null
-printf 'public-before\n' > "$work/public-before"
-printf 'private-before\n' > "$work/private-before"
-s3 s3 cp "$work/public-before" s3://drill-public/fixture.txt >/dev/null
-s3 s3 cp "$work/private-before" s3://drill-private/fixture.txt >/dev/null
-
-dc exec -T postgres psql -U drill -d drill -v ON_ERROR_STOP=1 -c 'CREATE TABLE schema_migrations (version bigint PRIMARY KEY); CREATE TABLE drill_payload (value text NOT NULL); INSERT INTO drill_payload VALUES ('"'"'before'"'"');' >/dev/null
-
-# Model a real pre-baseline deployment and a target that has only the baseline chain.
-python3 - "$repo" "$work" <<'PY'
-from pathlib import Path
-import re
-import sys
-
-repo, work = map(Path, sys.argv[1:])
-baseline = (repo / 'server/lib/delivest/repo/baseline.ex').read_text()
-legacy = re.findall(r'\b\d{14}\b', re.search(r'@legacy_versions ~w\((.*?)\)', baseline, re.S).group(1))
-assert len(legacy) == 88
-baseline_chain = [f'202612100000{n:02d}' for n in range(2, 11)]
-later = sorted(p.name[:14] for p in (repo / 'server/priv/repo/migrations').glob('*.exs')
-               if p.name[:14].isdigit() and baseline_chain[-1] < p.name[:14] <= '20261210000043')
-assert len(later) == 31
-target = baseline_chain + later
-source = legacy + ['20261121000003'] + target
-assert len(source) == 129 and len(target) == 40 and len(set(source)) == 129
-for name, versions in [('source-ledger.sql', source), ('target-ledger.sql', target)]:
-    values = ','.join(f'({v})' for v in versions)
-    (work / name).write_text('TRUNCATE schema_migrations; INSERT INTO schema_migrations(version) VALUES ' + values + ';\n')
-PY
-dc exec -T postgres psql -U drill -d drill -v ON_ERROR_STOP=1 < "$work/source-ledger.sql" >/dev/null
-[[ "$(dc exec -T postgres psql -U drill -d drill -Atqc 'SELECT count(*) FROM schema_migrations')" == 129 ]]
+phase=creating_control_order
+fixture create before
+fixture read before
+pre_backup_check=passed
 
 run_backup() {
   local action=$1 source=$2
-  local started status
-  started=$(date +%s)
-  if (cd "$repo/agent" &&
+  (cd "$repo/agent" &&
     DRILL_PROJECT_DIR="$work" DRILL_PROJECT_NAME="$project" DRILL_COMPOSE_FILE="$compose" \
     DRILL_ACTION="$action" DRILL_ARCHIVE="$source" S3_PRIVATE_BUCKET=drill-private \
-    MIX_ENV=dev mix run -e '
+    MIX_ENV=dev timeout 900 mix run -e '
       p = %DelivestAgent.Project{name: System.fetch_env!("DRILL_PROJECT_NAME"), dir: System.fetch_env!("DRILL_PROJECT_DIR"), files: [System.fetch_env!("DRILL_COMPOSE_FILE")], agent_service: "agent"}
       archive = System.fetch_env!("DRILL_ARCHIVE")
       result = case System.fetch_env!("DRILL_ACTION") do
-        "export" -> DelivestAgent.FullBackup.export(p, archive, app_stopped: true)
-        "import" -> DelivestAgent.FullBackup.import(p, archive, replace: true, app_stopped: true)
+        "export" -> DelivestAgent.FullBackup.export(p, archive)
+        "import" -> DelivestAgent.FullBackup.import(p, archive, replace: true)
       end
       IO.inspect(result, label: "full backup result")
       unless match?({:ok, _}, result), do: System.halt(1)
-    '); then status=0; else status=$?; fi
-  echo "backup $action duration=$(( $(date +%s) - started ))s exit=$status"
-  return "$status"
+    ')
 }
 
+phase=exporting_backup
+step_start=$(date +%s)
 run_backup export "$archive"
-wait_s3
-dc exec -T postgres psql -U drill -d drill -v ON_ERROR_STOP=1 < "$work/target-ledger.sql" >/dev/null
-[[ "$(dc exec -T postgres psql -U drill -d drill -Atqc 'SELECT count(*) FROM schema_migrations')" == 40 ]]
-dc exec -T postgres psql -U drill -d drill -v ON_ERROR_STOP=1 -c "UPDATE drill_payload SET value = 'mutated';" >/dev/null
-printf 'public-mutated\n' > "$work/public-mutated"
-printf 'private-mutated\n' > "$work/private-mutated"
-s3 s3 cp "$work/public-mutated" s3://drill-public/fixture.txt >/dev/null
-s3 s3 cp "$work/private-mutated" s3://drill-private/fixture.txt >/dev/null
-wait_object_equals drill-public "$work/public-mutated"
-wait_object_equals drill-private "$work/private-mutated"
-
+backup_seconds=$(( $(date +%s) - step_start ))
+# FullBackup stops and restarts the application itself; no app_stopped override is used.
+phase=creating_post_backup_order
+wait_server
+fixture create after
+fixture read after
+phase=restoring_data
+step_start=$(date +%s)
 run_backup import "$archive"
-wait_s3
-[[ "$(dc exec -T postgres psql -U drill -d drill -Atqc 'SELECT value FROM drill_payload')" == before ]]
-[[ "$(dc exec -T postgres psql -U drill -d drill -Atqc 'SELECT count(*) FROM schema_migrations')" == 129 ]]
-[[ "$(dc exec -T postgres psql -U drill -d drill -Atqc 'SELECT count(*) FROM schema_migrations WHERE version = 20261121000003')" == 1 ]]
-s3 s3 cp s3://drill-public/fixture.txt "$work/public-restored" >/dev/null
-s3 s3 cp s3://drill-private/fixture.txt "$work/private-restored" >/dev/null
-cmp "$work/public-before" "$work/public-restored"
-cmp "$work/private-before" "$work/private-restored"
-echo 'restore verified: DB and public/private object bytes'
-echo 'restore verified: historical 129-version source to 40-version baseline target'
-
-dc exec -T postgres psql -U drill -d drill -v ON_ERROR_STOP=1 -c "UPDATE drill_payload SET value = 'guard';" >/dev/null
-printf 'public-guard\n' > "$work/public-guard"
-s3 s3 cp "$work/public-guard" s3://drill-public/fixture.txt >/dev/null
-wait_object_equals drill-public "$work/public-guard"
-cp "$archive" "$work/corrupt.tar"
-printf x >> "$work/corrupt.tar"
-if run_backup import "$work/corrupt.tar" > "$work/corrupt-result.log" 2>&1; then
-  cat "$work/corrupt-result.log"
-  echo 'corrupt archive was accepted' >&2
-  exit 1
-fi
-cat "$work/corrupt-result.log"
-if ! grep -Fq 'full backup result: {:error, {1, "trailing tar data"}}' "$work/corrupt-result.log"; then
-  echo 'corrupt import failed for an unexpected reason' >&2
-  exit 1
-fi
-[[ "$(dc exec -T postgres psql -U drill -d drill -Atqc 'SELECT value FROM drill_payload')" == guard ]]
-s3 s3 cp s3://drill-public/fixture.txt "$work/public-guard-after" >/dev/null
-cmp "$work/public-guard" "$work/public-guard-after"
-echo 'corrupt archive rejected without changing target DB/object'
-echo "drill total duration=$(( $(date +%s) - started_at ))s"
+restore_seconds=$(( $(date +%s) - step_start ))
+phase=verifying_restore
+wait_server
+fixture read before
+restored_check=passed
+fixture assert_absent after
+post_backup_check=passed
+data_restore=passed
+phase=complete
+echo "restore verified: control order and linked object bytes; post-backup order absent"
+echo "backup=${backup_seconds}s restore=${restore_seconds}s total=$(( $(date +%s) - started_at ))s"
