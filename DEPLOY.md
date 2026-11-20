@@ -209,6 +209,10 @@ docker compose up -d server
 точные байты `.env` с правами доступа и целевой manifest в каталоге
 `.delivest-manual-release/<timestamp>/` (права 0700/0600); путь выводится в
 консоль и сохраняется даже при ошибке `--apply`. Работающий агент остаётся на связи. После подготовки
+копия выбранного manifest находится в `.delivest-release-manifest.json`.
+Для повторной установки того же выпуска на другой ноде или после сбоя:
+`./scripts/install-release.py 1.2.3 --manifest /secure/path/release-manifest.json --apply`.
+Установщик сверяет переданный файл с опубликованным asset и отклоняет расхождение.
 проверьте `docker compose ps`, `/ready` через gateway, страницу сайта и
 контрольный заказ. Только после успешной проверки отдельно обновите агент:
 `flock -n .delivest-operation.lock docker compose up -d --no-deps --force-recreate agent`.
