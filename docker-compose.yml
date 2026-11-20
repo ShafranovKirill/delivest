@@ -23,7 +23,7 @@ services:
       - delivest-network
 
   server:
-    image: ghcr.io/shafranovkirill/delivest-server:latest
+    image: ${DELIVEST_SERVER_IMAGE:-ghcr.io/shafranovkirill/delivest-server:latest}
     container_name: ${COMPOSE_PROJECT_NAME:-delivest}_server
     restart: always
     env_file:
@@ -44,7 +44,7 @@ services:
       - delivest-network
 
   client:
-    image: ghcr.io/shafranovkirill/delivest-client:latest
+    image: ${DELIVEST_CLIENT_IMAGE:-ghcr.io/shafranovkirill/delivest-client:latest}
     container_name: ${COMPOSE_PROJECT_NAME:-delivest}_client
     restart: always
     environment:
@@ -97,7 +97,7 @@ services:
       - delivest-network
 
   agent:
-    image: ghcr.io/shafranovkirill/delivest-agent:latest
+    image: ${DELIVEST_AGENT_IMAGE:-ghcr.io/shafranovkirill/delivest-agent:latest}
     container_name: ${COMPOSE_PROJECT_NAME:-delivest}_agent
     restart: always
     environment:

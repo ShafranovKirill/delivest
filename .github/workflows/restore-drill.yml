@@ -1,0 +1,64 @@
+name: Restore drill
+on:
+  schedule:
+    - cron: '17 3 * * 0'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: restore-drill-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  restore:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: docker/setup-buildx-action@v3
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: '28.4.2'
+          elixir-version: '1.19.5-otp-28'
+      - name: Install local drill dependencies
+        run: |
+          cd agent
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get
+      - name: Build server from this revision
+        run: docker build -f Dockerfile.server -t delivest-server:restore-drill .
+      - name: Restore PostgreSQL and object storage in isolated Compose
+        env:
+          DRILL_SERVER_IMAGE: delivest-server:restore-drill
+          DRILL_REPORT_DIR: ${{ runner.temp }}/restore-drill-report
+        run: bash scripts/restore-drill.sh --run
+      - name: Write outcome summary
+        if: always()
+        env:
+          DRILL_REPORT_DIR: ${{ runner.temp }}/restore-drill-report
+        run: |
+          if [ -f "$DRILL_REPORT_DIR/report.json" ]; then
+            python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          from pathlib import Path
+          report = json.loads((Path(os.environ['DRILL_REPORT_DIR']) / 'report.json').read_text())
+          print('### Restore drill')
+          print(f"Overall: **{report['status']}**; phase: {report['phase']}")
+          print(f"Container rollback: **{report['container_rollback']}**")
+          print(f"Data restore: **{report['data_restore']}**")
+          print(f"Backup: {report['backup_seconds']}s; restore: {report['restore_seconds']}s; total: {report['total_seconds']}s")
+          if report['failure']:
+              print(f"Failure: {report['failure']}")
+          PY
+          else
+            echo 'Restore drill did not start; no data restore or container rollback result exists.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload drill report and synthetic diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: restore-drill-report
+          path: ${{ runner.temp }}/restore-drill-report
+          if-no-files-found: ignore
