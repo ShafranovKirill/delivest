@@ -26,7 +26,7 @@ RUN VIX_VERSION=$(sed -n 's/.*"vix": {:hex, :vix, "\([^"]*\)".*/\1/p' mix.lock) 
 RUN mix deps.compile
 
 COPY server/assets assets
-RUN cd assets && npm install
+RUN cd assets && npm ci
 
 COPY server/priv priv
 COPY server/lib lib
