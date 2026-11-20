@@ -39,7 +39,7 @@ async function placePickupOrder(page: Page, phone: string): Promise<string> {
   return page.url().split('/').at(-1)!
 }
 
-test('A private data and a late A socket token stay out of B session', async ({ page }) => {
+test('A private data and a late A session bootstrap stay out of B session', async ({ page }) => {
   const unique = suffix()
   const phoneA = `+7998${unique}`
   const phoneB = `+7997${unique}`
@@ -58,22 +58,22 @@ test('A private data and a late A socket token stay out of B session', async ({ 
   await page.goto('/e2e/addresses')
   await expect(page.getByText(streetA)).toBeVisible()
 
-  let releaseOldToken!: () => void
-  const oldTokenGate = new Promise<void>((resolve) => { releaseOldToken = resolve })
+  let releaseOldSession!: () => void
+  const oldSessionGate = new Promise<void>((resolve) => { releaseOldSession = resolve })
   let sawOldRequest!: () => void
   const oldRequest = new Promise<void>((resolve) => { sawOldRequest = resolve })
   let oldSocketToken: string | null = null
-  let firstTokenRequest = true
+  let firstSessionRequest = true
   const openedSocketUrls: string[] = []
   page.on('websocket', (socket) => openedSocketUrls.push(socket.url()))
 
-  await page.route('**/client/socket_token', async (route) => {
-    if (!firstTokenRequest) return route.continue()
-    firstTokenRequest = false
+  await page.route('**/client/session/bootstrap?*', async (route) => {
+    if (!firstSessionRequest) return route.continue()
+    firstSessionRequest = false
     const response = await route.fetch()
-    oldSocketToken = ((await response.json()) as { data: { token: string } }).data.token
+    oldSocketToken = ((await response.json()) as { socket_token: string }).socket_token
     sawOldRequest()
-    await oldTokenGate
+    await oldSessionGate
     await route.fulfill({ response })
   })
 
@@ -88,7 +88,7 @@ test('A private data and a late A socket token stay out of B session', async ({ 
 
     const b = await signIn(page, phoneB)
     expect(b.client.id).not.toBe(a.client.id)
-    releaseOldToken()
+    releaseOldSession()
 
     const headers = { authorization: `Bearer ${b.access_token}` }
     const addressesResponse = await page.request.get(`${adminUrl}/client/addresses`, { headers })
@@ -121,8 +121,8 @@ test('A private data and a late A socket token stay out of B session', async ({ 
     await expect(page.getByText(orderId)).toBeHidden()
     expect(openedSocketUrls.some((url) => url.includes(encodeURIComponent(oldSocketToken!)))).toBe(false)
   } finally {
-    releaseOldToken()
-    await page.unroute('**/client/socket_token')
+    releaseOldSession()
+    await page.unroute('**/client/session/bootstrap?*')
   }
 })
 
@@ -151,6 +151,10 @@ test('checkout contact and delivery draft are cleared when A signs out and B sig
 
   await page.locator('header').getByRole('button', { name: 'Профиль' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Выйти' }).click()
+  const fulfillment = page.getByRole('dialog', { name: 'Куда привезти?' })
+  await expect(fulfillment).toBeVisible()
+  await fulfillment.getByRole('button', { name: 'Закрыть' }).click()
+  await expect(fulfillment).toBeHidden()
   await signIn(page, phoneB)
 
   await expect(page.getByText(privateComment)).toBeHidden()

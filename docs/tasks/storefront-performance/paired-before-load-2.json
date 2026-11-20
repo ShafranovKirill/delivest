@@ -1,0 +1,14 @@
+{
+  "mode": "before",
+  "captured_at": "2026-11-19T19:42:46.824Z",
+  "scenarios": 100,
+  "concurrency": 5,
+  "http_requests": 900,
+  "elapsed_ms": 1525,
+  "backend_cpu_seconds": 6.199999999999999,
+  "backend_cpu_seconds_normalized_per_1000": 61.99999999999999,
+  "backend_rss_kib_before": 144044,
+  "backend_rss_kib_after": 143652,
+  "cpu_tick_seconds": 0.01,
+  "note": "Local warm API replay, no browser/network throttling. 100 measured scenarios; per1000 is normalized. PostgreSQL CPU not measured. Background backend work is included."
+}

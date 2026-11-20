@@ -5,10 +5,10 @@ async function openCheckoutAddress(
   operatorAddress: boolean,
   pickupMethods?: Array<"pickup" | "dine_in">,
 ) {
-  await page.route(/\/client\/branches(?:\/[^?]+\/select)?$/, async (route) => {
+  await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
     const response = await route.fetch();
     const body = await response.json();
-    const branches = Array.isArray(body.data) ? body.data : [body.data];
+    const branches = [...body.branches, body.selected_branch];
     for (const branch of branches) {
       if (branch?.slug === "e2e" && branch.branch_info) {
         if (pickupMethods)

@@ -12,10 +12,10 @@ const hours = Object.fromEntries(
 
 async function seedAvailability(page: Page) {
   await page.clock.setFixedTime(new Date('2026-11-16T07:00:00Z'))
-  await page.route(/\/client\/branches(?:\/.*\/select)?$/, async (route) => {
+  await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
     const response = await route.fetch()
     const body = await response.json()
-    const branches = Array.isArray(body.data) ? body.data : [body.data]
+    const branches = [...body.branches, body.selected_branch]
     for (const branch of branches) {
       if (branch?.slug !== 'e2e' || !branch.branch_info) continue
       Object.assign(branch.branch_info, {

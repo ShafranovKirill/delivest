@@ -25,10 +25,10 @@ test("address suggestions stay below the field and show a Russian empty state", 
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.route("**/client/franchise", async (route) => {
+  await page.route("**/client/storefront/v1/bootstrap?*", async (route) => {
     const response = await route.fetch();
     const body = await response.json();
-    body.data.address_map = true;
+    body.franchise.address_map = true;
     await route.fulfill({ response, json: body });
   });
   let empty = false;
@@ -107,10 +107,10 @@ test("address choice shows the server quote and clears it while another point is
   const secondGate = new Promise<void>((resolve) => {
     releaseSecond = resolve;
   });
-  await page.route("**/client/franchise", async (route) => {
+  await page.route("**/client/storefront/v1/bootstrap?*", async (route) => {
     const response = await route.fetch();
     const body = await response.json();
-    body.data.address_map = true;
+    body.franchise.address_map = true;
     await route.fulfill({ response, json: body });
   });
   await page.route("**/styles/liberty", async (route) => {
@@ -315,10 +315,10 @@ test("address choice shows the server quote and clears it while another point is
 test("below minimum shows delivery price and keeps address confirmation available", async ({
   page,
 }) => {
-  await page.route("**/client/franchise", async (route) => {
+  await page.route("**/client/storefront/v1/bootstrap?*", async (route) => {
     const response = await route.fetch();
     const body = await response.json();
-    body.data.address_map = true;
+    body.franchise.address_map = true;
     await route.fulfill({ response, json: body });
   });
   await page.route("**/client/geo/suggest**", async (route) => {
