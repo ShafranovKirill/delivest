@@ -44,7 +44,7 @@ test('branch analytics opens franchise comparison with the same period and no br
   const branchReport = 'statistics?tab=sales&period=custom&from=2026-11-01&to=2026-11-14'
   await page.setViewportSize({ width: 1440, height: 900 })
   await branchPage(page, branchReport)
-  const franchise = page.locator('#main-sidebar #sidebar-section-nav-analytics_comparison')
+  const franchise = page.locator("#statistics-sales-detail a[href^='/staff/analytics/comparison?']")
   await expect(franchise).toHaveCount(1)
   const target = new URL((await franchise.getAttribute('href'))!, adminUrl)
   expect(target.pathname).toBe('/staff/analytics/comparison')
@@ -60,7 +60,7 @@ test('branch analytics opens franchise comparison with the same period and no br
 
   await page.setViewportSize({ width: 390, height: 844 })
   await branchPage(page, branchReport)
-  await page.locator('#staff-context-navigation #section-nav-analytics_comparison').click()
+  await page.locator("#statistics-sales-detail a[href^='/staff/analytics/comparison?']").click()
   await expect(page).toHaveURL(target.href)
   await expect(page.locator('main h1')).toHaveText('Сравнение филиалов')
   await expect(page.locator('#header-branch summary')).toHaveAttribute('aria-label', 'Все доступные филиалы')
