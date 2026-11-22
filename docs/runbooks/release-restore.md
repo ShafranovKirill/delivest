@@ -9,6 +9,16 @@ Push в `main` запускает `Release`: reusable `Checks` и `E2E`, выч�
 `release-manifest.json` в Release содержит SHA корня, gitlinks server/client/agent
 и digest каждого образа. Сохраните его вместе с результатами проверок.
 
+Перед публикацией при изменении миграций `server` возьмите server SHA из
+`release-manifest.json` последнего опубликованного стабильного релиза и SHA
+кандидата из `git rev-parse HEAD:server`. Проверьте `migration_diff` и
+`policy_for` из `scripts/release-upgrade.py`: в
+`deploy/release-upgrade-policy.json` должны быть эти точные `base_server_sha`,
+`candidate_server_sha` и обоснованное значение `compatibility`. После нового
+коммита в `server` обновите candidate SHA. Повторите сверку с manifest
+предыдущего релиза перед созданием release PR. Без точной пары SHA upgrade gate
+останавливает публикацию при обнаружении новой миграции.
+
 Перед обновлением сравните `git rev-parse HEAD` с `root_sha` в manifest и
 `git rev-parse HEAD:server` (аналогично client/agent) с `gitlinks`. Для
 воспроизводимого запуска используйте ссылки `ghcr.io/shafranovkirill/delivest-{server,client,agent}@sha256:…`
