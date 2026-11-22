@@ -12,6 +12,8 @@ concurrency:
 jobs:
   server:
     runs-on: ubuntu-24.04
+    env:
+      CHROME_EXECUTABLE: /usr/bin/google-chrome
     services:
       db:
         image: postgres:16-alpine
@@ -30,6 +32,10 @@ jobs:
           otp-version: '28.4.2'
       - run: mix deps.get
         working-directory: server
+      - name: Check Chrome startup
+        run: |
+          google-chrome --version
+          timeout 30s google-chrome --headless --disable-gpu --user-data-dir="$RUNNER_TEMP/delivest-pdf-probe" --dump-dom about:blank
       - name: Cache dialyzer PLT
         uses: actions/cache@v4
         with:
@@ -37,6 +43,11 @@ jobs:
             server/_build/test/*.plt
             server/_build/test/*.plt.hash
           key: dialyzer-${{ runner.os }}-otp28.4.2-elixir1.19.5-${{ hashFiles('server/mix.lock') }}
+      - name: Render PDF smoke
+        run: mix test test/delivest/printing_test.exs --max-cases 1
+        working-directory: server
+        env:
+          MIX_ENV: test
       - run: mix format --check-formatted && mix compile --warnings-as-errors && mix credo --strict && mix dialyzer && mix test
         working-directory: server
         env:
