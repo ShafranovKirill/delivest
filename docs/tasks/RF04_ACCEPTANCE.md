@@ -10,31 +10,20 @@
 
 ## Проверено локально
 
-- Адресные ExUnit тесты: настройки, валидация пресетов, приватность кухни, запрет прямых URL, PDF inline/download, фискальное отключение с завершением уже созданной операции, LiveView сохранение настроек, экспорт/импорт снимка филиала.
-- Реальный ChromicPDF: `/tmp/rf04-a4.pdf` — 5 страниц A4, `/tmp/rf04-a5.pdf` — 7 страниц A5. В документах проверены кириллица, длинные названия, разбиение на страницы и QR. Главный агент визуально просмотрел все страницы обоих PDF.
-- Финальные адресные тесты: 27 успешных, 0 ошибок. `mix format --check-formatted`, `mix compile --warnings-as-errors`, `mix admin.inventory --check`, `mix credo --strict` прошли.
-- Полный `MIX_TEST_PARTITION=rf04 mix precommit` завершился с кодом 2: 2272 теста, 2 ошибки (`ClientSocketTest` — событие не пришло за 1 секунду; `CourierLive.IndexTest` — таймаут подключения к тестовой БД). Семь тестов исключены по тегу `:contract`. Общий прогон нельзя считать успешным; результат отдельного повтора приведён ниже.
-- Главный агент независимо проверил исходную реализацию в серверном коммите `7d544333`: **52 теста, 0 ошибок**, включая оба упавших тестовых файла, весь набор снимков и фискальный реестр. Повтор выполнен с ограничением параллельности; исходный общий прогон остаётся неуспешным. Команда:
+- Финальная версия приложения — серверный коммит `5fdeb529`; `118cb897` добавляет только идентификатор шага кеширования в CI. Главный агент просмотрел итоговый diff и результаты проверок.
+- Адресные проверки — **58 тестов, 0 ошибок**: настройки филиалов, порядок и скрытие блоков, права, прямые URL, приватность кухни, inline/download PDF, отключение фискализации, завершение отправленной операции, возврат, восстановление снимка и ответ 503 при остановленном рендерере.
+- Ранний smoke с настоящим Google Chrome и окружением `CI=true CHROME_EXECUTABLE=/usr/bin/google-chrome` — **5 тестов, 0 ошибок**. Отключение рендерера в тесте восстанавливается через `on_exit`.
+- Форматирование, компиляция с `--warnings-as-errors`, `admin.inventory --check`, Credo, Dialyzer, проверка diff и `actionlint` обоих изменённых workflow прошли.
+- Полный `CI=true CHROME_EXECUTABLE=/usr/bin/google-chrome MIX_TEST_PARTITION=rf04pushstablefinal mix test --max-cases 4` — **2276 тестов, 0 ошибок**. Семь контрактных тестов исключены стандартной настройкой проекта.
+- Полный `env -u PLAYWRIGHT_ARGS make preflight` на финальном коде приложения — **142 E2E-теста, 0 ошибок**, без фильтра и повторов; type-check клиента и E2E прошли. Код возврата — 0.
+- Реальные PDF `/tmp/rf04-a4.pdf` (5 страниц A4) и `/tmp/rf04-a5.pdf` (7 страниц A5) визуально просмотрены главным агентом целиком: кириллица, длинные названия, разбиение на страницы и QR без обрезки.
+- Итоговые логи: `/tmp/rf04-push-preflight-stable-chrome-final.log`, `/tmp/rf04-push-server-tests-stable-chrome-final.log`, `/tmp/rf04-renderer-ci-static.log`, `/tmp/rf04-renderer-ci-targeted.log`.
 
-  ```sh
-  MIX_TEST_PARTITION=rf04 mix test \
-    test/delivest/printing_test.exs \
-    test/delivest/fiscal_test.exs \
-    test/delivest/site_snapshot_test.exs \
-    test/delivest/fiscal/receipt_list_test.exs \
-    test/delivest_web/live/staff/receipt_live/printing_test.exs \
-    test/delivest_web/live/staff/receipt_live/index_test.exs \
-    test/delivest_web/live/staff/integration_live/fiscal_test.exs \
-    test/delivest_web/channels/client_socket_test.exs \
-    test/delivest_web/live/staff/courier_live/index_test.exs \
-    --max-cases 4
-  ```
+## Проверки запуска браузера в CI
 
-- Главный агент также повторил форматирование, компиляцию с `--warnings-as-errors`, `admin.inventory --check`, `credo --strict` и проверку diff: все проверки прошли.
-- По команде «Пуш в Девелоп» устранены предупреждения Dialyzer: в серверном коммите `fdedd888` объявлен контракт результата PDF и согласован возвращаемый формат бумаги с HTML. После этого форматирование, компиляция без предупреждений, Credo и Dialyzer прошли; адресные проверки — **57 тестов, 0 ошибок**.
-- CI выявил пятисекундный тайм-аут первого запуска Chrome под нагрузкой. В коммите `52f064b8` отдельно настроены ожидание и инициализация сеанса по 20 секунд, сохранив размер пула 2 и время выполнения 20 секунд. Тест с реальным браузером выполняется последовательно; проверки не отключались.
-- На финальном серверном коммите `52f064b8` главный агент выполнил полный `MIX_TEST_PARTITION=rf04pushcoldfinal mix test --max-cases 4`: **2275 тестов, 0 ошибок, 7 контрактных тестов исключены стандартной настройкой**.
-- Полный локальный `env -u PLAYWRIGHT_ARGS make preflight` повторно выполнен после исправления холодного запуска без фильтра E2E: **142 браузерных теста прошли, 0 ошибок**, type-check клиента и E2E прошли. Код возврата — 0. Логи проверки: `/tmp/rf04-push-preflight-cold-final.log`, `/tmp/rf04-push-server-tests-cold-final.log`.
+ChromicPDF автоматически предпочитает `chromium-browser` и `chromium`; на GitHub runner эти команды могут указывать на Chromium snapshot. В обоих серверных CI-заданиях явно выбран `/usr/bin/google-chrome`, добавлены изолированная проверка его запуска и ранний PDF smoke перед полным набором. В CI сохраняется stderr браузера. Ожидание, инициализация и выполнение ограничены 20 секундами; production-пул — две сессии. Завершение процесса рендерера возвращает 503.
+
+Ранние локальные прогоны и CI до исправлений имели падения; они не засчитываются как успешные. Итоговые локальные результаты приведены выше. Статусы публикации доступны в PR: [server #68](https://github.com/ShafranovKirill/delivest-ex/pull/68), [основной #83](https://github.com/ShafranovKirill/delivest/pull/83).
 
 ## Требует ручной проверки
 
