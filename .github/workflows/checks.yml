@@ -1,7 +1,7 @@
 name: Checks
 on:
   push:
-    branches: [develop, main]
+    branches: [develop]
   pull_request:
     branches: [develop, main]
   workflow_dispatch:
@@ -118,6 +118,7 @@ jobs:
           curl -fsSL https://github.com/rhysd/actionlint/releases/download/v1.7.10/actionlint_1.7.10_linux_amd64.tar.gz | tar -xz -C "$RUNNER_TEMP/actionlint" actionlint
           "$RUNNER_TEMP/actionlint/actionlint"
           ./scripts/test-release-images.sh
+          python3 scripts/test-release-upgrade.py
       - name: Check nginx configuration
         run: |
           docker run --rm --add-host server:127.0.0.1 --add-host client:127.0.0.1 --add-host s3:127.0.0.1 \
