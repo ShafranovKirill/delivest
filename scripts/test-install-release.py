@@ -76,6 +76,7 @@ class InstallReleaseTest(unittest.TestCase):
                     installer.main()
 
             self.assertEqual((root / ".env").read_text(), "SECRET=kept\n")
+            self.assertIn(("git", "-C", str(root), "fetch", "--no-recurse-submodules", "origin", self.sha), calls)
             self.assertIn(("git", "-C", str(root), "checkout", "--detach", "c" * 40), calls)
             self.assertEqual(sum(argv[-4:] == ("--init", "server", "client", "agent") for argv in calls), 2)
 

@@ -185,7 +185,7 @@ def main():
         remote = run("git", "-C", str(root), "remote", "get-url", "origin")
         if remote not in ("https://github.com/ShafranovKirill/delivest.git", "git@github.com:ShafranovKirill/delivest.git"):
             raise ValueError("unexpected source repository")
-        run("git", "-C", str(root), "fetch", "origin", manifest["root_sha"])
+        run("git", "-C", str(root), "fetch", "--no-recurse-submodules", "origin", manifest["root_sha"])
         tree = dict(line.split("\t", 1)[::-1] for line in run("git", "-C", str(root), "ls-tree", manifest["root_sha"]).splitlines())
         if any(tree.get(component) != f"160000 commit {manifest['gitlinks'][component]}" for component in COMPONENTS):
             raise ValueError("manifest gitlinks do not match root SHA")
