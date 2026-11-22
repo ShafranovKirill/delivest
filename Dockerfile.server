@@ -48,12 +48,12 @@ FROM ${RUNNER_IMAGE}
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    libstdc++6 openssl libncurses5 locales ca-certificates \
+    libstdc++6 openssl libncurses5 locales ca-certificates chromium fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 RUN sed -i '/en_US.UTF-8/s/^# //' /etc/locale.gen && locale-gen
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:C.UTF-8 LC_ALL=en_US.UTF-8 \
-    MIX_ENV=prod
+    MIX_ENV=prod CHROME_EXECUTABLE=/usr/bin/chromium CHROME_NO_SANDBOX=true
 
 COPY --from=backend-builder /app/server/_build/prod/rel/delivest ./
 
