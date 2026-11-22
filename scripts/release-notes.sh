@@ -13,3 +13,9 @@ section() {
 section "Новое" '^feat(\([^)]*\))?!?:'
 section "Исправления" '^fix(\([^)]*\))?!?:'
 section "Прочее" '^(perf|refactor|chore|docs|build|ci|style|test)(\([^)]*\))?!?:'
+
+report_file=${1:-}
+if [ -n "$report_file" ] && jq -e '.status == "passed" and .compatibility == "incompatible"' "$report_file" >/dev/null; then
+  printf '## Миграции и восстановление\n\n'
+  jq -r '"- Обязательный backup: " + .policy.required_backup + "\n- Восстановление: " + .policy.restore_procedure + "\n- Заказы после backup: " + .policy.orders_after_backup + "\n"' "$report_file"
+fi

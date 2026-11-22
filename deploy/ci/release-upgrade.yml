@@ -1,0 +1,6 @@
+services:
+  server:
+    environment:
+      S3_PORT_EXTERNAL: "8333"
+    volumes: !override
+      - ./scripts/release-upgrade-fixture.exs:/ci-fixtures/release-upgrade-fixture.exs:ro

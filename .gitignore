@@ -1,6 +1,10 @@
 .env
+.delivest-release-manifest.json
+.delivest-manual-release/
+scripts/__pycache__/
 .env.*
 !.env.example
 .delivest-operation.lock/
+.delivest-operation.lock
 .delivest-recovery-*/
 .delivest-full-*.tar
