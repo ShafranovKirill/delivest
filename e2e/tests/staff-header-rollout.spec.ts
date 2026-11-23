@@ -145,6 +145,38 @@ test('orders keep the one-row toolbar visible at narrow widths and in fullscreen
   await expect.poll(async () => Math.round((await toolbar.boundingBox())!.y)).toBe(56)
 })
 
+test('the active status count has readable contrast in the dark theme', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await branchPage(page, 'orders')
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark' })
+
+  await page.locator('#order-status-select').click()
+  const count = page.locator('#order-status-tab-all .badge')
+  await expect(count).toBeVisible()
+  await expect(count).toHaveText(/^\s*\d+\s*$/)
+  const contrast = await count.evaluate(element => {
+    const context = document.createElement('canvas').getContext('2d')!
+    const luminance = (color: string) => {
+      context.clearRect(0, 0, 1, 1)
+      context.fillStyle = color
+      context.fillRect(0, 0, 1, 1)
+      const [r, g, b] = Array.from(context.getImageData(0, 0, 1, 1).data)
+        .slice(0, 3)
+        .map((channel) => {
+          const value = channel / 255
+          return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+        })
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+    const { color, backgroundColor } = getComputedStyle(element)
+    const fg = luminance(color)
+    const bg = luminance(backgroundColor)
+    return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05)
+  })
+
+  expect(contrast).toBeGreaterThanOrEqual(4.5)
+})
+
 test('promotion action opens the scenario route', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await branchPage(page, 'promotions')
