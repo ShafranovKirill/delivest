@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test'
-import { branchPage } from '../support/staff'
+import { adminUrl, branchSlug } from '../support/env'
 import { test } from '../support/test'
 
 test('order intake opens a centered dialog and restores focus on Escape', async ({ staff }) => {
@@ -7,7 +7,8 @@ test('order intake opens a centered dialog and restores focus on Escape', async 
 
   for (const width of [320, 390, 1440]) {
     await page.setViewportSize({ width, height: 844 })
-    await branchPage(page, 'orders')
+    await page.goto(`${adminUrl}/staff/branches/${branchSlug}/edit`)
+    await page.locator('[data-phx-main].phx-connected').waitFor()
 
     const dialog = page.getByRole('dialog', { name: 'Приём заказа', exact: true })
     const sidebarOpen = await page.locator('html').evaluate((root) => root.hasAttribute('data-sidebar-open'))

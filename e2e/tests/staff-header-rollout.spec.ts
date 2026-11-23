@@ -3,12 +3,12 @@ import { adminUrl, branchSlug } from '../support/env'
 import { branchPage } from '../support/staff'
 import { test } from '../support/test'
 
-async function expectPageFrame(page: Page) {
+async function expectPageFrame(page: Page, headingCount = 1) {
   await expect.poll(() => page.locator('#staff-header').evaluate((header) =>
     Math.round(header.getBoundingClientRect().height),
   )).toBe(56)
   await expect(page.locator('#staff-header h1')).toHaveCount(0)
-  await expect(page.locator('main h1:visible')).toHaveCount(1)
+  await expect(page.locator('main h1:visible')).toHaveCount(headingCount)
   await expect.poll(() => page.evaluate(() =>
     document.documentElement.scrollWidth - document.documentElement.clientWidth,
   )).toBeLessThanOrEqual(1)
@@ -40,7 +40,7 @@ test('staff page navigation and actions are present in the initial HTML', async 
     await page.goto(`${adminUrl}/staff/b/${branchSlug}/orders`)
     await page.locator('main #order-status-select').click()
     await expect(page.locator('main #orders-filters #order-status-tabs [aria-current="page"]')).toBeVisible()
-    await expectPageFrame(page)
+    await expectPageFrame(page, 0)
 
     await page.goto(`${adminUrl}/staff/clients`)
     await expect(page.locator('main #staff-page-header h1:visible')).toBeVisible()
@@ -76,57 +76,73 @@ test('mobile settings and order navigation stay directly below the global header
   await expect(page.locator('main #order-status-tab-cancelled')).toBeHidden()
   await expect(page.locator('main #order-status-tab-cancelled')).toHaveAttribute('aria-current', 'page')
   await expect(orders.locator('[aria-current="page"]')).toHaveCount(1)
-  await expectPageFrame(page)
+  await expectPageFrame(page, 0)
 })
 
-test('orders use two filter rows and keep filter and intake controls in fullscreen', async ({ staff }) => {
+test('orders keep the one-row toolbar visible at narrow widths and in fullscreen', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.setViewportSize({ width: 1280, height: 800 })
   await branchPage(page, 'orders')
 
   const orders = page.locator('#orders-page')
-  await expect(orders.getByRole('heading', { name: 'Заказы', exact: true })).toBeVisible()
-  await expect(orders).not.toContainText('Управляйте заказами клиентов')
-  const rows = [
-    ['#order-status-select', '#orders-search', '#orders-sort-urgency'],
-    ['#orders-period', '#orders-receiving', '#orders-payment', '#orders-source', '#orders-problem'],
-  ]
-  const centers = await Promise.all(rows.map(row => Promise.all(row.map(async selector => {
-    const box = await orders.locator(selector).boundingBox()
-    expect(box).not.toBeNull()
-    return box!.y + box!.height / 2
-  }))))
-  for (const row of centers) expect(Math.max(...row) - Math.min(...row)).toBeLessThan(4)
-  expect(centers[1][0]).toBeGreaterThan(centers[0][0])
+  const toolbar = orders.locator('#orders-filters')
+  const filters = toolbar.locator('#orders-extra-filters > summary')
+  const status = toolbar.locator('#order-status-select')
+  const fullscreen = toolbar.locator('#orders-fullscreen')
+  const newOrder = toolbar.getByRole('link', { name: 'Новый заказ' })
+  await expect(orders.getByRole('heading', { name: 'Заказы', exact: true })).toHaveCount(0)
+  await expect(orders.locator('#intake-menu')).toHaveCount(0)
 
-  const fullscreen = orders.locator('#orders-fullscreen')
+  for (const width of [1280, 640, 320]) {
+    await page.setViewportSize({ width, height: 800 })
+    if (width < 1024) {
+      await expect.poll(() => page.locator('.staff-shell-content').evaluate((element) =>
+        getComputedStyle(element).marginLeft,
+      )).toBe('0px')
+    }
+    await expect.poll(() => newOrder.evaluate((element) =>
+      element.getBoundingClientRect().right <= window.innerWidth,
+    )).toBe(true)
+    const controls = [toolbar.locator('#orders-search'), toolbar.locator('#orders-period'), status, filters, fullscreen, newOrder]
+    const boxes = await Promise.all(controls.map(control => control.boundingBox()))
+    const centers = boxes.map(box => {
+      expect(box).not.toBeNull()
+      return box!.y + box!.height / 2
+    })
+    expect(Math.max(...centers) - Math.min(...centers)).toBeLessThan(4)
+    expect(boxes[0]!.width).toBeGreaterThanOrEqual(36)
+    expect(boxes[5]!.x + boxes[5]!.width).toBeLessThanOrEqual(width)
+    await expectPageFrame(page, 0)
+  }
+
+  await page.setViewportSize({ width: 1280, height: 800 })
   await fullscreen.click()
   await expect(page.locator('#orders-page:fullscreen')).toBeVisible()
-  await orders.locator('#orders-period').selectOption('all')
+  await toolbar.locator('#orders-period').selectOption('all')
   await expect(page).toHaveURL(/period=all/)
-  await orders.locator('#intake-menu').click()
-  const intake = orders.getByRole('dialog', { name: 'Приём заказа', exact: true })
-  await expect(intake).toBeVisible()
-  await page.keyboard.press('Escape')
-  await expect(intake).toBeHidden()
+  await status.click()
+  await toolbar.locator('#order-status-tab-preparing').click()
+  await expect(page).toHaveURL(/status=preparing/)
+  await expect(toolbar.locator('#orders-receiving')).toBeHidden()
+  await filters.click()
+  await expect(toolbar.locator('#orders-receiving')).toBeVisible()
+  await toolbar.locator('#orders-receiving').selectOption('delivery')
+  await expect(page).toHaveURL(/receiving=delivery/)
   await expect(fullscreen).toHaveAttribute('aria-pressed', 'true')
   await fullscreen.click()
   await expect(page.locator('#orders-page:fullscreen')).toHaveCount(0)
-  await expect(orders.locator('#orders-period')).toHaveValue('all')
+  await expect(toolbar.locator('#orders-period')).toHaveValue('all')
 
   await page.setViewportSize({ width: 1024, height: 720 })
-  await orders.locator('#orders-period').selectOption('custom')
-  await expect(orders.locator('input[name="date_from"]')).toBeVisible()
-  await expect.poll(() => orders.locator('#orders-filters').evaluate((filters) => {
-    const center = (selector: string) => {
-      const rect = filters.querySelector(selector)!.getBoundingClientRect()
-      return rect.y + rect.height / 2
-    }
-    return [
-      Math.abs(center('#orders-search') - center('input[name="date_from"]')),
-      Math.abs(center('#orders-period') - center('#orders-filter-form button[type="submit"]')),
-    ].every(delta => delta < 4)
-  })).toBe(true)
+  await toolbar.locator('#orders-period').selectOption('custom')
+  await expect(toolbar.locator('input[name="date_from"]')).toBeVisible()
+  await expect(toolbar.locator('input[name="date_to"]')).toBeVisible()
+  await page.evaluate(() => {
+    document.querySelector('#orders')!.setAttribute('style', 'min-height: 200vh')
+    window.scrollTo(0, document.documentElement.scrollHeight)
+  })
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+  await expect.poll(async () => Math.round((await toolbar.boundingBox())!.y)).toBe(56)
 })
 
 test('promotion action opens the scenario route', async ({ staff }) => {
