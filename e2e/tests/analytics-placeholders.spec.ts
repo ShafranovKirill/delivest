@@ -26,10 +26,24 @@ test('analytics sidebar opens sales, acquisition and buyers with report drilldow
   await group.locator('summary').click()
   await expect(group.locator('a')).toHaveCount(3)
   const statistics = page.locator('#sidebar-section-nav-statistics')
-  await expect(statistics).toHaveAttribute('href', `/staff/b/${branchSlug}/statistics`)
-  await expect(page.locator('#sidebar-section-nav-analytics_acquisition')).toHaveAttribute('href', `/staff/b/${branchSlug}/analytics/sources`)
-  await expect(page.locator('#sidebar-section-nav-analytics_customers')).toHaveAttribute('href', `/staff/b/${branchSlug}/analytics/customers`)
+  for (const { id, from } of [
+    { id: 'statistics', from: `/staff/b/${branchSlug}/statistics` },
+    { id: 'analytics_acquisition', from: `/staff/b/${branchSlug}/analytics/sources` },
+    { id: 'analytics_customers', from: `/staff/b/${branchSlug}/analytics/customers` },
+  ]) {
+    const href = await page.locator(`#sidebar-section-nav-${id}`).getAttribute('href')
+    expect(href).not.toBeNull()
+    const chooser = new URL(href!, adminUrl)
+    expect(chooser.pathname).toBe('/staff/branches/select')
+    expect(chooser.searchParams.get('from')).toBe(from)
+    expect(chooser.searchParams.get('return_to')).toBe(`/staff/b/${branchSlug}/products`)
+  }
   await statistics.click()
+  await expect(page.locator('main #branch-select-page')).toBeVisible()
+  const e2eCard = page.locator('[id^="branch-select-card-"]').filter({
+    has: page.getByRole('heading', { name: 'E2E', exact: true }),
+  })
+  await e2eCard.locator('[id^="branch-select-go-"]').filter({ hasText: 'Перейти' }).click()
   await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/statistics`)
   await expect(page.locator('#statistics-sales-detail')).toBeVisible()
 
@@ -51,6 +65,16 @@ test('analytics sidebar opens sales, acquisition and buyers with report drilldow
   await expect(page.locator('#statistics-sales-detail')).toBeVisible()
   await expect(page.locator('#header-branch summary')).toHaveAttribute('aria-label', 'Все доступные филиалы')
   await expect(page.locator('#sidebar-section-nav-statistics')).toHaveAttribute('aria-current', 'page')
+
+  await page.goto(`${adminUrl}/staff/dashboard`)
+  await page.locator('[data-phx-main].phx-connected').waitFor()
+  const networkGroup = page.locator('#sidebar-group-analytics')
+  if (await networkGroup.getAttribute('open') === null) await networkGroup.locator('summary').click()
+  await page.locator('#sidebar-section-nav-statistics').click()
+  await expect(page.locator('main #branch-select-page')).toBeVisible()
+  await page.locator('#branch-select-all-go').click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/statistics`)
+  await expect(page.locator('#statistics-sales-detail')).toBeVisible()
 })
 
 test('mobile analytics keeps sidebar destinations and in-page report drilldowns', async ({ staff }) => {
@@ -61,6 +85,12 @@ test('mobile analytics keeps sidebar destinations and in-page report drilldowns'
   await page.locator('#sidebar-group-analytics-toggle').click()
   await page.locator('#sidebar-section-nav-statistics').click()
   await expect(page.locator('#main-sidebar')).toBeHidden()
+  await expect(page.locator('main #branch-select-page')).toBeVisible()
+  const e2eCard = page.locator('[id^="branch-select-card-"]').filter({
+    has: page.getByRole('heading', { name: 'E2E', exact: true }),
+  })
+  await e2eCard.locator('[id^="branch-select-go-"]').filter({ hasText: 'Перейти' }).click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/statistics`)
   const navigation = page.locator('#staff-section-navigation')
   await expect(navigation).toBeVisible()
   await expect(navigation.locator('a')).toHaveCount(3)

@@ -180,13 +180,19 @@ test('mobile sidebar opens from header and closes after navigation', async ({ st
       await page.locator('#sidebar-group-analytics-toggle').click()
     }
     const statistics = page.locator('#main-sidebar #sidebar-section-nav-statistics')
-    await expect(statistics).toHaveAttribute('href', `/staff/b/${branchSlug}/statistics`)
+    await expect(statistics).toHaveAttribute('href', /\/staff\/branches\/select\?/)
     await statistics.click()
-    await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/statistics`)
+    await expect(page.locator('main #branch-select-page')).toBeVisible()
     await expect(page.locator('html')).not.toHaveAttribute('data-sidebar-open', '')
     await expect(sidebar).toBeHidden()
     await expect(openToggle).toBeVisible()
     await expect(openToggle).toBeFocused()
+    const e2eCard = page.locator('[id^="branch-select-card-"]').filter({
+      has: page.getByRole('heading', { name: 'E2E', exact: true }),
+    })
+    await e2eCard.locator('[id^="branch-select-go-"]').filter({ hasText: 'Перейти' }).click()
+    await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/statistics`)
+    await expect(page.locator('html')).not.toHaveAttribute('data-sidebar-open', '')
     await expectNoHorizontalOverflow(page)
 
     await page.goto(`${adminUrl}/staff/branches`)
