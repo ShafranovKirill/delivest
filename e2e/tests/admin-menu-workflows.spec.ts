@@ -10,7 +10,8 @@ test('product creation, editing and filtered return keep menu data', async ({ st
 
   await page.setViewportSize({ width: 1440, height: 900 })
   await branchPage(page, 'products')
-  await expect(page.locator('main h1:visible')).toHaveCount(1)
+  await expect(page.locator('main h1:not(.sr-only):visible')).toHaveCount(0)
+  await expect(page.locator('main #products-toolbar.staff-page-toolbar h1.sr-only')).toHaveText('Товары')
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1)
   await page.screenshot({ path: '/tmp/admin-stage4-product-list-desktop-light.png', fullPage: true })
 

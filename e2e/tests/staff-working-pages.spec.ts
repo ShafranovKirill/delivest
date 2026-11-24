@@ -3,11 +3,11 @@ import { adminUrl, branchSlug } from '../support/env'
 import { test } from '../support/test'
 
 const pages = [
-  { name: 'orders', path: `/staff/b/${branchSlug}/orders?period=all`, marker: '#orders-search' },
-  { name: 'clients', path: '/staff/clients', marker: '#clients-filter-form' },
-  { name: 'receipts', path: `/staff/b/${branchSlug}/finance/receipts`, marker: '#receipts-filter-form' },
-  { name: 'analytics', path: `/staff/b/${branchSlug}/analytics/sources?period=today`, marker: '#statistics-report' },
-  { name: 'settings', path: `/staff/branches/${branchSlug}/edit/general`, marker: '#branch-form' },
+  { name: 'orders', path: `/staff/b/${branchSlug}/orders?period=all`, marker: '#orders-search', visibleHeadings: 0 },
+  { name: 'clients', path: '/staff/clients', marker: '#clients-filter-form', toolbar: '#clients-toolbar', visibleHeadings: 0 },
+  { name: 'receipts', path: `/staff/b/${branchSlug}/finance/receipts`, marker: '#receipts-filter-form', toolbar: '#receipts-toolbar', visibleHeadings: 0 },
+  { name: 'analytics', path: `/staff/b/${branchSlug}/analytics/sources?period=today`, marker: '#statistics-report', visibleHeadings: 1 },
+  { name: 'settings', path: `/staff/branches/${branchSlug}/edit/general`, marker: '#branch-form', visibleHeadings: 1 },
 ] as const
 
 for (const size of [
@@ -25,7 +25,11 @@ for (const size of [
         await page.goto(`${adminUrl}${item.path}`)
         await page.locator('[data-phx-main].phx-connected').waitFor()
         await page.evaluate(value => { document.documentElement.dataset.theme = value }, theme)
-        await expect(page.locator('main h1:visible')).toHaveCount(1)
+        await expect(page.locator('main h1:not(.sr-only):visible')).toHaveCount(item.visibleHeadings)
+        if ('toolbar' in item) {
+          await expect(page.locator(`main ${item.toolbar}.staff-page-toolbar h1.sr-only`)).toHaveCount(1)
+          await expect(page.locator(`${item.marker} button[type="submit"]`)).toHaveCount(0)
+        }
         await expect(page.locator(item.marker)).toBeVisible()
         await expect.poll(() => page.evaluate(() =>
           document.documentElement.scrollWidth - document.documentElement.clientWidth,

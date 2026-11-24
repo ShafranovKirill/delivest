@@ -36,6 +36,8 @@ test('an order created by an operator reaches the kitchen without manual confirm
   await branchPage(operator, 'orders/new')
   await operator.locator('[id^="catalog-product-"]', { hasText: 'Маргарита' }).click()
   const marker = `Автопринятие ${Date.now()}`
+  await operator.locator('#order_customer_phone').fill('+79995551234')
+  await operator.locator('#order_customer_name').fill('Клиент тестового заказа')
   await operator.locator('#order_comment').fill(marker)
   await operator.locator('button[type="submit"][form="order-details-form"]').click()
   await expect(operator).toHaveURL(/\/orders$/)
@@ -43,6 +45,24 @@ test('an order created by an operator reaches the kitchen without manual confirm
   const card = operator.locator('article').filter({ hasText: marker })
   await expect(card.locator('[id^="order-next-"]')).not.toContainText('Подтвердить')
   const orderId = (await card.locator('[id^="order-status-"]').getAttribute('id'))!.replace('order-status-', '')
+
+  await operator.setViewportSize({ width: 390, height: 844 })
+  const customer = card.locator(`#order-customer-${orderId}`)
+  const dialog = operator.getByRole('dialog', { name: 'Клиент тестового заказа' })
+  await expect(customer).toContainText('+7 (999) 555-12-34')
+  await customer.click()
+  await expect(dialog).toBeVisible()
+  await expect(dialog.locator('#order-customer-close')).toBeFocused()
+  await expect(dialog.locator(`#customer-history-order-${orderId}`)).toBeVisible()
+  await operator.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await expect(customer).toBeFocused()
+
+  await card.locator(`#order-view-${orderId}`).click()
+  await operator.locator(`#shown-order #order-customer-${orderId}`).click()
+  await expect(dialog).toBeVisible()
+  await dialog.locator('#order-customer-close').click()
+  await expect(operator.locator('#shown-order')).toBeVisible()
 
   const kitchen = await staff('e2e_kitchen')
   await branchPage(kitchen, 'kitchen')
