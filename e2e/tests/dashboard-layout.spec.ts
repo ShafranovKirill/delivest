@@ -70,6 +70,12 @@ test('dashboard shares its saved widgets across scopes and adapts without horizo
   expect(quickActions?.width).toBeLessThanOrEqual(390)
 
   await page.locator('#dashboard-edit').click()
+  await page.locator('#dashboard-move-up-quick_actions').click()
+  await expect.poll(async () => {
+    const quick = await widget('quick_actions').boundingBox()
+    const attention = await widget('attention').boundingBox()
+    return Boolean(quick && attention && quick.y < attention.y)
+  }).toBe(true)
   await reset()
   await expect(widget('hourly').locator('canvas').first()).toBeVisible()
   await branchPage(page, 'dashboard')
