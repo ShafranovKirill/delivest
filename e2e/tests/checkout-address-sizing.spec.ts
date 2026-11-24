@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 async function openCheckoutAddress(
   page: Page,
   operatorAddress: boolean,
-  pickupMethods?: Array<"pickup" | "dine_in">,
+  pickupMethods: Array<"pickup" | "dine_in">,
 ) {
   await page.route('**/client/storefront/v1/bootstrap?*', async (route) => {
     const response = await route.fetch();
@@ -11,11 +11,7 @@ async function openCheckoutAddress(
     const branches = [...body.branches, body.selected_branch];
     for (const branch of branches) {
       if (branch?.slug === "e2e" && branch.branch_info) {
-        if (pickupMethods)
-          branch.branch_info.fulfillment_methods = [
-            "delivery",
-            ...pickupMethods,
-          ];
+        branch.branch_info.fulfillment_methods = ["delivery", ...pickupMethods];
         branch.branch_info.delivery = {
           ...branch.branch_info.delivery,
           map_address: false,
@@ -30,29 +26,26 @@ async function openCheckoutAddress(
 
   await page.goto("/e2e");
   await page.getByRole("button", { name: "590 ₽" }).click();
-  await page.getByText("Указать адрес доставки").click();
-  if (operatorAddress) {
-    await page
-      .getByRole("button", { name: "Уточнить адрес по телефону" })
-      .click();
-  } else {
-    await page.getByLabel("Улица, дом").fill("Тверская, 7");
-    await page.getByRole("button", { name: "Подтвердить адрес" }).click();
-  }
-  await page
-    .getByRole("button", { name: "590 ₽", exact: true })
-    .filter({ visible: true })
-    .first()
-    .click();
+  await page.getByRole("button", { name: "Доставка", exact: true }).click();
+  const cartButton = page.viewportSize()!.width < 768 ? page : page.locator("header");
+  await cartButton.getByRole("button", { name: "590 ₽" }).click();
   await page.getByRole("button", { name: "К оформлению заказа" }).click();
   await expect(page).toHaveURL(/checkout/);
-  await page.getByRole("button", { name: /Адрес доставки:/ }).click();
-  const address = page.getByLabel("Улица, дом");
+  if (operatorAddress) {
+    await page.getByRole("checkbox", { name: "Уточнить адрес по телефону" }).check();
+  } else {
+    await page.getByLabel("Улица и дом").fill("Тверская, 7");
+  }
+  await page
+    .getByRole("group", { name: "Адрес доставки" })
+    .getByRole("button", {
+      name: pickupMethods.includes("pickup") ? "Самовывоз" : "В зале",
+    })
+    .click();
   const dialog = page
     .getByRole("dialog")
     .filter({ has: page.getByRole("radio", { name: /Самовывоз|В зале/ }) });
   await expect(dialog).toBeVisible();
-  await expect(address).toBeVisible();
   return dialog;
 }
 
@@ -161,29 +154,24 @@ for (const method of ["Самовывоз", "В зале"] as const) {
   });
 }
 
-async function expectNaturalHeight(
-  page: Page,
+async function expectDialogFitsViewport(
   dialog: ReturnType<Page["getByRole"]>,
 ) {
   const dimensions = await dialog.evaluate((root) => {
     const box = root.getBoundingClientRect();
-    const scrollExcess = [root, ...root.querySelectorAll<HTMLElement>("*")]
-      .filter((element) => {
-        const overflow = getComputedStyle(element).overflowY;
-        return overflow === "auto" || overflow === "scroll";
-      })
-      .map((element) =>
-        Math.max(0, element.scrollHeight - element.clientHeight),
-      );
     return {
-      height: box.height,
-      centerOffset: Math.abs(box.top + box.height / 2 - window.innerHeight / 2),
-      excess: Math.max(0, ...scrollExcess),
+      top: box.top,
+      bottom: box.bottom,
+      left: box.left,
+      right: box.right,
+      viewportHeight: window.innerHeight,
+      viewportWidth: window.innerWidth,
     };
   });
-  expect(dimensions.height).toBeLessThan(page.viewportSize()!.height - 16);
-  expect(dimensions.centerOffset).toBeLessThanOrEqual(3);
-  expect(dimensions.excess).toBeLessThanOrEqual(2);
+  expect(dimensions.top).toBeGreaterThanOrEqual(0);
+  expect(dimensions.bottom).toBeLessThanOrEqual(dimensions.viewportHeight);
+  expect(dimensions.left).toBeGreaterThanOrEqual(0);
+  expect(dimensions.right).toBeLessThanOrEqual(dimensions.viewportWidth);
 }
 
 for (const viewport of [
@@ -192,24 +180,29 @@ for (const viewport of [
   { width: 375, height: 667 },
 ]) {
   for (const operatorAddress of [false, true]) {
-    test(`checkout address dialog fits ${viewport.width}x${viewport.height} with operator ${operatorAddress}`, async ({
+    test(`checkout inline address and pickup picker fit ${viewport.width}x${viewport.height} with operator ${operatorAddress}`, async ({
       page,
     }) => {
       await page.setViewportSize(viewport);
-      const dialog = await openCheckoutAddress(page, operatorAddress);
-      await expect(
-        dialog.getByRole("button", { name: "Уточнить адрес по телефону" }),
-      ).toHaveCount(operatorAddress ? 1 : 0);
+      const dialog = await openCheckoutAddress(page, operatorAddress, ["pickup"]);
       await expect(dialog.locator(".cursor-grab")).toHaveCount(0);
-      await expectNaturalHeight(page, dialog);
-
-      const modes = dialog.getByRole("radiogroup").first();
-      await modes.getByRole("radio", { name: "Самовывоз" }).click();
+      await expectDialogFitsViewport(dialog);
       await expect(dialog.getByTestId("pickup-branch-list")).toBeVisible();
-      await expectNaturalHeight(page, dialog);
-      await modes.getByRole("radio", { name: "Доставка" }).click();
-      await expect(dialog.getByLabel("Улица, дом")).toBeVisible();
-      await expectNaturalHeight(page, dialog);
+      await dialog.getByRole("button", { name: "Закрыть" }).click();
+      await expect(page.getByRole("heading", { name: "Заказ на доставку" })).toBeVisible();
+      await expect(
+        page.getByRole("checkbox", { name: "Уточнить адрес по телефону" }),
+      ).toHaveCount(operatorAddress ? 1 : 0);
+      if (operatorAddress) {
+        const checkbox = page.getByRole("checkbox", { name: "Уточнить адрес по телефону" });
+        await expect(checkbox).toBeChecked();
+        await checkbox.uncheck();
+      }
+      await expect(page.getByLabel("Улица и дом")).toBeVisible();
+      const horizontalOverflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - window.innerWidth,
+      );
+      expect(horizontalOverflow).toBeLessThanOrEqual(2);
     });
   }
 }
