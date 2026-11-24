@@ -24,24 +24,28 @@ test('dashboard shares its saved widgets across scopes and adapts without horizo
 
   await page.locator('#dashboard-edit').click()
   const revenue = widget('revenue')
-  const initialWidth = (await revenue.boundingBox())!.width
+  await expect(page.locator('#dashboard-save')).toBeVisible()
+  await expect(grid).toHaveClass(/\bgs-12\b/)
+  await expect(revenue).toHaveAttribute('gs-w', '3')
   await revenue.hover()
   const handle = revenue.locator('.ui-resizable-se')
   await expect(handle).toBeVisible()
+  const columnWidth = (await grid.boundingBox())!.width / 12
   const resizeHandle = (await handle.boundingBox())!
   const x = resizeHandle.x + resizeHandle.width / 2
   const y = resizeHandle.y + resizeHandle.height / 2
   await page.mouse.move(x, y)
   await page.mouse.down()
-  await page.mouse.move(x + initialWidth / 3, y, { steps: 12 })
+  await page.mouse.move(x + columnWidth, y, { steps: 12 })
   await page.mouse.up()
-  await expect.poll(async () => (await revenue.boundingBox())!.width).toBeGreaterThan(initialWidth + 20)
+  await expect(revenue).toHaveAttribute('gs-w', '4')
   await page.locator('#dashboard-remove-hourly').click()
   await expect(widget('hourly')).toHaveCount(0)
   await page.locator('#dashboard-cancel').click()
   await expect(widget('hourly')).toBeVisible()
   await page.locator('#dashboard-edit').click()
-  await expect.poll(async () => (await revenue.boundingBox())!.width).toBeCloseTo(initialWidth, 0)
+  await expect(page.locator('#dashboard-save')).toBeVisible()
+  await expect(revenue).toHaveAttribute('gs-w', '3')
 
   const statisticsAction = page.locator('#dashboard-action-statistics')
   await expect(statisticsAction).toHaveAttribute('aria-pressed', 'true')
