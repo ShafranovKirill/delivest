@@ -189,21 +189,41 @@ test('standalone payment form Save is associated with its page action', async ({
   const page = await staff('e2e_admin')
   await branchPage(page, 'finance/payments')
 
-  const save = page.locator('main #staff-header-actions button[form="payments-form"]')
+  const toolbar = page.locator('main #payment-methods-toolbar.staff-page-toolbar')
+  const save = toolbar.locator('.staff-page-toolbar-actions button[form="payments-form"]')
+  await expect(toolbar.locator('h1.sr-only')).toHaveText('Оплата')
   await expect(save).toBeVisible()
   await expect(page.locator('#payments-form button[type="submit"]')).toHaveCount(0)
-  await expectPageFrame(page)
+  await expectPageFrame(page, 0)
   expect(await save.evaluate((button: HTMLButtonElement) => button.form?.id)).toBe('payments-form')
   await expect(save).toBeDisabled()
   const cash = page.locator('#payments-form input[name="payments[cash]"][type="checkbox"]')
   const card = page.locator('#payments-form input[name="payments[card_offline]"][type="checkbox"]')
   const changed = await card.isChecked() ? cash : card
   const initial = await changed.isChecked()
-  await changed.setChecked(!initial)
-  await expect(save).toBeEnabled()
-  await save.click()
-  await expect(page.locator('#flash-group')).toContainText(/сохран|saved/i)
-  await expect(save).toBeDisabled()
-  await page.reload()
-  await expect(changed).toHaveJSProperty('checked', !initial)
+  let saveAttempted = false
+
+  try {
+    await changed.setChecked(!initial)
+    await expect(save).toBeEnabled()
+    saveAttempted = true
+    await save.click()
+    await expect(page.locator('#flash-group')).toContainText(/сохран|saved/i)
+    await expect(save).toBeDisabled()
+    await page.reload()
+    await page.locator('[data-phx-main].phx-connected').waitFor()
+    await expect(changed).toHaveJSProperty('checked', !initial)
+  } finally {
+    if (saveAttempted) {
+      await page.reload()
+      await page.locator('[data-phx-main].phx-connected').waitFor()
+
+      if ((await changed.isChecked()) !== initial) {
+        await changed.setChecked(initial)
+        await expect(save).toBeEnabled()
+        await save.click()
+        await expect(save).toBeDisabled()
+      }
+    }
+  }
 })
