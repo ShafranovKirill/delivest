@@ -54,6 +54,24 @@ test('Yandex settings and advertising report work in the existing staff shell', 
   await expect(admin.locator('#yandex-oauth-connect')).toBeVisible()
   await expect(admin.locator('#yandex-ensure-funnel-goals')).toBeVisible()
   await expect(admin.locator('input[name="yandex_ads[direct_token]"]')).toHaveValue('')
+
+  await admin.goto(`${adminUrl}/staff/analytics/advertising`)
+  await expect(admin).toHaveURL(`${adminUrl}/staff/dashboard`)
+  await expect(admin.locator('#advertising-coverage')).toHaveCount(0)
+
+  await admin.goto(`${adminUrl}/staff/settings`)
+  await admin.locator('[data-phx-main].phx-connected').waitFor()
+  const costsToggle = admin.locator('#feature-toggle-yandex_costs')
+  await expect(costsToggle).toHaveAttribute('aria-checked', 'false')
+  await costsToggle.click()
+
+  const confirmation = admin.locator('#feature-confirmation')
+  await expect.poll(async () =>
+    (await costsToggle.getAttribute('aria-checked')) === 'true' || (await confirmation.isVisible()),
+  ).toBe(true)
+  if (await confirmation.isVisible()) await admin.locator('#feature-confirm').click()
+  await expect(costsToggle).toHaveAttribute('aria-checked', 'true')
+
   await admin.goto(`${adminUrl}/staff/analytics/advertising`)
   await expect(admin.locator('#advertising-coverage')).toBeVisible()
   await expect(admin.locator('#advertising-no-costs')).toBeVisible()
