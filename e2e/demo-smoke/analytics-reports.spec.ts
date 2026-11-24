@@ -9,8 +9,16 @@ test('existing demo renders the four analytics reports without resetting data', 
   await page.locator('#user_password').press('Enter')
   await page.waitForURL(url => !url.pathname.startsWith('/staff/auth'))
 
-  await page.goto(new URL('/staff/statistics?tab=overview', base).toString())
+  for (const path of ['/staff/dashboard', '/staff/b/demo-center/dashboard']) {
+    await page.goto(path)
+    await expect(page.locator('#dashboard-orders-by-hour-plot canvas').first()).toBeVisible()
+    await expect(page.locator('#statistics-heatmap-chart')).toHaveCount(0)
+  }
+
+  await page.goto('/staff/statistics')
   await page.locator('[data-phx-main].phx-connected').waitFor()
+  await page.locator('#statistics-heatmap-link').click()
+  await expect(page).toHaveURL(/tab=overview.*#statistics-heatmap$/)
   const heatmap = page.locator('#statistics-heatmap-chart')
   await expect(heatmap.locator('canvas').first()).toBeVisible()
   const data = JSON.parse((await heatmap.getAttribute('data-chart'))!) as {
