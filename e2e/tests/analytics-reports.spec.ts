@@ -191,7 +191,7 @@ test('overview heatmap draws, filters fulfillment and opens four dated cell deta
   const surface = chart.locator('[role="img"]')
   const plot = (await surface.boundingBox())!
   const download = admin.waitForEvent('download', { timeout: 8_000 })
-  await surface.click({ position: { x: plot.width - 17, y: 13 } })
+  await surface.click({ position: { x: plot.width - 28, y: 22 } })
   const png = await download
   expect(png.suggestedFilename()).toMatch(/orders-heatmap.*\.png$/)
   await touchContext.close()
