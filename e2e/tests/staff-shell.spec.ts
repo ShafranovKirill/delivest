@@ -197,7 +197,7 @@ test('mobile sidebar opens from header and closes after navigation', async ({ st
 
     await page.goto(`${adminUrl}/staff/branches`)
     await page.locator('[data-phx-main].phx-connected').waitFor()
-    const createAction = page.locator('main #staff-header-actions #create-branch')
+    const createAction = page.locator('main #branches-toolbar .staff-page-toolbar-actions #create-branch')
     await expect(createAction).toBeVisible()
     const actionBox = await createAction.boundingBox()
     expect(actionBox).not.toBeNull()

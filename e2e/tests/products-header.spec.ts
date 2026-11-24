@@ -6,31 +6,32 @@ import { adminUrl } from '../support/env'
 type Section = {
   path: string
   key: string
+  toolbar: string
   title: string
   action?: string
 }
 
 const sections: Section[] = [
-  { path: 'products', key: 'products', title: 'Товары', action: '#create-product' },
-  { path: 'products/stops', key: 'stops', title: 'Стоп-лист' },
-  { path: 'products/modifiers', key: 'modifiers', title: 'Модификаторы', action: 'button[phx-click="new_group"]' },
-  { path: 'products/tags', key: 'tags', title: 'Теги', action: 'a[href$="/products/tags/new"]' },
-  { path: 'products/suggested', key: 'suggested', title: 'Рекомендуемые', action: '#suggested-add-products' },
-  { path: 'menu/popular', key: 'popular', title: 'Популярные товары', action: 'button[form="popular-settings"]' },
+  { path: 'products', key: 'products', toolbar: 'products-toolbar', title: 'Товары', action: '#create-product' },
+  { path: 'products/stops', key: 'stops', toolbar: 'stop-list-toolbar', title: 'Стоп-лист', action: '#stop-add-products' },
+  { path: 'products/modifiers', key: 'modifiers', toolbar: 'modifiers-toolbar', title: 'Модификаторы', action: 'button[phx-click="new_group"]' },
+  { path: 'products/tags', key: 'tags', toolbar: 'tags-toolbar', title: 'Теги', action: 'a[href$="/products/tags/new"]' },
+  { path: 'products/suggested', key: 'suggested', toolbar: 'suggested-toolbar', title: 'Рекомендуемые', action: '#suggested-add-products' },
+  { path: 'menu/popular', key: 'popular', toolbar: 'popular-toolbar', title: 'Популярные товары', action: 'button[form="popular-settings"]' },
 ]
 
 const productNavigation = (page: Page) =>
   page.locator('#staff-section-navigation:visible, #sidebar-staff-section-navigation:visible')
 
 async function expectSectionPage(page: Page, section: Section) {
-  const header = page.locator('main #staff-page-header')
+  const toolbar = page.locator(`main #${section.toolbar}.staff-page-toolbar`)
   const nav = productNavigation(page)
-  const actions = header.locator('#staff-header-actions')
+  const actions = toolbar.locator('.staff-page-toolbar-actions')
   const selected = nav.locator(`[id$="product-section-tab-${section.key}"]`)
 
   await expect(page.locator('#staff-header h1')).toHaveCount(0)
-  await expect(page.locator('main h1:visible')).toHaveCount(1)
-  await expect(header.locator('h1:visible')).toHaveText(section.title)
+  await expect(page.locator('main h1:not(.sr-only):visible')).toHaveCount(0)
+  await expect(toolbar.locator('h1.sr-only')).toHaveText(section.title)
   await expect(nav.locator('[id*="product-section-tab-"]')).toHaveCount(sections.length + 1)
   await expect(selected).toHaveAttribute('aria-current', 'page')
   await expect(nav.locator('[aria-current="page"]')).toHaveCount(1)
@@ -58,11 +59,12 @@ test('product tabs and page title render before JavaScript connects', async ({ b
   try {
     const page = await context.newPage()
     await page.goto(`${adminUrl}/staff/b/e2e/products/tags`)
-    const header = page.locator('main #staff-page-header')
-    await expect(header.locator('h1:visible')).toHaveText('Теги')
+    const toolbar = page.locator('main #tags-toolbar.staff-page-toolbar')
+    await expect(page.locator('main h1:not(.sr-only):visible')).toHaveCount(0)
+    await expect(toolbar.locator('h1.sr-only')).toHaveText('Теги')
     await expect(productNavigation(page).locator('[id*="product-section-tab-"]')).toHaveCount(sections.length + 1)
     await expect(productNavigation(page).locator('[id$="product-section-tab-tags"]')).toHaveAttribute('aria-current', 'page')
-    await expect(header.locator('#staff-header-actions a[href$="/products/tags/new"]')).toBeVisible()
+    await expect(toolbar.locator('.staff-page-toolbar-actions a[href$="/products/tags/new"]')).toBeVisible()
     await expect.poll(() => page.locator('#staff-header').evaluate(e =>
       Math.round(e.getBoundingClientRect().height),
     )).toBe(56)
@@ -87,11 +89,11 @@ test('all product sections keep selected local navigation and actions', async ({
   }
 
   await branchPage(page, 'products/modifiers')
-  await page.locator('main #staff-header-actions button[phx-click="new_group"]').click()
+  await page.locator('main #modifiers-toolbar .staff-page-toolbar-actions button[phx-click="new_group"]').click()
   await expect(page.locator('#group-form')).toBeVisible()
 
   await branchPage(page, 'products/tags')
-  await page.locator('main #staff-header-actions a[href$="/products/tags/new"]').click()
+  await page.locator('main #tags-toolbar .staff-page-toolbar-actions a[href$="/products/tags/new"]').click()
   await expect(page.locator('#product-tag-form')).toBeVisible()
 })
 
@@ -101,7 +103,8 @@ test('product actions and query survive page navigation', async ({ staff }) => {
   await branchPage(page, 'products?search=header')
   await expectSectionPage(page, sections[0])
   await expect(page.locator('main #products-filter')).toBeVisible()
-  await expect(page.locator('main #staff-header-actions #create-product')).toBeVisible()
+  await expect(page.locator('main #products-toolbar .staff-page-toolbar-actions #create-product')).toBeVisible()
+  await expect(page.locator('#products-filter button[type="submit"]')).toHaveCount(0)
   const more = page.locator('main #product-more-actions')
   await more.locator('summary').focus()
   await page.keyboard.press('Enter')
@@ -145,7 +148,7 @@ test('mobile keeps selected product tab visible in local navigation', async ({ s
   await expect.poll(() => nav.evaluate((element) => element.scrollLeft)).toBeGreaterThan(1)
   await nav.evaluate((element) => element.scrollTo({ left: 0, behavior: 'instant' }))
   await expect.poll(() => nav.evaluate((element) => element.scrollLeft)).toBeLessThanOrEqual(1)
-  await page.locator('main #staff-header-actions #create-product').click()
+  await page.locator('main #products-toolbar .staff-page-toolbar-actions #create-product').click()
   await expect(page.locator('#product-slideover-toggle')).toBeChecked()
 })
 

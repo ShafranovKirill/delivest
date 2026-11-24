@@ -8,7 +8,7 @@ async function expectPageFrame(page: Page, headingCount = 1) {
     Math.round(header.getBoundingClientRect().height),
   )).toBe(56)
   await expect(page.locator('#staff-header h1')).toHaveCount(0)
-  await expect(page.locator('main h1:visible')).toHaveCount(headingCount)
+  await expect(page.locator('main h1:not(.sr-only):visible')).toHaveCount(headingCount)
   await expect.poll(() => page.evaluate(() =>
     document.documentElement.scrollWidth - document.documentElement.clientWidth,
   )).toBeLessThanOrEqual(1)
@@ -19,9 +19,9 @@ test('client title and action live together in the page content', async ({ staff
   await page.goto(`${adminUrl}/staff/clients`)
   await page.locator('[data-phx-main].phx-connected').waitFor()
 
-  await expect(page.locator('main #staff-page-header h1:visible')).toBeVisible()
-  await expect(page.locator('main #staff-header-actions')).toContainText('Создать клиента')
-  await expectPageFrame(page)
+  await expect(page.locator('main #clients-toolbar.staff-page-toolbar h1.sr-only')).toHaveText('Клиенты')
+  await expect(page.locator('main #clients-toolbar .staff-page-toolbar-actions').getByRole('link', { name: 'Создать клиента' })).toBeVisible()
+  await expectPageFrame(page, 0)
 })
 
 test('staff page navigation and actions are present in the initial HTML', async ({ browser, staff }) => {
@@ -43,9 +43,9 @@ test('staff page navigation and actions are present in the initial HTML', async 
     await expectPageFrame(page, 0)
 
     await page.goto(`${adminUrl}/staff/clients`)
-    await expect(page.locator('main #staff-page-header h1:visible')).toBeVisible()
-    await expect(page.locator('main #staff-header-actions')).toContainText('Создать клиента')
-    await expectPageFrame(page)
+    await expect(page.locator('main #clients-toolbar.staff-page-toolbar h1.sr-only')).toHaveText('Клиенты')
+    await expect(page.locator('main #clients-toolbar .staff-page-toolbar-actions').getByRole('link', { name: 'Создать клиента' })).toBeVisible()
+    await expectPageFrame(page, 0)
   } finally {
     await context.close()
   }
