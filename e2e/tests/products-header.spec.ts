@@ -105,6 +105,8 @@ test('collections open separate popular and recommended settings', async ({ staf
   await page.locator('#collections-popular a').click()
   await expect(productNavigation(page).locator('[id$="product-section-tab-collections"]')).toHaveAttribute('aria-current', 'page')
   await expect(page.locator('#popular-toolbar a[href$="/products/collections"]')).toBeVisible()
+  await expect(page.locator('#popular-toolbar h1:not(.sr-only)')).toHaveText('Популярные товары')
+  await expect(page.locator('#popular-toolbar h1:not(.sr-only)')).toBeVisible()
   await expect(page.locator('#collections-tab-suggested')).toHaveCount(0)
   await expect(page.locator('#popular-toolbar button[form="popular-settings"]')).toBeVisible()
 
@@ -113,6 +115,8 @@ test('collections open separate popular and recommended settings', async ({ staf
   await page.locator('#collections-suggested a').click()
   await expect(productNavigation(page).locator('[id$="product-section-tab-collections"]')).toHaveAttribute('aria-current', 'page')
   await expect(page.locator('#suggested-toolbar a[href$="/products/collections"]')).toBeVisible()
+  await expect(page.locator('#suggested-toolbar h1:not(.sr-only)')).toHaveText('Рекомендуемые')
+  await expect(page.locator('#suggested-toolbar h1:not(.sr-only)')).toBeVisible()
   await expect(page.locator('#collections-tab-popular')).toHaveCount(0)
   await expect(page.locator('#suggested-add-products')).toBeVisible()
   await page.locator('#suggested-toolbar a[href$="/products/collections"]').click()
