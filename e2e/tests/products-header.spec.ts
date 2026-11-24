@@ -104,14 +104,19 @@ test('collections open separate popular and recommended settings', async ({ staf
 
   await page.locator('#collections-popular a').click()
   await expect(productNavigation(page).locator('[id$="product-section-tab-collections"]')).toHaveAttribute('aria-current', 'page')
-  await expect(page.locator('#collections-tab-popular')).toHaveAttribute('aria-current', 'page')
-  await expect(page.locator('#collections-tab-suggested')).toBeVisible()
+  await expect(page.locator('#popular-toolbar a[href$="/products/collections"]')).toBeVisible()
+  await expect(page.locator('#collections-tab-suggested')).toHaveCount(0)
   await expect(page.locator('#popular-toolbar button[form="popular-settings"]')).toBeVisible()
 
-  await page.locator('#collections-tab-suggested').click()
+  await page.locator('#popular-toolbar a[href$="/products/collections"]').click()
+  await expect(page.locator('#collections-suggested a[href$="/products/suggested"]')).toBeVisible()
+  await page.locator('#collections-suggested a').click()
   await expect(productNavigation(page).locator('[id$="product-section-tab-collections"]')).toHaveAttribute('aria-current', 'page')
-  await expect(page.locator('#collections-tab-suggested')).toHaveAttribute('aria-current', 'page')
+  await expect(page.locator('#suggested-toolbar a[href$="/products/collections"]')).toBeVisible()
+  await expect(page.locator('#collections-tab-popular')).toHaveCount(0)
   await expect(page.locator('#suggested-add-products')).toBeVisible()
+  await page.locator('#suggested-toolbar a[href$="/products/collections"]').click()
+  await expect(page.locator('#collections-popular a[href$="/menu/popular"]')).toBeVisible()
 })
 
 test('product actions and query survive page navigation', async ({ staff }) => {
