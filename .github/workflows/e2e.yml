@@ -15,11 +15,47 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  coverage:
+    name: Spec coverage
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.groups.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.27.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+
+      - name: Install Playwright package
+        working-directory: e2e
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck and verify spec collection
+        working-directory: e2e
+        run: |
+          pnpm typecheck
+          node scripts/spec-groups.mjs verify-collection
+
+      - name: Export verified matrix
+        id: groups
+        working-directory: e2e
+        run: |
+          matrix=$(node scripts/spec-groups.mjs matrix)
+          printf 'matrix=%s\n' "$matrix" >> "$GITHUB_OUTPUT"
+
   e2e:
-    name: Playwright
-    # Playwright 1.56 does not support Ubuntu 26.04.
+    name: Playwright / ${{ matrix.group }}
+    needs: coverage
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.coverage.outputs.matrix) }}
     env:
       CI: "1"
       DEV_DATABASE: delivest_e2e
@@ -77,17 +113,39 @@ jobs:
 
       - name: Playwright
         working-directory: e2e
+        env:
+          GROUP: ${{ matrix.group }}
         run: |
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps chromium
-          pnpm typecheck
-          pnpm exec playwright test
+          node scripts/spec-groups.mjs run "$GROUP" --workers=1
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report
+          name: playwright-${{ matrix.group }}
           path: |
             e2e/playwright-report
             e2e/test-results
           retention-days: 7
+
+  playwright:
+    name: Playwright
+    needs: [coverage, e2e]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Reject cancelled workflow
+        if: cancelled()
+        run: exit 1
+
+      - name: Verify all groups passed
+        if: always()
+        env:
+          COVERAGE_RESULT: ${{ needs.coverage.result }}
+          MATRIX_RESULT: ${{ needs.e2e.result }}
+        run: |
+          if [[ "$COVERAGE_RESULT" != "success" || "$MATRIX_RESULT" != "success" ]]; then
+            echo "Spec coverage: $COVERAGE_RESULT; Playwright matrix: $MATRIX_RESULT"
+            exit 1
+          fi

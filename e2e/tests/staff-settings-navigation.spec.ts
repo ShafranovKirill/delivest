@@ -102,7 +102,7 @@ test('network scope selection in one tab does not change another tab', async ({ 
 
   await branchTab.locator('#header-branch summary').click()
   await branchTab.locator('#header-branch-all').click()
-  await expect(branchTab.locator('#staff-header #header-branch')).toContainText(/All accessible branches|Все доступные филиалы/)
+  await expect(branchTab.locator('#staff-header #header-branch')).toContainText(/All branches|Все филиалы/)
   await expect(otherTab.locator('#staff-header #header-branch')).toContainText('E2E')
   await otherTab.reload()
   await expect(otherTab.locator('#staff-header #header-branch')).toContainText('E2E')

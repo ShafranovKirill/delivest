@@ -1,0 +1,53 @@
+{
+  "storefront-account": [
+    "category-names.spec.ts",
+    "customer-ui.spec.ts",
+    "loader-brand-color.spec.ts",
+    "map-lazy.spec.ts",
+    "storefront-bootstrap.spec.ts",
+    "storefront-maintenance.spec.ts",
+    "s2-client.spec.ts",
+    "s2-identity.spec.ts"
+  ],
+  "checkout": [
+    "checkout-address-sizing.spec.ts",
+    "checkout-layout.spec.ts",
+    "checkout-return.spec.ts",
+    "delivery-address-mode.spec.ts",
+    "delivery-priority-client.spec.ts",
+    "pickup-selection.spec.ts",
+    "order-success.spec.ts"
+  ],
+  "operations-pos": [
+    "cancel.spec.ts",
+    "delivery.spec.ts",
+    "pickup.spec.ts",
+    "staff-created-order.spec.ts",
+    "order-timing.spec.ts",
+    "intake-dialog.spec.ts",
+    "pos.spec.ts"
+  ],
+  "admin-catalog": [
+    "admin-menu-workflows.spec.ts",
+    "product-operations.spec.ts",
+    "product-pagination.spec.ts",
+    "products-header.spec.ts",
+    "dashboard-layout.spec.ts",
+    "staff-header-rollout.spec.ts",
+    "staff-shell.spec.ts",
+    "staff-working-pages.spec.ts"
+  ],
+  "settings-integrations": [
+    "settings.spec.ts",
+    "staff-integration-availability.spec.ts",
+    "staff-settings-navigation.spec.ts"
+  ],
+  "analytics-ads": [
+    "analytics-charts.spec.ts",
+    "analytics-placeholders.spec.ts",
+    "analytics-reports.spec.ts",
+    "staff-system-analytics.spec.ts",
+    "advertising-analytics.spec.ts",
+    "yandex-ads.spec.ts"
+  ]
+}
