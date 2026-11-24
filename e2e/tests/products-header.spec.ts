@@ -16,8 +16,7 @@ const sections: Section[] = [
   { path: 'products/stops', key: 'stops', toolbar: 'stop-list-toolbar', title: 'Стоп-лист', action: '#stop-add-products' },
   { path: 'products/modifiers', key: 'modifiers', toolbar: 'modifiers-toolbar', title: 'Модификаторы', action: 'button[phx-click="new_group"]' },
   { path: 'products/tags', key: 'tags', toolbar: 'tags-toolbar', title: 'Теги', action: 'a[href$="/products/tags/new"]' },
-  { path: 'products/suggested', key: 'suggested', toolbar: 'suggested-toolbar', title: 'Рекомендуемые', action: '#suggested-add-products' },
-  { path: 'menu/popular', key: 'popular', toolbar: 'popular-toolbar', title: 'Популярные товары', action: 'button[form="popular-settings"]' },
+  { path: 'products/collections', key: 'collections', toolbar: 'collections-toolbar', title: 'Подборки' },
 ]
 
 const productNavigation = (page: Page) =>
@@ -95,6 +94,24 @@ test('all product sections keep selected local navigation and actions', async ({
   await branchPage(page, 'products/tags')
   await page.locator('main #tags-toolbar .staff-page-toolbar-actions a[href$="/products/tags/new"]').click()
   await expect(page.locator('#product-tag-form')).toBeVisible()
+})
+
+test('collections open separate popular and recommended settings', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await branchPage(page, 'products/collections')
+  await expect(page.locator('#collections-popular a[href$="/menu/popular"]')).toBeVisible()
+  await expect(page.locator('#collections-suggested a[href$="/products/suggested"]')).toBeVisible()
+
+  await page.locator('#collections-popular a').click()
+  await expect(productNavigation(page).locator('[id$="product-section-tab-collections"]')).toHaveAttribute('aria-current', 'page')
+  await expect(page.locator('#collections-tab-popular')).toHaveAttribute('aria-current', 'page')
+  await expect(page.locator('#collections-tab-suggested')).toBeVisible()
+  await expect(page.locator('#popular-toolbar button[form="popular-settings"]')).toBeVisible()
+
+  await page.locator('#collections-tab-suggested').click()
+  await expect(productNavigation(page).locator('[id$="product-section-tab-collections"]')).toHaveAttribute('aria-current', 'page')
+  await expect(page.locator('#collections-tab-suggested')).toHaveAttribute('aria-current', 'page')
+  await expect(page.locator('#suggested-add-products')).toBeVisible()
 })
 
 test('product actions and query survive page navigation', async ({ staff }) => {
