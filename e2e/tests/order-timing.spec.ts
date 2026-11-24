@@ -29,9 +29,10 @@ test('the delivery estimate uses the selected branch mode in checkout', async ({
   const originalFixed = await field('fixed_delivery_minutes').inputValue()
   const originalMode = await fixed.isChecked() ? 'fixed' : 'calculated'
   await calculated.check()
-  const originalKitchen = await field('kitchen_minutes').inputValue()
+  const originalKitchen = await admin.locator('#timing_kitchen_minutes').inputValue()
+  await admin.locator('#timing-advanced summary').click()
   const originalPacking = await field('packing_minutes').inputValue()
-  const originalTravel = await field('travel_minutes').inputValue()
+  let originalTravel: string | undefined
 
   try {
     await fixed.check()
@@ -42,6 +43,7 @@ test('the delivery estimate uses the selected branch mode in checkout', async ({
     await admin.locator('[data-phx-main].phx-connected').waitFor()
     await expect(admin.locator('#delivery-timing-fixed')).toBeChecked()
     const deliveryField = admin.locator('#order_timing_fixed_delivery_minutes')
+    originalTravel = await admin.locator('#order_timing_travel_minutes').inputValue()
     await expect(deliveryField).toHaveValue('47')
     await deliveryField.fill('48')
     await save('#delivery-timing-save')
@@ -61,10 +63,16 @@ test('the delivery estimate uses the selected branch mode in checkout', async ({
     await expect(page).toHaveURL(/\/e2e\/checkout$/)
     await expect(page.getByTestId('checkout-eta-duration')).toContainText(/48\s*мин/)
 
+    await admin.goto(`${adminUrl}/staff/b/e2e/delivery/zones`)
+    await admin.locator('[data-phx-main].phx-connected').waitFor()
+    await admin.locator('#order_timing_travel_minutes').fill('32')
+    await save('#delivery-timing-save')
+    await admin.goto(timingPath)
+    await admin.locator('[data-phx-main].phx-connected').waitFor()
     await calculated.check()
-    await field('kitchen_minutes').fill('26')
+    await admin.locator('#timing_kitchen_minutes').fill('26')
+    await admin.locator('#timing-advanced summary').click()
     await field('packing_minutes').fill('3')
-    await field('travel_minutes').fill('32')
     await save()
     await expect.poll(publicTiming).toMatchObject({ timing_mode: 'calculated', kitchen_minutes: 26, packing_minutes: 3, travel_minutes: 32 })
 
@@ -85,12 +93,18 @@ test('the delivery estimate uses the selected branch mode in checkout', async ({
     await admin.goto(timingPath)
     await admin.locator('[data-phx-main].phx-connected').waitFor()
     await calculated.check()
-    await field('kitchen_minutes').fill(originalKitchen)
+    await admin.locator('#timing_kitchen_minutes').fill(originalKitchen)
+    await admin.locator('#timing-advanced summary').click()
     await field('packing_minutes').fill(originalPacking)
-    await field('travel_minutes').fill(originalTravel)
     await field('fixed_delivery_minutes').fill(originalFixed)
     await save()
-    if (originalMode === 'fixed') {
+    if (originalTravel !== undefined) {
+      await admin.goto(`${adminUrl}/staff/b/e2e/delivery/zones`)
+      await admin.locator('[data-phx-main].phx-connected').waitFor()
+      await admin.locator('#order_timing_travel_minutes').fill(originalTravel)
+      if (originalMode === 'fixed') await admin.locator('#delivery-timing-fixed').check()
+      await save('#delivery-timing-save')
+    } else if (originalMode === 'fixed') {
       await fixed.check()
       await save()
     }
