@@ -1,0 +1,2836 @@
+{
+  "yaakVersion": "0.1.0",
+  "yaakSchema": 4,
+  "timestamp": "2026-01-01T00:00:00",
+  "resources": {
+    "workspaces": [
+      {
+        "model": "workspace",
+        "id": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Delivest API · Local",
+        "description": "delivest-openapi-generated-v1:local",
+        "settingSendCookies": true,
+        "settingStoreCookies": true
+      }
+    ],
+    "environments": [
+      {
+        "model": "environment",
+        "id": "ev_25bf8e1a2393f110",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Local",
+        "public": false,
+        "parentModel": "environment",
+        "parentId": null,
+        "variables": [
+          {
+            "name": "base_url",
+            "value": "http://127.0.0.1:4000",
+            "enabled": true
+          },
+          {
+            "name": "access_token",
+            "value": "${[ response.body.path(request='rq_c431c4e1ad2ba79f',path='$.data.access_token',behavior='never') ]}",
+            "enabled": true
+          },
+          {
+            "name": "refresh_token",
+            "value": "${[ response.body.path(request='rq_c431c4e1ad2ba79f',path='$.data.refresh_token',behavior='never') ]}",
+            "enabled": true
+          },
+          {
+            "name": "yandex_access_token",
+            "value": "${[ response.body.path(request='rq_98609ec9aa07d013',path='$.access_token',behavior='never') ]}",
+            "enabled": true
+          },
+          {
+            "name": "all",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "branch_id",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "call_id",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "cart_id",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "city",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "city_boost",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "client_id",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "client_secret",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "ct_call_id",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "ct_phone",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "cursor",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "customer_name",
+            "value": "Тест",
+            "enabled": true
+          },
+          {
+            "name": "customer_phone",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "device_id",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "endpoint",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "force",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "id",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "idempotency_key",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "if_none_match",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "kind",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "latitude",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "limit",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "locale",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "longitude",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "order_id",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "phone",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "product_id",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "product_key",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "promotion_id",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "provider",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "query",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "restaurant_id",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "section",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "slug",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "subtotal",
+            "value": "",
+            "enabled": true
+          },
+          {
+            "name": "token",
+            "value": "",
+            "enabled": true
+          }
+        ],
+        "sortPriority": 0.0
+      }
+    ],
+    "folders": [
+      {
+        "model": "folder",
+        "id": "fl_3cea8588eee4768b",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Health",
+        "sortPriority": 0.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_0c81e1ac10f74d1d",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / auth",
+        "sortPriority": 1.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_6cd39dddb4ebc262",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / branches",
+        "sortPriority": 2.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_d04fb76a2c28e63b",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / storefront",
+        "sortPriority": 3.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_cb09bb043bfd8839",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / session",
+        "sortPriority": 4.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_c30af3a3fb0930f7",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / cart",
+        "sortPriority": 5.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_3c548ebb78919ed0",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / orders",
+        "sortPriority": 6.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_f7a23eb58848e50e",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / addresses",
+        "sortPriority": 7.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_88e024673496bd90",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / analytics",
+        "sortPriority": 8.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_bef517a936066ded",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / capabilities",
+        "sortPriority": 9.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_c0505457f0e6a3a2",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / delivery",
+        "sortPriority": 10.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_f645a11edee21d21",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / franchise",
+        "sortPriority": 11.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_8805f3aa2ef1afe2",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / geo",
+        "sortPriority": 12.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_b32ca1e1548580ac",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / loyalty",
+        "sortPriority": 13.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_b1540580e788f152",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / me",
+        "sortPriority": 14.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_11c873f9758ef902",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / notifications",
+        "sortPriority": 15.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_6c7668be1de7be44",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / push",
+        "sortPriority": 16.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_0b3453a7a75c4964",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / socket_token",
+        "sortPriority": 17.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_ac838c60b6519113",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / {branch_id}",
+        "sortPriority": 18.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_32d6fda0eacc0265",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Integrations / crm",
+        "sortPriority": 19.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_225312919f9fc600",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Integrations / fiscal",
+        "sortPriority": 20.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_1d778095d63513b1",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Integrations / yandex-eda",
+        "sortPriority": 21.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_fb06170022f0d763",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Integrations / yookassa",
+        "sortPriority": 22.0
+      },
+      {
+        "model": "folder",
+        "id": "fl_b1aba6c3be53082a",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Integrations / zvonok",
+        "sortPriority": 23.0
+      }
+    ],
+    "httpRequests": [
+      {
+        "model": "http_request",
+        "id": "rq_c534146e81e1e4a3",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_f7a23eb58848e50e",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/addresses",
+        "description": "Адреса доставки клиента",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/addresses",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 0.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_1d0c17b834278db3",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_f7a23eb58848e50e",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/addresses",
+        "description": "Добавить адрес",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/addresses",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"apartment\": \"12\",\n  \"city\": \"Москва\",\n  \"comment\": \"Вход со двора\",\n  \"district\": \"Центральный р-н\",\n  \"entrance\": \"2\",\n  \"floor\": \"3\",\n  \"formatted\": \"г Тюмень, ул Республики, д 10\",\n  \"house\": \"10\",\n  \"intercom\": \"42\",\n  \"latitude\": 57.153,\n  \"longitude\": 65.534,\n  \"postal_code\": \"625000\",\n  \"street\": \"Ленина\",\n  \"label\": \"Дом\"\n}"
+        },
+        "sortPriority": 1.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_32c0b0fb1637ae9c",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_f7a23eb58848e50e",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "DELETE /client/addresses/{id}",
+        "description": "Удалить адрес",
+        "method": "DELETE",
+        "url": "${[ base_url ]}/client/addresses/:id",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 2.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_3cf2bd961fa9e4bb",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_f7a23eb58848e50e",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "PUT /client/addresses/{id}",
+        "description": "Изменить адрес",
+        "method": "PUT",
+        "url": "${[ base_url ]}/client/addresses/:id",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ id ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"apartment\": \"12\",\n  \"city\": \"Москва\",\n  \"comment\": \"Вход со двора\",\n  \"district\": \"Центральный р-н\",\n  \"entrance\": \"2\",\n  \"floor\": \"3\",\n  \"formatted\": \"г Тюмень, ул Республики, д 10\",\n  \"house\": \"10\",\n  \"intercom\": \"42\",\n  \"latitude\": 57.153,\n  \"longitude\": 65.534,\n  \"postal_code\": \"625000\",\n  \"street\": \"Ленина\",\n  \"label\": \"Дом\"\n}"
+        },
+        "sortPriority": 3.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_0a061707a2052dd4",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_88e024673496bd90",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/analytics/events",
+        "description": "Записать событие воронки\n\nСобытие создаётся только при включённой аналитике филиала. UTM поля — непроверенные клиентские метки, не подтверждение рекламы или выручки. Гость получает отдельную подписанную cookie.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/analytics/events",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"branch_id\": \"00000000-0000-4000-8000-000000000000\",\n  \"event\": \"visit\",\n  \"event_id\": \"00000000-0000-4000-8000-000000000000\"\n}"
+        },
+        "sortPriority": 4.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_63d6cb9ebe25cc58",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_88e024673496bd90",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/analytics/events/batch",
+        "description": "Записать пакет событий воронки",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/analytics/events/batch",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"events\": [\n    {\n      \"branch_id\": \"00000000-0000-4000-8000-000000000000\",\n      \"event\": \"visit\",\n      \"event_id\": \"00000000-0000-4000-8000-000000000000\"\n    }\n  ]\n}"
+        },
+        "sortPriority": 5.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_41985286a30b948e",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_88e024673496bd90",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/analytics/source/claim",
+        "description": "Bind signed guest advertising clicks to the authenticated client\n\nUses the signed analytics cookie and verified bearer identity. Request body must be empty.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/analytics/source/claim",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{}"
+        },
+        "sortPriority": 6.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_f01da3a7dbd3547a",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_0c81e1ac10f74d1d",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/auth/call",
+        "description": "Запросить подтверждение номера звонком\n\nКлиент должен позвонить с указанного номера на `call_number`.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/auth/call",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"phone\": \"${[ customer_phone ]}\"\n}"
+        },
+        "sortPriority": 7.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_c431c4e1ad2ba79f",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_0c81e1ac10f74d1d",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/auth/call/{id}/complete",
+        "description": "Проверить подтверждение и войти\n\nПока звонка не было — 202 и `status: pending`. После звонка — токены.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/auth/call/:id/complete",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ response.body.path(request='rq_f01da3a7dbd3547a',path='$.data.confirmation_id',behavior='never') ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 8.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_7abd2c2a837d8c31",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_0c81e1ac10f74d1d",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/auth/call/{id}/confirm",
+        "description": "Подтвердить номер кодом флеш-звонка\n\nРежим flash: клиенту позвонили, код — последние 4 цифры входящего номера. Три попытки, потом нужен новый звонок.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/auth/call/:id/confirm",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ response.body.path(request='rq_f01da3a7dbd3547a',path='$.data.confirmation_id',behavior='never') ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"code\": \"1234\"\n}"
+        },
+        "sortPriority": 9.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_044c9a67628afb58",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_0c81e1ac10f74d1d",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/auth/refresh",
+        "description": "Обновить токены",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/auth/refresh",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"refresh_token\": \"${[ refresh_token ]}\"\n}"
+        },
+        "sortPriority": 10.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_645afd5f7349e47a",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_6cd39dddb4ebc262",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/branches",
+        "description": "Получить список филиалов\n\nВозвращает список всех активных филиалов.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/branches",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 11.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_9a3782da85f12abb",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_6cd39dddb4ebc262",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "DELETE /client/branches/active",
+        "description": "Очистить активный филиал\n\nУдаляет куку active_branch_id.",
+        "method": "DELETE",
+        "url": "${[ base_url ]}/client/branches/active",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 12.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_7c2a4123f14725f7",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_6cd39dddb4ebc262",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/branches/slug/{slug}/select",
+        "description": "Выбрать филиал по Slug\n\nВозвращает детальную информацию о филиале по его slug и устанавливает cookie.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/branches/slug/:slug/select",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":slug",
+            "value": "centralny-filial"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 13.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_10290e035b4092ae",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_6cd39dddb4ebc262",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/branches/{branch_id}/advertising/config",
+        "description": "Public advertising capabilities for a branch",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/branches/:branch_id/advertising/config",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":branch_id",
+            "value": "${[ branch_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 14.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_d6ef309a79a2e822",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_6cd39dddb4ebc262",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/branches/{branch_id}/advertising/identity",
+        "description": "Capture unverified external click identifiers under a signed browser identity",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/branches/:branch_id/advertising/identity",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":branch_id",
+            "value": "${[ branch_id ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"feature_version\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\n  \"generation\": 0\n}"
+        },
+        "sortPriority": 15.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_e640e668f7168ad4",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_6cd39dddb4ebc262",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/branches/{branch_id}/menu",
+        "description": "Получить меню филиала\n\nВозвращает список категорий с предзагруженными товарами для филиала из кеша или БД.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/branches/:branch_id/menu",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":branch_id",
+            "value": "${[ branch_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 16.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_7b829c003d5e5311",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_6cd39dddb4ebc262",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/branches/{branch_id}/products/{product_key}",
+        "description": "Получить один публичный товар филиала",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/branches/:branch_id/products/:product_key",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":branch_id",
+            "value": "${[ branch_id ]}"
+          },
+          {
+            "enabled": true,
+            "name": ":product_key",
+            "value": "${[ product_key ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 17.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_c12607bf63efbaed",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_6cd39dddb4ebc262",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/branches/{id}/select",
+        "description": "Выбрать филиал по ID\n\nВозвращает детальную информацию о филиале и устанавливает cookie.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/branches/:id/select",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "c4a3b8e0-1234-5678-9abc-def012345678"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 18.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_986550d5af27ce7a",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_bef517a936066ded",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/capabilities",
+        "description": "Client API capabilities\n\nPublic additive feature discovery for API version 1 clients.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/capabilities",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 19.0,
+        "authenticationType": null,
+        "authentication": {},
+        "settingFollowRedirects": {
+          "enabled": true,
+          "value": false
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_e9b1cee9691e1e50",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c30af3a3fb0930f7",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/cart",
+        "description": "Получить корзину пользователя\n\nИзвлекает branch_id из query или кук и возвращает состав текущей корзины.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/cart",
+        "urlParameters": [
+          {
+            "enabled": false,
+            "name": "force",
+            "value": "${[ force ]}"
+          },
+          {
+            "enabled": false,
+            "name": "branch_id",
+            "value": "${[ branch_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 20.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_27f9887d16c234cf",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c30af3a3fb0930f7",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "DELETE /client/cart/{cart_id}/clear",
+        "description": "Очистить корзину\n\nУдаляет все товары из указанной корзины.",
+        "method": "DELETE",
+        "url": "${[ base_url ]}/client/cart/:cart_id/clear",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":cart_id",
+            "value": "${[ response.body.path(request='rq_e9b1cee9691e1e50',path='$.data.id',behavior='never') ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 21.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_4f9b37b3e71f22ef",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c30af3a3fb0930f7",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "PUT /client/cart/{cart_id}/context",
+        "description": "Обновить способ получения\n\nСпособ получения влияет на условия акций, поэтому корзина пересчитывается.",
+        "method": "PUT",
+        "url": "${[ base_url ]}/client/cart/:cart_id/context",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":cart_id",
+            "value": "${[ response.body.path(request='rq_e9b1cee9691e1e50',path='$.data.id',behavior='never') ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"fulfillment_type\": \"delivery\"\n}"
+        },
+        "sortPriority": 22.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_3fd9682875da8474",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c30af3a3fb0930f7",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "DELETE /client/cart/{cart_id}/items/{product_id}",
+        "description": "Удалить товар из корзины\n\nУменьшает количество товара на 1 или удаляет его полностью из корзины.",
+        "method": "DELETE",
+        "url": "${[ base_url ]}/client/cart/:cart_id/items/:product_id",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":cart_id",
+            "value": "${[ response.body.path(request='rq_e9b1cee9691e1e50',path='$.data.id',behavior='never') ]}"
+          },
+          {
+            "enabled": true,
+            "name": ":product_id",
+            "value": "${[ product_id ]}"
+          },
+          {
+            "enabled": false,
+            "name": "all",
+            "value": "${[ all ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 23.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_02ede28c9a21e3e7",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c30af3a3fb0930f7",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/cart/{cart_id}/items/{product_id}",
+        "description": "Добавить товар в корзину\n\nДобавляет товар в корзину по cart_id и product_id.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/cart/:cart_id/items/:product_id",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":cart_id",
+            "value": "${[ response.body.path(request='rq_e9b1cee9691e1e50',path='$.data.id',behavior='never') ]}"
+          },
+          {
+            "enabled": true,
+            "name": ":product_id",
+            "value": "${[ product_id ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"quantity\": 1\n}"
+        },
+        "sortPriority": 24.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_eb91b8d602e4ee18",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c30af3a3fb0930f7",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "PUT /client/cart/{cart_id}/items/{product_id}",
+        "description": "Заменить модификаторы одной единицы позиции\n\nОдна единица позиции с ключом `key` получает новый набор модификаторов. Если в позиции одна штука, она остаётся на месте в списке.",
+        "method": "PUT",
+        "url": "${[ base_url ]}/client/cart/:cart_id/items/:product_id",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":cart_id",
+            "value": "${[ response.body.path(request='rq_e9b1cee9691e1e50',path='$.data.id',behavior='never') ]}"
+          },
+          {
+            "enabled": true,
+            "name": ":product_id",
+            "value": "${[ product_id ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"quantity\": 1\n}"
+        },
+        "sortPriority": 25.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_ced922f144316e19",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c30af3a3fb0930f7",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "DELETE /client/cart/{cart_id}/promo_code",
+        "description": "Убрать промокод",
+        "method": "DELETE",
+        "url": "${[ base_url ]}/client/cart/:cart_id/promo_code",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":cart_id",
+            "value": "${[ response.body.path(request='rq_e9b1cee9691e1e50',path='$.data.id',behavior='never') ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 26.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_0a76da18e2eb7d0f",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c30af3a3fb0930f7",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/cart/{cart_id}/promo_code",
+        "description": "Применить промокод\n\nПроверяет промокод и прикрепляет его к корзине. Если условия акции ещё не выполнены, код сохраняется со статусом `pending` и применится автоматически, когда условия выполнятся.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/cart/:cart_id/promo_code",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":cart_id",
+            "value": "${[ response.body.path(request='rq_e9b1cee9691e1e50',path='$.data.id',behavior='never') ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"code\": \"SUMMER2025\"\n}"
+        },
+        "sortPriority": 27.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_6dbf969a9f6e3947",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c30af3a3fb0930f7",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "PUT /client/cart/{cart_id}/promotions/{promotion_id}/gifts",
+        "description": "Выбрать подарки по акции",
+        "method": "PUT",
+        "url": "${[ base_url ]}/client/cart/:cart_id/promotions/:promotion_id/gifts",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":cart_id",
+            "value": "${[ response.body.path(request='rq_e9b1cee9691e1e50',path='$.data.id',behavior='never') ]}"
+          },
+          {
+            "enabled": true,
+            "name": ":promotion_id",
+            "value": "${[ promotion_id ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"product_ids\": []\n}"
+        },
+        "sortPriority": 28.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_571c5bcb27e7ed2d",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c30af3a3fb0930f7",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/cart/{cart_id}/repeat/{order_id}",
+        "description": "Повторить заказ\n\nДобавляет в корзину позиции прошлого заказа клиента. Недоступные сейчас товары пропускаются.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/cart/:cart_id/repeat/:order_id",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":cart_id",
+            "value": "${[ response.body.path(request='rq_e9b1cee9691e1e50',path='$.data.id',behavior='never') ]}"
+          },
+          {
+            "enabled": true,
+            "name": ":order_id",
+            "value": "${[ order_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 29.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_aa90f858d70bbfce",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c0505457f0e6a3a2",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/delivery/quote",
+        "description": "Стоимость доставки\n\nСтоимость доставки по точке адреса и сумме корзины: `ok` — доставляем, `below_minimum` — сумма меньше минимальной, `outside_zones` — сюда не доставляем, `no_coordinates` — у адреса нет точки на карте.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/delivery/quote",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": "branch_id",
+            "value": "${[ branch_id ]}"
+          },
+          {
+            "enabled": false,
+            "name": "latitude",
+            "value": "${[ latitude ]}"
+          },
+          {
+            "enabled": false,
+            "name": "longitude",
+            "value": "${[ longitude ]}"
+          },
+          {
+            "enabled": false,
+            "name": "subtotal",
+            "value": "${[ subtotal ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 30.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_aa700497c13e9bb0",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c0505457f0e6a3a2",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/delivery/zones",
+        "description": "Зоны доставки\n\nЗоны доставки филиала для показа на карте. Пустой список, если доставка без зон или в админке не стоит галочка показывать зоны клиенту.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/delivery/zones",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": "branch_id",
+            "value": "${[ branch_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 31.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_3a893419e416c04d",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_f645a11edee21d21",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/franchise",
+        "description": "Настройки франшизы\n\nНазвание, описание, основной цвет, логотипы, реквизиты продавца и список документов.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/franchise",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 32.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_9da74d919d3253a6",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_f645a11edee21d21",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/franchise/documents/{kind}",
+        "description": "Юридический документ\n\nТекст документа с подставленными реквизитами.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/franchise/documents/:kind",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":kind",
+            "value": "${[ kind ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 33.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_fcc02d78b69c9f8c",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_8805f3aa2ef1afe2",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/geo/reverse",
+        "description": "Адрес по координатам\n\nБлижайший дом к точке на карте.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/geo/reverse",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": "latitude",
+            "value": "${[ latitude ]}"
+          },
+          {
+            "enabled": true,
+            "name": "longitude",
+            "value": "${[ longitude ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 34.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_5ba9035479ee1515",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_8805f3aa2ef1afe2",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/geo/suggest",
+        "description": "Подсказки адресов\n\nАдреса DaData по введённой строке; city ограничивает город, city_boost повышает его приоритет.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/geo/suggest",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": "query",
+            "value": "${[ query ]}"
+          },
+          {
+            "enabled": false,
+            "name": "city",
+            "value": "${[ city ]}"
+          },
+          {
+            "enabled": false,
+            "name": "city_boost",
+            "value": "${[ city_boost ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 35.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_2e3c617e164efa24",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_b32ca1e1548580ac",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/loyalty",
+        "description": "Бонусы клиента\n\nБаланс звёзд и последние движения. В филиале без бонусной системы `enabled` равен false.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/loyalty",
+        "urlParameters": [
+          {
+            "enabled": false,
+            "name": "branch_id",
+            "value": "${[ branch_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 36.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_4d2a73f0725a3b34",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_b1540580e788f152",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/me",
+        "description": "Текущий клиент",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/me",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 37.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_d94536156d86d935",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_11c873f9758ef902",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/notifications",
+        "description": "Карточки клиента для текущего филиала и устройства\n\nТолько канал in_app. Просмотр не закрывает карточку. Курсор проходит и через устаревшие карточки.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/notifications",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": "branch_id",
+            "value": "${[ branch_id ]}"
+          },
+          {
+            "enabled": true,
+            "name": "device_id",
+            "value": "${[ device_id ]}"
+          },
+          {
+            "enabled": false,
+            "name": "cursor",
+            "value": "${[ cursor ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 38.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_51f7c921830a51e4",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_11c873f9758ef902",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/notifications/consents",
+        "description": "Маркетинговые согласия и доступность каналов",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/notifications/consents",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": "branch_id",
+            "value": "${[ branch_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 39.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_ca2cd6078f3dddb0",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_11c873f9758ef902",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "PUT /client/notifications/consents",
+        "description": "Изменить добровольные маркетинговые согласия\n\nPush по умолчанию выключен; SMS пока недоступен и true отклоняется. Настройки транзакционных уведомлений не меняются.",
+        "method": "PUT",
+        "url": "${[ base_url ]}/client/notifications/consents",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"branch_id\": \"00000000-0000-4000-8000-000000000000\"\n}"
+        },
+        "sortPriority": 40.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_779a40de0c73d311",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_11c873f9758ef902",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/notifications/{id}/click",
+        "description": "Отметить переход из текущей карточки",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/notifications/:id/click",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ id ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"branch_id\": \"00000000-0000-4000-8000-000000000000\",\n  \"device_id\": \"00000000-0000-4000-8000-000000000000\"\n}"
+        },
+        "sortPriority": 41.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_61140c3177d12a8b",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_11c873f9758ef902",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/notifications/{id}/dismiss",
+        "description": "Закрыть карточку на одном устройстве",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/notifications/:id/dismiss",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ id ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"branch_id\": \"00000000-0000-4000-8000-000000000000\",\n  \"device_id\": \"00000000-0000-4000-8000-000000000000\"\n}"
+        },
+        "sortPriority": 42.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_7fb8d8dd7a521899",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_3c548ebb78919ed0",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/orders",
+        "description": "Мои заказы\n\nЗаказы авторизованного клиента, новые сначала. Без limit возвращает прежний список (до 50). С limit возвращает страницу и next_cursor для следующей страницы.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/orders",
+        "urlParameters": [
+          {
+            "enabled": false,
+            "name": "limit",
+            "value": "${[ limit ]}"
+          },
+          {
+            "enabled": false,
+            "name": "cursor",
+            "value": "${[ cursor ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 43.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_2d3072a779914e8f",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_3c548ebb78919ed0",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/orders",
+        "description": "Создать заказ\n\nСоздаёт заказ по cart_id и branch_id. Повтор с тем же Idempotency-Key возвращает созданный заказ.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/orders",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": false,
+            "name": "Idempotency-Key",
+            "value": "${[ uuid.v4() ]}"
+          },
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"cart_id\": \"${[ response.body.path(request='rq_e9b1cee9691e1e50',path='$.data.id',behavior='never') ]}\",\n  \"branch_id\": \"${[ branch_id ]}\",\n  \"fulfillment_type\": \"pickup\",\n  \"payment_method\": \"cash\",\n  \"customer_phone\": \"${[ customer_phone ]}\",\n  \"customer_name\": \"${[ customer_name ]}\"\n}"
+        },
+        "sortPriority": 44.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_bb78da96a98ee05d",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_3c548ebb78919ed0",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/orders/active",
+        "description": "Активные заказы\n\nЗаказы текущей сессии, которые ещё не завершены и созданы не раньше нескольких часов назад. Статус берётся из CRM, если заказ обрабатывается в ней.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/orders/active",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 45.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_9517461aebc95f80",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_3c548ebb78919ed0",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/orders/{id}",
+        "description": "Заказ текущей сессии\n\nВозвращает конкретный заказ владельцу сессии или вошедшему клиенту.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/orders/:id",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ response.body.path(request='rq_2d3072a779914e8f',path='$.data.id',behavior='never') ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 46.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_d3aafb148f98b6c4",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_3c548ebb78919ed0",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/orders/{id}/cancel",
+        "description": "Отменить заказ\n\nТолько пока заказ в статусе created, без CRM и канала, оплата не онлайн. Дальше отмена — звонком в филиал.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/orders/:id/cancel",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ response.body.path(request='rq_2d3072a779914e8f',path='$.data.id',behavior='never') ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 47.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_415f922d5cffdd39",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_3c548ebb78919ed0",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/orders/{id}/pay",
+        "description": "Ссылка на оплату\n\nДля заказа, который ждёт онлайн-оплаты: возвращает страницу оплаты ЮKassa, чтобы клиент мог вернуться и оплатить.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/orders/:id/pay",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ response.body.path(request='rq_2d3072a779914e8f',path='$.data.id',behavior='never') ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 48.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_f33ee1d661dcccbc",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_3c548ebb78919ed0",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/orders/{order_id}/push",
+        "description": "Подписаться на статус заказа\n\nСохраняет push-подписку браузера для активного заказа текущей сессии или клиента.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/orders/:order_id/push",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":order_id",
+            "value": "${[ response.body.path(request='rq_2d3072a779914e8f',path='$.data.id',behavior='never') ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"endpoint\": \"https://example.test\",\n  \"keys\": {\n    \"auth\": \"x\",\n    \"p256dh\": \"x\"\n  }\n}"
+        },
+        "sortPriority": 49.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_950dc6aa10e1285d",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_6c7668be1de7be44",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "DELETE /client/push",
+        "description": "Отписаться от уведомлений клиента\n\nУдаляет push-подписку браузера текущего клиента.",
+        "method": "DELETE",
+        "url": "${[ base_url ]}/client/push",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": "endpoint",
+            "value": "${[ endpoint ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 50.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_b68cf1507e88bd42",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_6c7668be1de7be44",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /client/push",
+        "description": "Подписаться на уведомления клиента\n\nСохраняет push-подписку браузера для текущего клиента: напоминания о сгорании звёзд.",
+        "method": "POST",
+        "url": "${[ base_url ]}/client/push",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"endpoint\": \"https://example.test\",\n  \"keys\": {\n    \"auth\": \"x\",\n    \"p256dh\": \"x\"\n  }\n}"
+        },
+        "sortPriority": 51.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_9da22c91018cd339",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_6c7668be1de7be44",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/push/key",
+        "description": "Ключ для push-уведомлений\n\nПубличный VAPID-ключ для подписки браузера на уведомления.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/push/key",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 52.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_f713bfd2eb38ed43",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_cb09bb043bfd8839",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/session/bootstrap",
+        "description": "Текущая корзина и заказы сессии\n\nМожет привязать существующую корзину к клиенту. Cookie session_id задаёт гостевую сессию; bearer необязателен.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/session/bootstrap",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": "branch_id",
+            "value": "${[ branch_id ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": false,
+            "name": "Authorization",
+            "value": "Bearer ${[ access_token ]}"
+          }
+        ],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 53.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_82ddef23f9ea7485",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_0b3453a7a75c4964",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/socket_token",
+        "description": "Токен для подключения к сокету\n\nПодключение: `/socket/websocket?token=...`. Каналы `orders` (событие `order`) и `auth:<confirmation_id>` (событие `confirmed`, после него токены забираются через `/client/auth/call/{id}/complete`).",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/socket_token",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 54.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_c61efaf7e3c4ddd7",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_d04fb76a2c28e63b",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/storefront/v1/bootstrap",
+        "description": "Начальные публичные данные витрины",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/storefront/v1/bootstrap",
+        "urlParameters": [
+          {
+            "enabled": false,
+            "name": "slug",
+            "value": "${[ slug ]}"
+          },
+          {
+            "enabled": false,
+            "name": "branch_id",
+            "value": "${[ branch_id ]}"
+          },
+          {
+            "enabled": false,
+            "name": "locale",
+            "value": "${[ locale ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 55.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_9f66ac71aa0bc061",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_d04fb76a2c28e63b",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/storefront/v1/manifest",
+        "description": "Ревизии и реклама филиала",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/storefront/v1/manifest",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": "branch_id",
+            "value": "${[ branch_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 56.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_1a97d19815f7bdf7",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_d04fb76a2c28e63b",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/storefront/v1/sections/{section}",
+        "description": "Раздел витрины с ETag",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/storefront/v1/sections/:section",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":section",
+            "value": "${[ section ]}"
+          },
+          {
+            "enabled": false,
+            "name": "branch_id",
+            "value": "${[ branch_id ]}"
+          },
+          {
+            "enabled": false,
+            "name": "locale",
+            "value": "${[ locale ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": false,
+            "name": "If-None-Match",
+            "value": "${[ if_none_match ]}"
+          }
+        ],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 57.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_cb8cfd49730e2eb6",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_ac838c60b6519113",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/{branch_id}/promotions",
+        "description": "Действующие акции филиала\n\nАвтоматические акции с описанием, которые сейчас применяются к корзине без промокода. Акции без описания в список не попадают.",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/:branch_id/promotions",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":branch_id",
+            "value": "${[ branch_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 58.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_f02085e1b639c805",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_ac838c60b6519113",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/{branch_id}/stocks",
+        "description": "Получить список активных акций филиала\n\nВозвращает список всех активных акций, привязанных к данному branch_id",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/:branch_id/stocks",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":branch_id",
+            "value": "${[ branch_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 59.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_088634308e3bdeaf",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_3cea8588eee4768b",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /health",
+        "description": "Проверка жизни приложения",
+        "method": "GET",
+        "url": "${[ base_url ]}/health",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 60.0,
+        "authenticationType": null,
+        "authentication": {},
+        "settingFollowRedirects": {
+          "enabled": true,
+          "value": false
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_ed5623022eb03268",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_32d6fda0eacc0265",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /integrations/crm/{provider}/{token}",
+        "description": "Webhook CRM\n\nТело и успешный ответ зависят от провайдера; для Frontpad известен action. Токен в пути является секретом.",
+        "method": "POST",
+        "url": "${[ base_url ]}/integrations/crm/:provider/:token",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":provider",
+            "value": "${[ provider ]}"
+          },
+          {
+            "enabled": true,
+            "name": ":token",
+            "value": "${[ token ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{}"
+        },
+        "sortPriority": 61.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_30bde12f2ea55b1a",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_225312919f9fc600",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /integrations/fiscal/{provider}/{token}",
+        "description": "Callback фискализации\n\nТело зависит от провайдера; ATOL передаёт uuid и status.",
+        "method": "POST",
+        "url": "${[ base_url ]}/integrations/fiscal/:provider/:token",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":provider",
+            "value": "${[ provider ]}"
+          },
+          {
+            "enabled": true,
+            "name": ":token",
+            "value": "${[ token ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{}"
+        },
+        "sortPriority": 62.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_133f8c317ac2ece3",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /integrations/yandex-eda/menu/{restaurant_id}/availability",
+        "description": "Стоп-лист ресторана",
+        "method": "GET",
+        "url": "${[ base_url ]}/integrations/yandex-eda/menu/:restaurant_id/availability",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":restaurant_id",
+            "value": "${[ restaurant_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 63.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_c542c66539cc772e",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /integrations/yandex-eda/menu/{restaurant_id}/composition",
+        "description": "Меню ресторана",
+        "method": "GET",
+        "url": "${[ base_url ]}/integrations/yandex-eda/menu/:restaurant_id/composition",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":restaurant_id",
+            "value": "${[ restaurant_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 64.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_9cc0daeaa6c4c13f",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /integrations/yandex-eda/order",
+        "description": "Создать заказ",
+        "method": "POST",
+        "url": "${[ base_url ]}/integrations/yandex-eda/order",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"deliveryInfo\": {\n    \"courierArrivementDate\": \"2026-01-01T00:00:00Z\"\n  },\n  \"discriminator\": \"yandex\",\n  \"eatsId\": \"x\",\n  \"items\": [\n    {\n      \"id\": \"x\",\n      \"price\": 0,\n      \"quantity\": 1\n    }\n  ],\n  \"paymentInfo\": {\n    \"itemsCost\": 0,\n    \"paymentType\": \"CARD\"\n  },\n  \"restaurantId\": \"x\"\n}"
+        },
+        "sortPriority": 65.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_bedbbaa72c4aef3b",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "DELETE /integrations/yandex-eda/order/{id}",
+        "description": "Отменить заказ",
+        "method": "DELETE",
+        "url": "${[ base_url ]}/integrations/yandex-eda/order/:id",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ id ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{}"
+        },
+        "sortPriority": 66.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_917e1b19ea02a22d",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /integrations/yandex-eda/order/{id}",
+        "description": "Получить исходный заказ",
+        "method": "GET",
+        "url": "${[ base_url ]}/integrations/yandex-eda/order/:id",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 67.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_0c8099b952c19086",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "PUT /integrations/yandex-eda/order/{id}",
+        "description": "Изменение заказа не поддерживается",
+        "method": "PUT",
+        "url": "${[ base_url ]}/integrations/yandex-eda/order/:id",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 68.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_317f6612625099ff",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "PUT /integrations/yandex-eda/order/{id}/courier",
+        "description": "Сохранить данные курьера",
+        "method": "PUT",
+        "url": "${[ base_url ]}/integrations/yandex-eda/order/:id/courier",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ id ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{}"
+        },
+        "sortPriority": 69.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_ec411bf432a2531e",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /integrations/yandex-eda/order/{id}/status",
+        "description": "Текущий статус заказа\n\nЧтение может согласовать сохранённый статус заказа.",
+        "method": "GET",
+        "url": "${[ base_url ]}/integrations/yandex-eda/order/:id/status",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 70.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_eeba2e612378a37a",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "PUT /integrations/yandex-eda/order/{id}/status",
+        "description": "Обновить статус заказа",
+        "method": "PUT",
+        "url": "${[ base_url ]}/integrations/yandex-eda/order/:id/status",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ id ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"status\": \"TAKEN_BY_COURIER\"\n}"
+        },
+        "sortPriority": 71.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_dc4ceb9e5336570b",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /integrations/yandex-eda/places/{restaurant_id}/schedule",
+        "description": "Расписание ресторана",
+        "method": "GET",
+        "url": "${[ base_url ]}/integrations/yandex-eda/places/:restaurant_id/schedule",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":restaurant_id",
+            "value": "${[ restaurant_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 72.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_a3231b5d2b76a805",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /integrations/yandex-eda/places/{restaurant_id}/zone/meta",
+        "description": "Версии зон доставки",
+        "method": "GET",
+        "url": "${[ base_url ]}/integrations/yandex-eda/places/:restaurant_id/zone/meta",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":restaurant_id",
+            "value": "${[ restaurant_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 73.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_f6ec8a8b3b9885f9",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /integrations/yandex-eda/places/{restaurant_id}/zones",
+        "description": "Зоны доставки",
+        "method": "GET",
+        "url": "${[ base_url ]}/integrations/yandex-eda/places/:restaurant_id/zones",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":restaurant_id",
+            "value": "${[ restaurant_id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 74.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_b847a6ac74f3a606",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /integrations/yandex-eda/restaurants",
+        "description": "Список ресторанов",
+        "method": "GET",
+        "url": "${[ base_url ]}/integrations/yandex-eda/restaurants",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 75.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_cef680900e7d5a37",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /integrations/yandex-eda/restaurants/availability",
+        "description": "Доступность ресторанов",
+        "method": "GET",
+        "url": "${[ base_url ]}/integrations/yandex-eda/restaurants/availability",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 76.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_98609ec9aa07d013",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /integrations/yandex-eda/security/oauth/token",
+        "description": "Выдать OAuth токен",
+        "method": "POST",
+        "url": "${[ base_url ]}/integrations/yandex-eda/security/oauth/token",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"client_id\": \"${[ client_id ]}\",\n  \"client_secret\": \"${[ client_secret ]}\",\n  \"grant_type\": \"client_credentials\"\n}"
+        },
+        "sortPriority": 77.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_4fa6951bcf072f28",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_1d778095d63513b1",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /integrations/yandex-eda/v1/feedback",
+        "description": "Оценка заказа",
+        "method": "POST",
+        "url": "${[ base_url ]}/integrations/yandex-eda/v1/feedback",
+        "urlParameters": [],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{\n  \"feedback\": {\n    \"rating\": 1\n  }\n}"
+        },
+        "sortPriority": 78.0,
+        "authenticationType": "bearer",
+        "authentication": {
+          "token": "${[ yandex_access_token ]}",
+          "prefix": "Bearer"
+        }
+      },
+      {
+        "model": "http_request",
+        "id": "rq_894ec528162ae3fb",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_fb06170022f0d763",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "POST /integrations/yookassa/{token}",
+        "description": "Webhook ЮKassa",
+        "method": "POST",
+        "url": "${[ base_url ]}/integrations/yookassa/:token",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":token",
+            "value": "${[ token ]}"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{}"
+        },
+        "sortPriority": 79.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_80a3e819e595ca9f",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_b1aba6c3be53082a",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /integrations/zvonok/{token}",
+        "description": "Подтверждение звонка Zvonok\n\nGET изменяет состояние подтверждения клиента; не включать в автоматический smoke.",
+        "method": "GET",
+        "url": "${[ base_url ]}/integrations/zvonok/:token",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":token",
+            "value": "${[ token ]}"
+          },
+          {
+            "enabled": false,
+            "name": "call_id",
+            "value": "${[ call_id ]}"
+          },
+          {
+            "enabled": false,
+            "name": "phone",
+            "value": "${[ phone ]}"
+          },
+          {
+            "enabled": false,
+            "name": "ct_call_id",
+            "value": "${[ ct_call_id ]}"
+          },
+          {
+            "enabled": false,
+            "name": "ct_phone",
+            "value": "${[ ct_phone ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 80.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_68eab53076f06deb",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_3cea8588eee4768b",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /ready",
+        "description": "Готовность БД и миграций",
+        "method": "GET",
+        "url": "${[ base_url ]}/ready",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 81.0,
+        "authenticationType": null,
+        "authentication": {}
+      }
+    ],
+    "grpcRequests": [],
+    "websocketRequests": []
+  }
+}

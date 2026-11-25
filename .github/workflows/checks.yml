@@ -59,6 +59,15 @@ jobs:
         run: |
           mix run -e 'File.write!("/tmp/delivest-openapi.json", Jason.encode!(DelivestWeb.OpenApi.spec()))'
           diff -u <(jq -S . ../client/src/api/docs/swagger.json) <(jq -S . /tmp/delivest-openapi.json)
+      - name: Check Yaak collections
+        working-directory: server
+        env:
+          MIX_ENV: test
+        run: |
+          mix api.check
+          mix api.export --scalar --output /tmp/delivest-yaak-inventory.json
+          python3 ../scripts/yaak_collection.py verify --profile local --spec /tmp/delivest-openapi.json --inventory /tmp/delivest-yaak-inventory.json --bundle ../tools/yaak/delivest-local.yaak.json
+          python3 ../scripts/yaak_collection.py verify --profile staging --spec /tmp/delivest-openapi.json --inventory /tmp/delivest-yaak-inventory.json --bundle ../tools/yaak/delivest-staging.yaak.json
   agent:
     runs-on: ubuntu-24.04
     steps:
@@ -109,6 +118,8 @@ jobs:
           node-version: 22.22.2
       - name: Check load harness
         run: node --test scripts/load/*.test.mjs
+      - name: Check Yaak generator
+        run: python3 -m unittest discover -s scripts -p test_yaak_collection.py -v
       - name: Check clipboard hook
         run: node --experimental-default-type=module --test server/assets/js/hooks/copy_link.test.mjs
       - name: Check gitlinks

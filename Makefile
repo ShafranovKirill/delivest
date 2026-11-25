@@ -123,3 +123,49 @@ demo-stop:
 	./scripts/local-demo.sh stop
 demo-reset:
 	./scripts/local-demo.sh reset
+
+.PHONY: api-help api-check api-export api-smoke
+API_EXPORT_PATH ?= /tmp/delivest-scalar-openapi.json
+API_BASE_URL ?= http://127.0.0.1:4000
+api-help:
+	@echo 'api-check: compare HTTP API routes with the OpenAPI contract gap baseline'
+	@echo 'api-export: write a Scalar client OpenAPI document to API_EXPORT_PATH'
+	@echo 'api-smoke: GET-only checks against API_BASE_URL on localhost'
+api-check:
+	cd server && mix api.check
+api-export:
+	cd server && mix api.export --scalar --output '$(API_EXPORT_PATH)'
+api-smoke:
+	python3 scripts/smoke-api-reference.py --base-url '$(API_BASE_URL)'
+
+.PHONY: yaak-help yaak-generate yaak-check yaak-sync yaak-smoke yaak-test
+YAAK_PUBLIC_SPEC ?= /tmp/delivest-yaak-public-openapi.json
+YAAK_INVENTORY_SPEC ?= /tmp/delivest-yaak-inventory-openapi.json
+YAAK_BUNDLE_LOCAL ?= tools/yaak/delivest-local.yaak.json
+YAAK_BUNDLE_STAGING ?= tools/yaak/delivest-staging.yaak.json
+YAAK_LOCAL_WORKSPACE_ID ?=
+YAAK_STAGING_WORKSPACE_ID ?=
+YAAK_ENVIRONMENT_ID ?=
+yaak-help:
+	@echo 'yaak-generate: regenerate the native Yaak collection from the complete public OpenAPI'
+	@echo 'yaak-check: verify source routes, contracts, and the generated Yaak collection'
+	@echo 'yaak-sync: import or merge only the generated collection in local Yaak'
+	@echo 'yaak-smoke: send only managed Local GET /health and /client/capabilities'
+	@echo 'yaak-test: run focused generator tests'
+yaak-generate: api-check
+	cd server && mix api.export --output '$(YAAK_PUBLIC_SPEC)'
+	cd server && mix api.export --scalar --output '$(YAAK_INVENTORY_SPEC)'
+	python3 scripts/yaak_collection.py generate --profile local --spec '$(YAAK_PUBLIC_SPEC)' --inventory '$(YAAK_INVENTORY_SPEC)' --bundle '$(YAAK_BUNDLE_LOCAL)'
+	python3 scripts/yaak_collection.py generate --profile staging --spec '$(YAAK_PUBLIC_SPEC)' --inventory '$(YAAK_INVENTORY_SPEC)' --bundle '$(YAAK_BUNDLE_STAGING)'
+yaak-check: api-check
+	cd server && mix api.export --output '$(YAAK_PUBLIC_SPEC)'
+	cd server && mix api.export --scalar --output '$(YAAK_INVENTORY_SPEC)'
+	python3 scripts/yaak_collection.py verify --profile local --spec '$(YAAK_PUBLIC_SPEC)' --inventory '$(YAAK_INVENTORY_SPEC)' --bundle '$(YAAK_BUNDLE_LOCAL)'
+	python3 scripts/yaak_collection.py verify --profile staging --spec '$(YAAK_PUBLIC_SPEC)' --inventory '$(YAAK_INVENTORY_SPEC)' --bundle '$(YAAK_BUNDLE_STAGING)'
+yaak-sync: yaak-check
+	python3 scripts/yaak_collection.py sync --bundle '$(YAAK_BUNDLE_LOCAL)' --workspace-id '$(YAAK_LOCAL_WORKSPACE_ID)'
+	python3 scripts/yaak_collection.py sync --bundle '$(YAAK_BUNDLE_STAGING)' --workspace-id '$(YAAK_STAGING_WORKSPACE_ID)'
+yaak-smoke:
+	python3 scripts/yaak_collection.py smoke --environment-id '$(YAAK_ENVIRONMENT_ID)'
+yaak-test:
+	python3 -m unittest discover -s scripts -p test_yaak_collection.py -v
