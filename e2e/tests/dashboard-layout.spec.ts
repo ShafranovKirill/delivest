@@ -68,7 +68,7 @@ test('dashboard shares its saved widgets across scopes and adapts without horizo
   await page.setViewportSize({ width: 1024, height: 900 })
   await expect(grid).toHaveClass(/\bgs-6\b/)
   await page.setViewportSize({ width: 390, height: 844 })
-  await expect(grid).toHaveClass(/\bgs-1\b/)
+  await expect(grid).toHaveClass(/\bgs-2\b/)
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth))
     .toBeLessThanOrEqual(1)
   const cumulative = await widget('cumulative_revenue').boundingBox()
@@ -85,7 +85,7 @@ test('dashboard shares its saved widgets across scopes and adapts without horizo
   await page.locator('#dashboard-save').click()
   await expect(page.locator('#dashboard-edit')).toBeVisible()
   await page.reload()
-  await expect(grid).toHaveClass(/\bgs-1\b/)
+  await expect(grid).toHaveClass(/\bgs-2\b/)
   await expect.poll(revenueBeforeAttention).toBe(true)
   await page.locator('#dashboard-edit').click()
   await reset()
@@ -97,5 +97,29 @@ test('dashboard shares its saved widgets across scopes and adapts without horizo
   await expect(page.locator('#dashboard-alert-ready')).toBeVisible()
   await expect(widget('hourly').locator('canvas').first()).toBeVisible()
   await expect(widget('latest_orders').locator('[id^="dashboard-order-"]').first()).toBeVisible()
+  // Expanding the accessible data must grow the chart card at either width.
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    const details = widget('hourly').locator('details')
+    if (width === 390) {
+      await expect.poll(async () => {
+        const [revenue, orders] = await Promise.all([widget('revenue').boundingBox(), widget('orders').boundingBox()])
+        return !!revenue && !!orders && Math.abs(revenue.y - orders.y) < 1
+      }).toBe(true)
+    }
+    await details.locator('summary').click()
+    await expect.poll(async () => {
+      const lastRow = await details.locator('tr').last().boundingBox()
+      const card = await widget('hourly').boundingBox()
+      return !!lastRow && !!card && lastRow.y + lastRow.height <= card.y + card.height + 1
+    }).toBe(true)
+    await details.locator('summary').click()
+    const scrollableCards = await grid.locator('.dashboard-widget-card').evaluateAll(cards =>
+      cards.filter(card =>
+        /auto|scroll/.test(getComputedStyle(card).overflowY) && card.scrollHeight > card.clientHeight + 1
+      ).length
+    )
+    expect(scrollableCards).toBe(0)
+  }
   expect(errors).toEqual([])
 })
