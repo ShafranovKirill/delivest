@@ -31,6 +31,11 @@ test('dashboard shares its saved widgets across scopes and adapts without horizo
   const handle = revenue.locator('.ui-resizable-se')
   await expect(handle).toBeVisible()
   const columnWidth = (await grid.boundingBox())!.width / 12
+  const otherGeometry = async () => grid.locator('[data-widget-id]:not([data-widget-id="revenue"])').evaluateAll(items =>
+    Object.fromEntries(items.map(item => [item.getAttribute('data-widget-id'),
+      ['gs-x', 'gs-y', 'gs-w', 'gs-h'].map(attribute => item.getAttribute(attribute))]))
+  )
+  const beforeResize = await otherGeometry()
   const resizeHandle = (await handle.boundingBox())!
   const x = resizeHandle.x + resizeHandle.width / 2
   const y = resizeHandle.y + resizeHandle.height / 2
@@ -38,7 +43,32 @@ test('dashboard shares its saved widgets across scopes and adapts without horizo
   await page.mouse.down()
   await page.mouse.move(x + columnWidth, y, { steps: 12 })
   await page.mouse.up()
-  await expect(revenue).toHaveAttribute('gs-w', '4')
+  await expect(revenue).toHaveAttribute('gs-w', '3')
+  expect(await otherGeometry()).toEqual(beforeResize)
+
+  // Shrinking leaves every neighbouring card in place.
+  const shrinkHandle = (await handle.boundingBox())!
+  const shrinkX = shrinkHandle.x + shrinkHandle.width / 2
+  const shrinkY = shrinkHandle.y + shrinkHandle.height / 2
+  await page.mouse.move(shrinkX, shrinkY)
+  await page.mouse.down()
+  await page.mouse.move(shrinkX - columnWidth, shrinkY, { steps: 12 })
+  await page.mouse.up()
+  await expect(revenue).toHaveAttribute('gs-w', '2')
+  expect(await otherGeometry()).toEqual(beforeResize)
+  const moveHandle = (await revenue.locator('.dashboard-drag-handle').boundingBox())!
+  const moveX = moveHandle.x + moveHandle.width / 2
+  const moveY = moveHandle.y + moveHandle.height / 2
+  await page.mouse.move(moveX, moveY)
+  await page.mouse.down()
+  await page.mouse.move(moveX + columnWidth * 2, moveY, { steps: 12 })
+  await page.mouse.up()
+  // The first column is free; the next column belongs to the adjacent card.
+  const savedRevenuePosition = () => page.locator('#dashboard-grid-controller').evaluate(controller =>
+    JSON.parse(controller.getAttribute('data-layout') ?? '[]').find((item: {id: string}) => item.id === 'revenue').x
+  )
+  await expect.poll(savedRevenuePosition).toBe(1)
+  expect(await otherGeometry()).toEqual(beforeResize)
   await page.locator('#dashboard-remove-hourly').click()
   await expect(widget('hourly')).toHaveCount(0)
   await page.locator('#dashboard-cancel').click()
