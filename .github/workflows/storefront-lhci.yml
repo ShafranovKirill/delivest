@@ -9,6 +9,7 @@ on:
       - 'scripts/storefront-measure.mjs'
       - 'e2e/fixtures/menu-performance/**'
       - 'e2e/tests/menu-performance.spec.ts'
+      - 'tools/lighthouse/**'
       - 'server'
       - 'client'
 
@@ -57,15 +58,22 @@ jobs:
       - name: Build storefront and install Chromium
         run: |
           pnpm --dir client install --frozen-lockfile
-          VITE_PORT_WEB=3100 VITE_API_BASE_URL=http://localhost:4100 pnpm --dir client build
+          npm ci --prefix client/tools/bundle-analysis
+          ANALYZE_BUNDLE=1 VITE_PORT_WEB=3100 VITE_API_BASE_URL=http://localhost:4100 pnpm --dir client build
+          VITE_API_BASE_URL=http://localhost:4100 ENV_CONFIG_PATH=client/dist/env-config.js sh docker-entrypoint.sh true
+          npm ci --prefix tools/lighthouse
           pnpm --dir e2e install --frozen-lockfile
           pnpm --dir e2e exec playwright install --with-deps chromium
       - name: Serve seeded storefront
         run: |
           mkdir -p artifacts/lighthouse
+          cp -r client/artifacts/bundle artifacts/lighthouse/bundle
           cp e2e/fixtures/menu-performance/* server/priv/static/images/
           (cd server && DEV_S3_PORT=4100 PORT=4100 CLIENT_ORIGIN=http://localhost:3100 DEFAULT_LOCALE=ru ATOL_HOST=http://localhost:4100/dev/atol/possystem/v5/ mix phx.server) > artifacts/lighthouse/server.log 2>&1 &
-          (cd client && VITE_PORT_WEB=3100 VITE_API_BASE_URL=http://localhost:4100 pnpm exec vite preview --port 3100 --strictPort) > artifacts/lighthouse/client.log 2>&1 &
+          sed -e 's/listen 3000;/listen 3100;/' -e 's@http://server:4000@http://127.0.0.1:4100@' nginx.client.conf > artifacts/lighthouse/nginx.conf
+          docker run -d --name storefront-lhci-nginx --network host \
+            -v "$PWD/client/dist:/usr/share/nginx/html:ro" \
+            -v "$PWD/artifacts/lighthouse/nginx.conf:/etc/nginx/conf.d/default.conf:ro" nginx:1.28-alpine
           for i in $(seq 1 120); do
             if curl -fsS http://localhost:4100/staff/auth/login >/dev/null && curl -fsS http://localhost:3100/e2e >/dev/null; then exit 0; fi
             sleep 2
@@ -81,9 +89,16 @@ jobs:
       - name: Lighthouse CI collect and save report
         run: |
           export CHROME_PATH="$(cd e2e && node -e "console.log(require('@playwright/test').chromium.executablePath())")"
-          npm exec --yes --package=@lhci/cli@0.15.1 -- lhci collect --url=http://localhost:3100/e2e --numberOfRuns=3 --settings.chromeFlags='--no-sandbox --headless'
-          npm exec --yes --package=@lhci/cli@0.15.1 -- lhci upload --target=filesystem --outputDir=artifacts/lighthouse/report
+          tools/lighthouse/node_modules/.bin/lhci collect --url=http://localhost:3100/e2e --numberOfRuns=3 --settings.chromeFlags='--no-sandbox --headless'
+          tools/lighthouse/node_modules/.bin/lhci assert --config=tools/lighthouse/lighthouserc.cjs
+          tools/lighthouse/node_modules/.bin/lhci upload --target=filesystem --outputDir=artifacts/lighthouse/report
           cp -r .lighthouseci artifacts/lighthouse/raw
+      - name: Save Nginx log and stop fixture
+        if: always()
+        run: |
+          docker logs storefront-lhci-nginx > artifacts/lighthouse/nginx.log 2>&1 || true
+          docker stop storefront-lhci-nginx || true
+          docker rm storefront-lhci-nginx || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:

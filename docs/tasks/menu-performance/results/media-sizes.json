@@ -1,0 +1,1532 @@
+[
+  {
+    "id": "258f00b7-01ef-41d6-a88b-ab2fcc4e523f",
+    "sizes": {
+      "192": {
+        "bytes": 17616,
+        "width": 192
+      },
+      "384": {
+        "bytes": 55528,
+        "width": 384
+      },
+      "800": {
+        "bytes": 229892,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 15406,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 15926,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 17616,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 47346,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 49544,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 55528,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 233138,
+    "published_variants": 3
+  },
+  {
+    "id": "982db081-d75b-414b-9c95-6c8344bb6e8b",
+    "sizes": {
+      "192": {
+        "bytes": 13962,
+        "width": 192
+      },
+      "384": {
+        "bytes": 42636,
+        "width": 384
+      },
+      "800": {
+        "bytes": 167746,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 12226,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 12506,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 13962,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 36778,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 38110,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 42636,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 172530,
+    "published_variants": 3
+  },
+  {
+    "id": "ef60e59d-c902-4b30-b5e6-0e0e693eed46",
+    "sizes": {
+      "192": {
+        "bytes": 13012,
+        "width": 192
+      },
+      "384": {
+        "bytes": 40686,
+        "width": 384
+      },
+      "800": {
+        "bytes": 158868,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 11338,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 11730,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 13012,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 34678,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 36074,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 40686,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 162082,
+    "published_variants": 3
+  },
+  {
+    "id": "53b35314-0c26-4bcb-8aa7-82cea56dbecd",
+    "sizes": {
+      "192": {
+        "bytes": 9796,
+        "width": 192
+      },
+      "384": {
+        "bytes": 30908,
+        "width": 384
+      },
+      "800": {
+        "bytes": 124006,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 8546,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 8842,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 9796,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 26360,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 27498,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 30908,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 127538,
+    "published_variants": 3
+  },
+  {
+    "id": "7c93ae33-cdcc-4783-9e26-f4dbac262482",
+    "sizes": {
+      "192": {
+        "bytes": 12060,
+        "width": 192
+      },
+      "384": {
+        "bytes": 38620,
+        "width": 384
+      },
+      "800": {
+        "bytes": 159478,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 10714,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 10996,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 12060,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 33404,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 34420,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 38620,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 164366,
+    "published_variants": 3
+  },
+  {
+    "id": "d6e853f0-8fd6-42e9-bef0-d13c2213f869",
+    "sizes": {
+      "192": {
+        "bytes": 13224,
+        "width": 192
+      },
+      "384": {
+        "bytes": 42168,
+        "width": 384
+      },
+      "800": {
+        "bytes": 168236,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 11734,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 12020,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 13224,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 36490,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 37872,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 42168,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 171876,
+    "published_variants": 3
+  },
+  {
+    "id": "7a8d6707-2752-4b74-9e8f-e3a230a933de",
+    "sizes": {
+      "192": {
+        "bytes": 10234,
+        "width": 192
+      },
+      "384": {
+        "bytes": 32576,
+        "width": 384
+      },
+      "800": {
+        "bytes": 129318,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 9076,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 9362,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 10234,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 28488,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 29454,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 32576,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 131940,
+    "published_variants": 3
+  },
+  {
+    "id": "6ba57c9a-0856-4804-8a1f-f07f2f4eb1f3",
+    "sizes": {
+      "192": {
+        "bytes": 5202,
+        "width": 192
+      },
+      "384": {
+        "bytes": 13976,
+        "width": 384
+      },
+      "800": {
+        "bytes": 50854,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 4614,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 4730,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 5202,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 12308,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 12660,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 13976,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 52090,
+    "published_variants": 3
+  },
+  {
+    "id": "802e5e6f-b7c6-446e-9ea5-22ec0731bcdb",
+    "sizes": {
+      "192": {
+        "bytes": 6254,
+        "width": 192
+      },
+      "384": {
+        "bytes": 20478,
+        "width": 384
+      },
+      "800": {
+        "bytes": 79528,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 5516,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 5648,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 6254,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 17886,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 18534,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 20478,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 81540,
+    "published_variants": 3
+  },
+  {
+    "id": "177f480b-db54-43e5-bbb0-e5d2f249a43d",
+    "sizes": {
+      "192": {
+        "bytes": 12538,
+        "width": 192
+      },
+      "384": {
+        "bytes": 39494,
+        "width": 384
+      },
+      "800": {
+        "bytes": 157646,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 11066,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 11342,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 12538,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 33678,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 35006,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 39494,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 161604,
+    "published_variants": 3
+  },
+  {
+    "id": "63ec1fd7-f213-4ef7-82f8-d983f5f75a17",
+    "sizes": {
+      "192": {
+        "bytes": 17272,
+        "width": 192
+      },
+      "384": {
+        "bytes": 55746,
+        "width": 384
+      },
+      "800": {
+        "bytes": 224240,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 15036,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 15544,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 17272,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 47984,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 49840,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 55746,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 228496,
+    "published_variants": 3
+  },
+  {
+    "id": "34bad8f8-99e1-44b9-8335-28990bdde45f",
+    "sizes": {
+      "192": {
+        "bytes": 16634,
+        "width": 192
+      },
+      "384": {
+        "bytes": 53822,
+        "width": 384
+      },
+      "800": {
+        "bytes": 230072,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 14546,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 15136,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 16634,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 46374,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 48564,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 53822,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 234350,
+    "published_variants": 3
+  },
+  {
+    "id": "fc6a985c-8812-45b8-ace3-4d713571ae44",
+    "sizes": {
+      "192": {
+        "bytes": 15394,
+        "width": 192
+      },
+      "384": {
+        "bytes": 48840,
+        "width": 384
+      },
+      "800": {
+        "bytes": 202940,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 13418,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 13976,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 15394,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 41706,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 43418,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 48840,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 207534,
+    "published_variants": 3
+  },
+  {
+    "id": "df166952-5de2-4cb8-923d-17d9800b707f",
+    "sizes": {
+      "192": {
+        "bytes": 16882,
+        "width": 192
+      },
+      "384": {
+        "bytes": 53650,
+        "width": 384
+      },
+      "800": {
+        "bytes": 220902,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 14708,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 15334,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 16882,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 45946,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 48334,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 53650,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 226256,
+    "published_variants": 3
+  },
+  {
+    "id": "dba64768-0624-4d3e-89e7-e19da4cec9dc",
+    "sizes": {
+      "192": {
+        "bytes": 17924,
+        "width": 192
+      },
+      "384": {
+        "bytes": 57984,
+        "width": 384
+      },
+      "800": {
+        "bytes": 232136,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 15718,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 16268,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 17924,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 50266,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 51594,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 57984,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 236428,
+    "published_variants": 3
+  },
+  {
+    "id": "2153734c-08c3-4fbd-bcf8-cdc633106551",
+    "sizes": {
+      "192": {
+        "bytes": 14188,
+        "width": 192
+      },
+      "384": {
+        "bytes": 41510,
+        "width": 384
+      },
+      "800": {
+        "bytes": 153616,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 12522,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 12924,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 14188,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 35408,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 37096,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 41510,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 158144,
+    "published_variants": 3
+  },
+  {
+    "id": "e11918d0-d795-4be1-9747-f7819a535a18",
+    "sizes": {
+      "192": {
+        "bytes": 13558,
+        "width": 192
+      },
+      "384": {
+        "bytes": 42230,
+        "width": 384
+      },
+      "800": {
+        "bytes": 162730,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 11922,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 12312,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 13558,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 36020,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 37726,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 42230,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 167534,
+    "published_variants": 3
+  },
+  {
+    "id": "0d91d23c-177c-42c3-a2ca-2a7ca092dbf9",
+    "sizes": {
+      "192": {
+        "bytes": 13244,
+        "width": 192
+      },
+      "384": {
+        "bytes": 41148,
+        "width": 384
+      },
+      "800": {
+        "bytes": 158864,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 11668,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 11994,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 13244,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 35276,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 36658,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 41148,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 162982,
+    "published_variants": 3
+  },
+  {
+    "id": "40312a1a-abdf-4b8a-baa7-23f0d7d60b30",
+    "sizes": {
+      "192": {
+        "bytes": 10438,
+        "width": 192
+      },
+      "384": {
+        "bytes": 33026,
+        "width": 384
+      },
+      "800": {
+        "bytes": 121472,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 9354,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 9568,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 10438,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 29186,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 30052,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 33026,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 127770,
+    "published_variants": 3
+  },
+  {
+    "id": "04edaa32-23ee-4084-b6d5-c2c0b118eea1",
+    "sizes": {
+      "192": {
+        "bytes": 7008,
+        "width": 192
+      },
+      "384": {
+        "bytes": 21436,
+        "width": 384
+      },
+      "800": {
+        "bytes": 73754,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 6086,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 6272,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 7008,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 18610,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 19212,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 21436,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 76888,
+    "published_variants": 3
+  },
+  {
+    "id": "0caa31a0-efcc-4170-a2db-6004eb0b7e91",
+    "sizes": {
+      "192": {
+        "bytes": 10426,
+        "width": 192
+      },
+      "384": {
+        "bytes": 31300,
+        "width": 384
+      },
+      "800": {
+        "bytes": 126822,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 9210,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 9464,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 10426,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 26938,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 27818,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 31300,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 130586,
+    "published_variants": 3
+  },
+  {
+    "id": "627f941c-8081-4944-9462-41ab523e25b5",
+    "sizes": {
+      "192": {
+        "bytes": 9712,
+        "width": 192
+      },
+      "384": {
+        "bytes": 30502,
+        "width": 384
+      },
+      "800": {
+        "bytes": 124740,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 8438,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 8732,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 9712,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 26062,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 27002,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 30502,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 127982,
+    "published_variants": 3
+  },
+  {
+    "id": "7b0eb99d-799d-4c45-9db6-bdc4a526acfc",
+    "sizes": {
+      "192": {
+        "bytes": 13298,
+        "width": 192
+      },
+      "384": {
+        "bytes": 44134,
+        "width": 384
+      },
+      "800": {
+        "bytes": 181208,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 11926,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 12248,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 13298,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 39228,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 40316,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 44134,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 185324,
+    "published_variants": 3
+  },
+  {
+    "id": "39acef47-875a-4ca1-841d-6f6e476deb89",
+    "sizes": {
+      "192": {
+        "bytes": 11610,
+        "width": 192
+      },
+      "384": {
+        "bytes": 38160,
+        "width": 384
+      },
+      "800": {
+        "bytes": 150580,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 10072,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 10458,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 11610,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 32690,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 33880,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 38160,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 153518,
+    "published_variants": 3
+  },
+  {
+    "id": "5ecfd1ff-9b7a-4bce-ad01-20cbaeb43557",
+    "sizes": {
+      "192": {
+        "bytes": 10146,
+        "width": 192
+      },
+      "384": {
+        "bytes": 33776,
+        "width": 384
+      },
+      "800": {
+        "bytes": 132128,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 8860,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 9218,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 10146,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 28790,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 29958,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 33776,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 134458,
+    "published_variants": 3
+  },
+  {
+    "id": "b273f47d-2ef6-4ce0-9ec3-c70f4de024e3",
+    "sizes": {
+      "192": {
+        "bytes": 13094,
+        "width": 192
+      },
+      "384": {
+        "bytes": 38904,
+        "width": 384
+      },
+      "800": {
+        "bytes": 144286,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 11594,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 11876,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 13094,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 33480,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 34768,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 38904,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 148976,
+    "published_variants": 3
+  },
+  {
+    "id": "638696f2-80ca-45ff-b559-299b0be83825",
+    "sizes": {
+      "192": {
+        "bytes": 5830,
+        "width": 192
+      },
+      "384": {
+        "bytes": 17772,
+        "width": 384
+      },
+      "800": {
+        "bytes": 62830,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 5218,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 5382,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 5830,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 15670,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 16158,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 17772,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 64206,
+    "published_variants": 3
+  },
+  {
+    "id": "73f636b0-c709-41ac-9c3a-7fd9c8379551",
+    "sizes": {
+      "192": {
+        "bytes": 6954,
+        "width": 192
+      },
+      "384": {
+        "bytes": 21820,
+        "width": 384
+      },
+      "800": {
+        "bytes": 79580,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 6038,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 6252,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 6954,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 18888,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 19512,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 21820,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 82356,
+    "published_variants": 3
+  },
+  {
+    "id": "6c2c6ec2-8502-4061-83d1-a11b6a331a6f",
+    "sizes": {
+      "192": {
+        "bytes": 7572,
+        "width": 192
+      },
+      "384": {
+        "bytes": 24668,
+        "width": 384
+      },
+      "800": {
+        "bytes": 96854,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 6654,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 6814,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 7572,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 21492,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 22206,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 24668,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 98874,
+    "published_variants": 3
+  },
+  {
+    "id": "e6020dc4-2e22-4103-8c13-1155689e6db6",
+    "sizes": {
+      "192": {
+        "bytes": 7930,
+        "width": 192
+      },
+      "384": {
+        "bytes": 26524,
+        "width": 384
+      },
+      "800": {
+        "bytes": 102400,
+        "width": 800
+      }
+    },
+    "quality_samples": [
+      {
+        "bytes": 6946,
+        "width": 192,
+        "quality": 70
+      },
+      {
+        "bytes": 7182,
+        "width": 192,
+        "quality": 75
+      },
+      {
+        "bytes": 7930,
+        "width": 192,
+        "quality": 80
+      },
+      {
+        "bytes": 22702,
+        "width": 384,
+        "quality": 70
+      },
+      {
+        "bytes": 23576,
+        "width": 384,
+        "quality": 75
+      },
+      {
+        "bytes": 26524,
+        "width": 384,
+        "quality": 80
+      }
+    ],
+    "source_bytes": 104580,
+    "published_variants": 3
+  }
+]

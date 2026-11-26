@@ -789,3 +789,67 @@ Sandbox ownership фонового `Storefront.Revisions` при тестово�
 server `9c6399cb`, client `1095981`; родительский коммит закрепляет эти gitlinks
 и эту заметку. Ветка всех трёх репозиториев — `codex/order-cutlery`.
 Push, PR, merge и полный preflight/E2E не выполнялись.
+
+
+## Мобильное меню: фото, скелетоны и замеры — 2026-11-26 17:41 MSK
+
+ТЗ: https://app.notion.com/p/42431ec95e448156979ffee7d4d6b075.
+Владелец согласовал весь объём: довести существующую codex/menu-performance,
+проверить реализацию, выполнить браузерные и SQL-серии, сохранить результаты.
+Режим обычный. Push/PR/merge запрещены до «Пуш в Девелоп»; main/production не разрешены.
+
+Работа выполнена в отдельном clone `/home/kirill/storage/projects/delivest/delivest/workspaces/menu-performance`.
+Ветка root/client/server: `codex/menu-performance`, база origin/develop `fa009a2`.
+Оригинальная рабочая копия `codex/dashboard-workspace` и её HANDOFF/server/workspaces не менялись.
+Исходная ветка содержала частичную реализацию root cf8c384/client47891b6/serverab7edebd.
+Устранены реальные пропуски: PublicOffer терял photo_variants; malformed metadata
+останавливала backfill; закрытие до окончания router.push могло повторно открыть
+товар/сделать неверный back; PrimeVue skeleton имел inline height 1rem, heading
+отличался от готового на 4px. Добавлены endpoint/race/geometry регрессии.
+
+Код сохранён локально: server `a026cdd4c263a21c46ddcdf16966d71e79bdb11d`,
+client `7abe87a97b62b6d6df11e7e1ddbdf3b58fce9624` (app fix ba78122 + analyzer lockfile).
+Новые push, PR, merge не выполнялись.
+
+Результаты и безопасные сырые данные: `docs/tasks/menu-performance/RESULTS.md`,
+`results/summary.json`. 5 парных до/промежуточно/финал: изображения 2667063→387515 Б,
+JS 307526→305306 Б, первое настоящее фото 2033→1236 мс; холодная карточка
+1053→1058 мс (ускорение карточки не заявляется). Reload: изображения 0 Б,
+2 API GET + 1 WS, CLS 0. Дальние загруженные фото 8→2. В 3 SQL-повторах
+публичный холодный bootstrap 47→44, тёплый 0; четыре тёплых обработчика суммарно 2.
+LCP меняет элемент с плейсхолдера на фото; не трактовать его рост как время фото.
+Первый клик до действий модалки 61→229 мс — задокументированная цена lazy chunk.
+Q70/75/80 сравнены на реальных фото, сохранён Q80 и прозрачность.
+Форсирование fetchpriority High не показало существенного выигрыша; не включено.
+
+Проверки независимо повторены: targeted mix precommit — 68 tests/0 failures,
+compile warnings-as-errors, format, admin inventory, Credo strict прошли;
+Vitest 16/16, vue-tsc, Vite production build с реальным visualizer прошли.
+Финальный Chromium: 19/19 — меню/геометрия320/390/1280/DPR1/2/скролл/ветка/URL/
+ошибка/повтор/empty/chunk close/быстрый reload + иконки корзины/оформление.
+3 LHCI collect + warn-only assert прошли. E2E typecheck и diff checks прошли.
+Полные make preflight/E2E и новый GitHub workflow не запускались.
+Сохраняется прежнее предупреждение Sandbox ownership фонового Revisions при старте тестов.
+Ревью независимого агента: блокирующих замечаний нет.
+
+Логи `/tmp/menu-perf-root-server-checks.log`, `/tmp/menu-perf-root-client-tests.log`,
+`/tmp/menu-perf-ui-final.log`, `/tmp/menu-perf-lhci.log`.
+Видео/скриншоты: `artifacts/menu-performance/ui`; браузерные серии:
+`artifacts/menu-performance/{before,media-stage,final}`;
+HTML bundle: `client/artifacts/bundle/report.html`; LHCI: `artifacts/lighthouse/report`.
+В Git не сохранять trace bodies/guest tokens; безопасные JSON/кадры уже отобраны.
+Изолированные БД `delivest_menu_perf_20261126` и `delivest_menu_perf_e2e_20261126`
+сохранены; source demo DB и original S3 objects не менялись. Только новые immutable
+варианты с content hash добавлены в локальный S3. Сервисы замера на3100/4100 временные.
+
+Ограничение: удаление/замена во время PUT или сбой публикации может оставить
+сиротский S3 object без ссылки из БД. Битая ссылка не публикуется; немедленная
+очистка ключа небезопасна для конкурентного издателя. Отдельная GC не входит в задачу.
+Production backfill не запускался. LHCI бюджеты пока warning-only до CI воспроизводимости.
+
+Продолжение по команде «Пуш в Девелоп»: `cd /home/kirill/storage/projects/delivest/delivest/workspaces/menu-performance`,
+fetch всех repos, проверить clean/status/gitlinks, сверить migration upgrade policy с
+manifest последнего стабильного релиза и server candidate SHA; полный `make preflight`
+без PLAYWRIGHT_ARGS, затем PR/CI на финальном SHA. Для локальной повторной приёмки:
+`MENU_CAPTURE=1 pnpm --dir e2e exec playwright test --config playwright.menu-performance.config.ts --project=chromium --retries=0`;
+подготовка fixture/порты/точные измерительные команды — RESULTS и README.

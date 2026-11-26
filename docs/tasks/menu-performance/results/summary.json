@@ -1,0 +1,264 @@
+{
+  "metadata": {
+    "client_before": "6311b18b6804418ac22fcb2a647e2a6632e5b2bb",
+    "server_before": "b1789ebb684f3c1b5503f2d33299c3029a675a18",
+    "client_final": "7abe87a97b62b6d6df11e7e1ddbdf3b58fce9624",
+    "server_final": "a026cdd4c263a21c46ddcdf16966d71e79bdb11d",
+    "parent_base": "fa009a269fc5944cb4dd5b4c4eb2402591a59d0b",
+    "fixture_source": "isolated copy of delivest_f01_demo_perf_20261126",
+    "fixture": "demo-center: 5 categories, 31 cards, 6 stories",
+    "database": "delivest_menu_perf_20261126",
+    "sql": "3 cold/warm repetitions per endpoint",
+    "browser": "5 paired cold/reload contexts per stage, 390x844 DPR1 10/2Mbps latency80ms SW blocked; nginx gzip/SSI; same local S3; no CPU emulation",
+    "media_stage": "client47891b6 with ProductModal/LoyaltyModal imports made static, final server/media; SQL evaluated separately; first implementation had invalid skeleton geometry corrected in final",
+    "high_priority": "final source before two skeleton geometry fixes; measurement-only selected first product fetchpriority high, 5 cold runs"
+  },
+  "summary": {
+    "before": {
+      "cold-browser": {
+        "runs": 5,
+        "cardMs": 1053,
+        "lcpMs": 1172,
+        "firstPhotoMs": 2033,
+        "photoPresentRuns": 5,
+        "cls": 1.2938200728092016e-05,
+        "totalBytes": 3037460,
+        "scriptBytes": 307526,
+        "imageBytes": 2667063,
+        "cacheHits": 0,
+        "status304": 0,
+        "failedRequests": 0,
+        "pageErrors": 0,
+        "samples": 5,
+        "median_ms": 1053,
+        "p95_ms": 1154,
+        "min_ms": 1013,
+        "max_ms": 1154,
+        "api_requests": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "api_bytes": [
+          6289,
+          6287,
+          6287,
+          6291,
+          6291
+        ]
+      },
+      "warm-reload": {
+        "runs": 5,
+        "cardMs": 437,
+        "lcpMs": 784,
+        "firstPhotoMs": 502,
+        "photoPresentRuns": 5,
+        "cls": 0,
+        "totalBytes": 9847,
+        "scriptBytes": 369,
+        "imageBytes": 318,
+        "cacheHits": 50,
+        "status304": 1,
+        "failedRequests": 0,
+        "pageErrors": 0,
+        "samples": 5,
+        "median_ms": 437,
+        "p95_ms": 463,
+        "min_ms": 413,
+        "max_ms": 463,
+        "api_requests": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "api_bytes": [
+          6141,
+          6142,
+          6138,
+          6140,
+          6138
+        ]
+      }
+    },
+    "media-stage": {
+      "cold-browser": {
+        "runs": 5,
+        "cardMs": 1025,
+        "lcpMs": 1472,
+        "firstPhotoMs": 1199,
+        "photoPresentRuns": 5,
+        "cls": 1.2938200728092016e-05,
+        "totalBytes": 760870,
+        "scriptBytes": 308733,
+        "imageBytes": 387515,
+        "cacheHits": 0,
+        "status304": 0,
+        "failedRequests": 0,
+        "pageErrors": 0,
+        "samples": 5,
+        "median_ms": 1025,
+        "p95_ms": 1050,
+        "min_ms": 1008,
+        "max_ms": 1050,
+        "api_requests": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "api_bytes": [
+          7954,
+          7950,
+          7953,
+          7955,
+          7952
+        ]
+      },
+      "warm-reload": {
+        "runs": 5,
+        "cardMs": 412,
+        "lcpMs": 440,
+        "firstPhotoMs": 441,
+        "photoPresentRuns": 5,
+        "cls": 0,
+        "totalBytes": 11200,
+        "scriptBytes": 369,
+        "imageBytes": 0,
+        "cacheHits": 44,
+        "status304": 0,
+        "failedRequests": 0,
+        "pageErrors": 0,
+        "samples": 5,
+        "median_ms": 412,
+        "p95_ms": 448,
+        "min_ms": 404,
+        "max_ms": 448,
+        "api_requests": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "api_bytes": [
+          7806,
+          7800,
+          7802,
+          7804,
+          7805
+        ]
+      }
+    },
+    "final": {
+      "cold-browser": {
+        "runs": 5,
+        "cardMs": 1058,
+        "lcpMs": 1520,
+        "firstPhotoMs": 1236,
+        "photoPresentRuns": 5,
+        "cls": 1.2938200728092016e-05,
+        "totalBytes": 757296,
+        "scriptBytes": 305306,
+        "imageBytes": 387515,
+        "cacheHits": 0,
+        "status304": 0,
+        "failedRequests": 0,
+        "pageErrors": 0,
+        "samples": 5,
+        "median_ms": 1058,
+        "p95_ms": 1133,
+        "min_ms": 1050,
+        "max_ms": 1133,
+        "api_requests": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "api_bytes": [
+          7936,
+          7936,
+          7935,
+          7938,
+          7938
+        ]
+      },
+      "warm-reload": {
+        "runs": 5,
+        "cardMs": 415,
+        "lcpMs": 436,
+        "firstPhotoMs": 443,
+        "photoPresentRuns": 5,
+        "cls": 0,
+        "totalBytes": 11235,
+        "scriptBytes": 369,
+        "imageBytes": 0,
+        "cacheHits": 47,
+        "status304": 0,
+        "failedRequests": 0,
+        "pageErrors": 0,
+        "samples": 5,
+        "median_ms": 415,
+        "p95_ms": 421,
+        "min_ms": 403,
+        "max_ms": 421,
+        "api_requests": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "api_bytes": [
+          7789,
+          7787,
+          7785,
+          7789,
+          7790
+        ]
+      }
+    },
+    "priority-high": {
+      "cold-browser": {
+        "runs": 5,
+        "cardMs": 1030,
+        "lcpMs": 1536,
+        "firstPhotoMs": 1223,
+        "photoPresentRuns": 5,
+        "cls": 1.2938200728092016e-05,
+        "totalBytes": 757313,
+        "scriptBytes": 305301,
+        "imageBytes": 387515,
+        "cacheHits": 0,
+        "status304": 0,
+        "failedRequests": 0,
+        "pageErrors": 0,
+        "samples": 5,
+        "median_ms": 1030,
+        "p95_ms": 1112,
+        "min_ms": 1021,
+        "max_ms": 1112,
+        "api_requests": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "api_bytes": [
+          7955,
+          7953,
+          7951,
+          7949,
+          7951
+        ]
+      }
+    }
+  }
+}

@@ -53,8 +53,8 @@ test('failed section retries, and empty bootstrap has no cards', async ({ page }
     else await route.continue()
   })
   await page.goto('/e2e')
-  await expect(page.getByRole('button', { name: /повтор|retry/i })).toBeVisible()
-  await page.getByRole('button', { name: /повтор|retry/i }).click()
+  await expect(page.getByRole('button', { name: /попробовать снова|retry/i })).toBeVisible()
+  await page.getByRole('button', { name: /попробовать снова|retry/i }).click()
   await expect(cards(page).first()).toBeVisible()
   expect(attempts).toBeGreaterThanOrEqual(4)
 
@@ -69,8 +69,10 @@ test('large menu reveals late cards, category jump and product route work', asyn
   await page.goto('/e2e')
   await expect(cards(page).first()).toBeVisible()
   const lastCategory = page.locator('[id^="category-"]').last()
+  await expect(lastCategory.getByRole('img')).toHaveCount(0)
   await page.locator('.sticky button[data-id]').last().click()
   await expect(lastCategory).toBeInViewport()
+  await expect(lastCategory.getByRole('img').first()).toBeVisible()
   await lastCategory.locator('[role="button"]').last().scrollIntoViewIfNeeded()
   await expect(lastCategory.locator('[role="button"]').last()).toBeVisible()
 
@@ -167,4 +169,79 @@ test('closing during the product modal chunk download ignores late completion', 
     await expect(page).toHaveURL(/\/e2e$/)
     await expect(cards(page).first()).toBeVisible()
   } finally { release?.() }
+})
+
+for (const dpr of [1, 2]) {
+  test.describe(`responsive DPR ${dpr}`, () => {
+    test.use({ deviceScaleFactor: dpr })
+    test('native responsive photo selection', async ({ page }) => {
+      const response = page.waitForResponse(bootstrapUrl)
+      await page.goto('/e2e')
+      const body = await (await response).json()
+      expect(body.menu.flatMap((c: any) => c.products).find((p: any) => p.slug === 'e2e-1').photo_variants).toHaveLength(3)
+      const image = cards(page).filter({ has: page.getByText('Маргарита', { exact: true }) }).first().getByRole('img')
+      await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true)
+      expect(await image.evaluate((img: HTMLImageElement) => img.currentSrc)).toContain(`menu-performance-${dpr === 1 ? 192 : 384}.webp`)
+    })
+  })
+}
+
+test('failed responsive photo falls back and preserves card geometry', async ({ page }) => {
+  await page.route('**/images/menu-performance-192.webp', route => route.fulfill({ status: 404, body: '' }))
+  await page.goto('/e2e')
+  const card = page.getByRole('button', { name: 'Маргарита', exact: true }).first()
+  const image = card.getByRole('img')
+  await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBe(800)
+  const before = await card.boundingBox()
+  expect(await image.evaluate((img: HTMLImageElement) => img.currentSrc)).toContain('menu-performance-800.webp')
+  await card.click()
+  await expect(page.getByRole('dialog').first()).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  const after = await card.boundingBox()
+  expect(after?.height).toBe(before?.height)
+})
+
+for (const width of [320, 390, 1280]) {
+  test(`skeleton reserves the ready photo area at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 })
+    let release!: () => void
+    const gate = new Promise<void>(resolve => { release = resolve })
+    await bootstrap(page, body => ({ ...body, menu: null }))
+    await page.route(menuSectionUrl, async route => { await gate; await route.continue() })
+    try {
+      await page.goto('/e2e')
+      const placeholder = page.locator('.grid .p-skeleton.aspect-square').first()
+      await expect(placeholder).toBeVisible()
+      const before = (await placeholder.boundingBox())!
+      expect(before.width).toBeGreaterThan(140)
+      expect(Math.abs(before.width - before.height)).toBeLessThan(1)
+      expect(await placeholder.evaluate(element => getComputedStyle(element, '::after').animationName)).toBe('none')
+      release()
+      const photo = cards(page).first().locator('.aspect-square').first()
+      await expect(photo).toBeVisible()
+      const after = (await photo.boundingBox())!
+      expect(Math.abs(after.width - before.width)).toBeLessThan(1)
+      expect(Math.abs(after.height - before.height)).toBeLessThan(1)
+      expect(Math.abs(after.y - before.y)).toBeLessThan(1)
+      await page.screenshot({ path: `../artifacts/menu-performance/ready-${width}.png` })
+    } finally { release?.() }
+  })
+}
+
+test('fast bootstrap and warm reload do not flash the menu skeleton', async ({ page }) => {
+  await page.addInitScript(() => {
+    ;(window as any).__menuSkeletonFrames = 0
+    const sample = () => {
+      if (document.querySelector('.grid .p-skeleton.aspect-square')) (window as any).__menuSkeletonFrames++
+      requestAnimationFrame(sample)
+    }
+    requestAnimationFrame(sample)
+  })
+  await page.goto('/e2e')
+  await expect(cards(page).first()).toBeVisible()
+  expect(await page.evaluate(() => (window as any).__menuSkeletonFrames)).toBe(0)
+  await page.reload()
+  await expect(cards(page).first()).toBeVisible()
+  expect(await page.evaluate(() => (window as any).__menuSkeletonFrames)).toBe(0)
 })

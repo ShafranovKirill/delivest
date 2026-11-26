@@ -37,6 +37,9 @@ if (!modes.length || modes.some(mode => !['cold-browser', 'warm-reload'].include
 const settleMs = Number(args.get('settle-ms') ?? '2500')
 if (!Number.isFinite(settleMs) || settleMs < 0 || settleMs > 120_000) throw new Error('Invalid --settle-ms')
 const capture = args.has('capture')
+const dpr = Number(args.get('dpr') ?? '1')
+if (![1, 2, 3].includes(dpr)) throw new Error('--dpr must be 1, 2 or 3')
+const priorityPhoto = args.get('priority-photo') ?? null
 if (capture && url.search) throw new Error('--capture requires a URL without query parameters')
 const safeUrl = value => {
   try { const parsed = new URL(value); return parsed.origin + parsed.pathname } catch { return null }
@@ -47,9 +50,26 @@ await mkdir(resolve(outputFile, '..'), { recursive: true })
 const browser = await chromium.launch({ headless: true })
 try {
   for (let pass = 1; pass <= passes; pass++) {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1,
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: dpr,
+      ...(capture ? { recordVideo: { dir: `${output}/videos`, size: { width: 390, height: 844 } } } : {}),
       isMobile: true, hasTouch: true, locale: 'ru-RU', serviceWorkers: 'block' })
     const page = await context.newPage()
+    if (priorityPhoto) await page.addInitScript(prefix => {
+      // Measurement-only A/B: set priority before the selected image's source.
+      const setAttribute = Element.prototype.setAttribute
+      Element.prototype.setAttribute = function (name, value) {
+        if (this instanceof HTMLImageElement && ['src', 'srcset'].includes(name) && String(value).includes(prefix))
+          setAttribute.call(this, 'fetchpriority', 'high')
+        return setAttribute.call(this, name, value)
+      }
+      for (const name of ['src', 'srcset']) {
+        const descriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, name)
+        Object.defineProperty(HTMLImageElement.prototype, name, { ...descriptor, set(value) {
+          if (String(value).includes(prefix)) setAttribute.call(this, 'fetchpriority', 'high')
+          descriptor.set.call(this, value)
+        } })
+      }
+    }, priorityPhoto)
     await page.addInitScript(() => {
       window.__storefrontVitals = { lcp: null, cls: null, firstPhoto: null }
       try {
@@ -123,7 +143,12 @@ try {
     cdp.on('Network.requestWillBeSent', e => {
       if (!current || !/^https?:/.test(e.request.url)) return
       current.requests.set(e.requestId, { url: safeUrl(e.request.url), method: e.request.method,
-        type: e.type, started: e.wallTime * 1000, stage: e.initiator.type })
+        type: e.type, started: e.wallTime * 1000, stage: e.initiator.type,
+        initialPriority: e.request.initialPriority })
+    })
+    cdp.on('Network.resourceChangedPriority', e => {
+      const req = current?.requests.get(e.requestId)
+      if (req) req.finalPriority = e.newPriority
     })
     cdp.on('Network.requestServedFromCache', e => {
       const req = current?.requests.get(e.requestId)
@@ -184,6 +209,11 @@ try {
             domContentLoaded: Math.round(e.domContentLoadedEventEnd), type: e.type })),
           categories: document.querySelectorAll('[id^="category-"]').length,
           products: document.querySelectorAll('[id^="category-"] [role="button"]').length,
+          productImages: [...document.querySelectorAll('[id^="category-"] [role="button"] img')].filter(img =>
+            img.alt && img.alt === img.closest('[role="button"]')?.getAttribute('aria-label')
+          ).map(img => ({ url: new URL(img.currentSrc || img.src, location.href).origin + new URL(img.currentSrc || img.src, location.href).pathname,
+            top: Math.round(img.getBoundingClientRect().top), width: img.clientWidth,
+            naturalWidth: img.naturalWidth, complete: img.complete })),
           visiblePhotoCandidates: [...document.querySelectorAll('[id^="category-"] [role="button"] img')].filter(img => {
             const b = img.getBoundingClientRect()
             return img.alt && img.alt === img.closest('[role="button"]')?.getAttribute('aria-label') &&
@@ -272,7 +302,7 @@ try {
     label: args.get('label') ?? null, captured_at: new Date().toISOString(),
     url: safeUrl(url.href), apiOrigin, network: { down_mbps: 10, up_mbps: 2, cdp_latency_ms: 80 },
     viewport: { width: 390, height: 844 }, service_workers: 'blocked', settle_ms: settleMs,
-    configuration: { url: safeUrl(url.href), passes, modes, viewport: '390x844', dpr: 1,
+    configuration: { url: safeUrl(url.href), passes, modes, viewport: '390x844', dpr, priorityPhoto,
       downloadMbps: 10, uploadMbps: 2, latencyMs: 80, serviceWorkers: 'block', settleMs },
     summary, samples, results,
   }, null, 2))
