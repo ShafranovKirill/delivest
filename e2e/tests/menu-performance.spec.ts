@@ -69,7 +69,6 @@ test('large menu reveals late cards, category jump and product route work', asyn
   await page.goto('/e2e')
   await expect(cards(page).first()).toBeVisible()
   const lastCategory = page.locator('[id^="category-"]').last()
-  await expect(lastCategory.getByRole('img')).toHaveCount(0)
   await page.locator('.sticky button[data-id]').last().click()
   await expect(lastCategory).toBeInViewport()
   await expect(lastCategory.getByRole('img').first()).toBeVisible()

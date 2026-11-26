@@ -869,3 +869,54 @@ Vitest product-image-sources 5/5, vue-tsc, build и diff-check прошли.
 правки не повторялись: добавлен отдельный SVG-запрос, прежний отчёт относится к7abe87a.
 При интеграции повторить адресный сетевой замер. Не заменять старый рисунок ради
 оптимизации без согласования с владельцем. Push/PR/merge не выполнялись.
+
+
+### Фоновая загрузка фото и модалка: checkpoint — 2026-11-26 18:39 MSK
+
+Владелец согласовал: сначала видимые фото, затем остальные по 2 одновременно
+с низким приоритетом, без прокрутки. Дополнительно попросил переносить длинное
+название (Картофель по-деревенски) вне крестика и заменить видимый текст
+«Загружаем товар» скелетоном. В конце явно попросил коммит и push в origin
+как есть, продолжит сам. Это разрешение отправить рабочую ветку, не develop/main;
+полный preflight/полный E2E перед этой конкретной отправкой не запускать.
+
+Реализовано в client: menu-scoped ProductPhotoQueue (provide/inject), opt-in
+ProductCard, первый видимый набор перед far queue, max 2 background eager/low
+на том же img с нативными srcset/sizes. Ошибка варианта держит слот до fallback;
+branch/locale и unmount прекращают выдачу старых заданий; metadata-only refresh
+сохраняет загруженное фото. Исправлены RAF receiver и запуск при seeded/cached data.
+Старая подробная pizza SVG/spin8s сохранена; stories и большие фото модалок
+в фоновую очередь не включены. Новые ProductModalSkeleton/ProductLoadState
+дают скелетон при chunk и direct-product loading; aria-label остаётся доступным,
+видимой надписи нет. Заголовки переносятся, desktop резервирует место справа.
+
+Адресные проверки корневым агентом: Vitest 22/22, vue-tsc, E2E typecheck,
+production Vite build и diff-check прошли. 29 Chromium tests passed (57.5s),
+включая 3 очереди (DPR1/2 + поздние ответы старого филиала), 7 модалки (320/768/1024,
+длинное слово, chunk/direct skeleton, закрытие), 19 прежних menu/checkout сценариев.
+Независимое ревью без блокирующих замечаний. Полные preflight/E2E/CI не запускались.
+
+Новая серия на demo: 5 парных холодный/reload до и после; первые фото1272→1227мс,
+карточка1074→1047мс (малые временные дельты не трактовать как гарантированный выигрыш),
+изображения394171→675888Б за окно после первой карточки, т.к. теперь загружаются
+все30 уникальных фото без скролла (прежде6). JS305149→306770Б. Все навигации:
+2API GET +1WS, 0 pageErrors/failedRequests; reload фото0Б (SVG304 остаётся318Б).
+Сырые JSON сохранены в docs/tasks/menu-performance/results/background-before.json
+и background-after.json. Новый пользовательский выбор отменяет прежнюю цель
+«дальние фото ждут скролла» после первого экрана; первоначальные замеры исторические.
+
+Код/ветки находятся в отдельном clone workspaces/menu-performance, root/client/server
+codex/menu-performance. Оригинальная codex/dashboard-workspace не менялась.
+Основное демо http://localhost:3100/demo-center оставлено запущенным с новой сборкой;
+API4100 на изолированной delivest_menu_perf_20261126. Временные тестовые3300/4300
+остановлены; e2e БД delivest_menu_perf_e2e_20261126 сохранена. E2E runner теперь
+поддерживает DELIVEST_E2E_SERVER_PORT/DELIVEST_E2E_CLIENT_PORT, серверный helper
+MENU_PERFORMANCE_SERVER_PORT (defaults прежние4100/3100). E2E media fixtures
+копировались временно из parent/e2e/fixtures, в server не коммитить.
+
+Записи/скриншоты: artifacts/menu-background/ui-final, pending-390.png,
+title-768-normal.png и другие title/pending PNG; логи /tmp/menu-bg-browser-final.log,
+/tmp/menu-bg-unit.log, /tmp/menu-bg-build.log, /tmp/menu-bg-types.log.
+Следующий шаг владельца — открыть локальное демо и продолжить визуальную приёмку.
+Для develop по отдельной команде: fetch, release migration policy, полный make preflight
+без PLAYWRIGHT_ARGS и обязательный CI на финальном SHA. Production не разрешён.

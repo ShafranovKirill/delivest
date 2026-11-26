@@ -9,12 +9,13 @@ end
 
 endpoint = Application.fetch_env!(:delivest, DelivestWeb.Endpoint)
 http = Keyword.fetch!(endpoint, :http)
+port = System.get_env("MENU_PERFORMANCE_SERVER_PORT", "4100") |> String.to_integer()
 
 Application.put_env(
   :delivest,
   DelivestWeb.Endpoint,
   endpoint
-  |> Keyword.put(:http, http |> Keyword.put(:ip, {127, 0, 0, 1}) |> Keyword.put(:port, 4100))
+  |> Keyword.put(:http, http |> Keyword.put(:ip, {127, 0, 0, 1}) |> Keyword.put(:port, port))
   |> Keyword.put(:server, true)
   |> Keyword.put(:code_reloader, false)
   |> Keyword.put(:reloadable_apps, [])
@@ -30,5 +31,5 @@ Application.put_env(
 
 Logger.configure(level: :warning)
 {:ok, _} = Application.ensure_all_started(:delivest)
-IO.puts("Menu measurement fixture ready on 4100")
+IO.puts("Menu measurement fixture ready on #{port}")
 Process.sleep(:infinity)
