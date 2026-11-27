@@ -121,12 +121,14 @@ test('dashboard shares its saved widgets across scopes and adapts without horizo
   await reset()
   await page.locator('#dashboard-save').click()
   await expect(widget('hourly')).toBeVisible()
-  await branchPage(page, 'dashboard')
-  await expect(widget('hourly')).toBeVisible()
+  await expect(page).toHaveURL(`${adminUrl}/staff/dashboard`)
   await page.setViewportSize({ width: 800, height: 900 })
   await expect(page.locator('#main-sidebar')).toBeVisible()
   await expect(grid).toHaveClass(/\bgs-2\b/)
   await expect(grid).toHaveClass(/\bdashboard-grid-ready\b/)
+  await expect(widget('top_products').locator('#dashboard-top-products-plot, #dashboard-top-products-empty')).toBeVisible()
+  await expect(widget('branch_summary').locator('.dashboard-branch-row').first()).toBeVisible()
+  await expect(widget('latest_orders').locator('.dashboard-latest-row').first()).toBeVisible()
   await expect.poll(() => grid.evaluate(element => {
     const cards = ['revenue', 'orders', 'avg_check', 'in_work'].map(id => {
       const widget = element.querySelector(`[data-widget-id="${id}"]`)!
@@ -146,6 +148,65 @@ test('dashboard shares its saved widgets across scopes and adapts without horizo
         context.bottom <= card.bottom - 8),
     }
   })).toEqual({ paired: true, compact: true, contentFits: true })
+  await expect.poll(() => grid.evaluate(element => {
+    const content: Record<string, string> = {
+      attention: '.dashboard-attention-grid, #dashboard-attention-empty',
+      revenue: '.dashboard-kpi-context',
+      orders: '.dashboard-kpi-context',
+      avg_check: '.dashboard-kpi-context',
+      in_work: '.dashboard-kpi-context',
+      hourly: '[data-chart], #dashboard-hourly-empty',
+      latest_orders: '.dashboard-latest-list',
+      top_products: '#dashboard-top-products-plot, #dashboard-top-products-empty',
+      branch_summary: '.dashboard-branch-list',
+    }
+    return Object.entries(content).flatMap(([id, selector]) => {
+      const widget = element.querySelector(`[data-widget-id="${id}"]`)
+      const card = widget?.querySelector('.dashboard-widget-card')
+      const body = card?.querySelector(selector)
+      if (!card || !body) return [`${id}: missing content`]
+      const cardBox = card.getBoundingClientRect()
+      const bodyBox = body.getBoundingClientRect()
+      const errors = []
+      if (bodyBox.left < cardBox.left - 1 || bodyBox.right > cardBox.right + 1 ||
+          bodyBox.top < cardBox.top - 1 || bodyBox.bottom > cardBox.bottom + 1) {
+        errors.push(`${id}: content outside card`)
+      }
+      if (body.scrollWidth > body.clientWidth + 1) errors.push(`${id}: horizontal overflow`)
+      if (id === 'branch_summary' && Array.from(body.querySelectorAll('.dashboard-branch-metrics > div'))
+        .some(metric => metric.scrollWidth > metric.clientWidth + 1)) {
+        errors.push(`${id}: metric text overflow`)
+      }
+      if (id !== 'latest_orders' && cardBox.bottom - bodyBox.bottom > 85) {
+        errors.push(`${id}: excess bottom space`)
+      }
+      if (id === 'latest_orders' && !/auto|scroll/.test(getComputedStyle(body).overflowY)) {
+        errors.push(`${id}: list cannot scroll`)
+      }
+      return errors
+    })
+  })).toEqual([])
+  await widget('branch_summary').scrollIntoViewIfNeeded()
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0)
+  await page.setViewportSize({ width: 720, height: 900 })
+  await expect.poll(() => grid.evaluate(element =>
+    ['attention', 'revenue', 'orders', 'avg_check', 'in_work'].every(id => {
+      const card = element.querySelector(`[data-widget-id="${id}"] .dashboard-widget-card`)
+      return !!card && card.getBoundingClientRect().height <= 150
+    })
+  )).toBe(true)
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth))
+    .toBeLessThanOrEqual(1)
+  await page.setViewportSize({ width: 800, height: 900 })
+  await branchPage(page, 'dashboard')
+  await expect(widget('hourly')).toBeVisible()
+  await expect(widget('quick_actions').locator('.dashboard-actions-grid')).toBeVisible()
+  await expect.poll(() => widget('quick_actions').evaluate(element => {
+    const card = element.querySelector('.dashboard-widget-card')!.getBoundingClientRect()
+    const actions = element.querySelector('.dashboard-actions-grid')!.getBoundingClientRect()
+    return actions.left >= card.left - 1 && actions.right <= card.right + 1 &&
+      actions.bottom <= card.bottom + 1 && card.bottom - actions.bottom <= 85
+  })).toBe(true)
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(`${adminUrl}/staff/b/e2e-board/dashboard`)
   await expect(page.locator('#dashboard-alert-ready')).toBeVisible()
