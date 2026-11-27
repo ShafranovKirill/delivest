@@ -8,12 +8,9 @@ test('product bulk selection is scoped to the visible page and filters', async (
   await page.goto(productsUrl)
   await page.locator('[data-phx-main].phx-connected').waitFor()
 
-  await page.locator('#product-more-actions > summary').click()
-  await page.locator('#product-toggle-selection').click()
-
   const rows = page.locator('#products input[form="product-selection"]')
   const bar = page.locator('#product-selection-bar')
-  const selectPage = page.locator('#product-select-page')
+  const selectPage = page.locator('#product-select-page-header')
   await expect(rows).toHaveCount(10)
   await expect(bar).toHaveCount(0)
 
@@ -25,7 +22,7 @@ test('product bulk selection is scoped to the visible page and filters', async (
   await expect(rows.first()).not.toBeChecked()
   await expect(bar).toHaveCount(0)
 
-  await selectPage.click()
+  await selectPage.check()
   await expect(rows.and(page.locator(':checked'))).toHaveCount(10)
   await expect(bar.getByRole('status')).toContainText(/\b10\b/)
 
@@ -35,7 +32,7 @@ test('product bulk selection is scoped to the visible page and filters', async (
   await expect(rows.first()).not.toBeChecked()
   await expect(bar).toHaveCount(0)
 
-  await selectPage.click()
+  await selectPage.check()
   await expect(rows.first()).toBeChecked()
   await page.locator('#products-filter input[name="search"]').fill('Pagination 01')
   await expect(page.locator('#products td[data-column="name"] a')).toHaveText('Pagination 01')
@@ -50,8 +47,6 @@ test('product bulk actions fit a narrow screen and can be cleared by keyboard', 
   await page.locator('[data-phx-main].phx-connected').waitFor()
   await page.evaluate(() => { document.documentElement.dataset.theme = 'dark' })
 
-  await page.locator('#product-more-actions > summary').click()
-  await page.locator('#product-toggle-selection').click()
   await page.locator('#product-select-page').click()
 
   const bar = page.locator('#product-selection-bar')
