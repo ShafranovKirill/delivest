@@ -93,13 +93,14 @@ async function cellPosition(chart: Locator, cell: HeatmapCell) {
   }
 }
 
-test('overview heatmap draws, filters fulfillment and opens four dated cell details', async ({
+test('sales heatmap follows the charts, filters fulfillment and opens four dated cell details', async ({
   staff,
 }) => {
   const admin = await staff('e2e_admin')
   const errors: string[] = []
   admin.on('pageerror', error => errors.push(error.message))
-  await branchPage(admin, 'statistics?tab=overview')
+  await branchPage(admin, 'statistics')
+  await expect(admin.locator('#statistics-sales-charts + #statistics-heatmap')).toBeVisible()
   const chart = admin.locator('#statistics-heatmap-chart')
   await expect(chart).toHaveAttribute('data-chart', /"kind":"heatmap"/)
   await expectDrawn(chart)
@@ -112,6 +113,8 @@ test('overview heatmap draws, filters fulfillment and opens four dated cell deta
     .toBe(27)
   await fulfillment.selectOption('pickup')
   await expect(admin).toHaveURL(/fulfillment=pickup/)
+  await expect(admin).not.toHaveURL(/tab=overview/)
+  await expect(admin.locator('#statistics-sales-charts')).toBeVisible()
   await expect(fulfillment).toHaveValue('pickup')
   const filtered = await chartData<HeatmapData>(chart)
   expect(filtered.cells).toHaveLength(168)
@@ -120,6 +123,7 @@ test('overview heatmap draws, filters fulfillment and opens four dated cell deta
     .toBeLessThanOrEqual(all.cells.reduce((total, cell) => total + cell.total, 0))
   await fulfillment.selectOption('delivery')
   await expect(admin).toHaveURL(/fulfillment=delivery/)
+  await expect(admin.locator('#statistics-sales-charts')).toBeVisible()
   await expect(fulfillment).toHaveValue('delivery')
   const delivery = await chartData<HeatmapData>(chart)
   expect(
@@ -155,7 +159,8 @@ test('overview heatmap draws, filters fulfillment and opens four dated cell deta
     storageState: await admin.context().storageState(),
   })
   const mobile = await touchContext.newPage()
-  await branchPage(mobile, 'statistics?tab=overview')
+  await branchPage(mobile, 'statistics')
+  await expect(mobile.locator('#statistics-sales-charts + #statistics-heatmap')).toBeVisible()
   const mobileChart = mobile.locator('#statistics-heatmap-chart')
   await expectNoPageOverflow(mobile)
   await expect.poll(async () => (await mobileChart.locator('canvas').first().boundingBox())?.width ?? Infinity)
