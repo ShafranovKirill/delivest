@@ -123,6 +123,30 @@ test('dashboard shares its saved widgets across scopes and adapts without horizo
   await expect(widget('hourly')).toBeVisible()
   await branchPage(page, 'dashboard')
   await expect(widget('hourly')).toBeVisible()
+  await page.setViewportSize({ width: 800, height: 900 })
+  await expect(page.locator('#main-sidebar')).toBeVisible()
+  await expect(grid).toHaveClass(/\bgs-2\b/)
+  await expect(grid).toHaveClass(/\bdashboard-grid-ready\b/)
+  await expect.poll(() => grid.evaluate(element => {
+    const cards = ['revenue', 'orders', 'avg_check', 'in_work'].map(id => {
+      const widget = element.querySelector(`[data-widget-id="${id}"]`)!
+      const card = widget.querySelector('.dashboard-kpi-card')!.getBoundingClientRect()
+      const value = widget.querySelector('.dashboard-kpi-value')!.getBoundingClientRect()
+      const context = widget.querySelector('.dashboard-kpi-context')!.getBoundingClientRect()
+      return { card, value, context }
+    })
+    const [revenue, orders, average, inWork] = cards
+    return {
+      paired: Math.abs(revenue.card.y - orders.card.y) <= 1 &&
+        Math.abs(average.card.y - inWork.card.y) <= 1 &&
+        average.card.y > revenue.card.y + revenue.card.height - 1,
+      compact: cards.every(({ card }) => card.height <= 150),
+      contentFits: cards.every(({ card, value, context }) =>
+        value.y > card.y + 25 && context.y > card.y + card.height / 2 &&
+        context.bottom <= card.bottom - 8),
+    }
+  })).toEqual({ paired: true, compact: true, contentFits: true })
+  await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(`${adminUrl}/staff/b/e2e-board/dashboard`)
   await expect(page.locator('#dashboard-alert-ready')).toBeVisible()
   await expect(widget('hourly').locator('canvas').first()).toBeVisible()
