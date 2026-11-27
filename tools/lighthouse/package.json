@@ -1,7 +1,0 @@
-{
-  "name": "delivest-lighthouse",
-  "private": true,
-  "devDependencies": {
-    "@lhci/cli": "0.15.1"
-  }
-}
