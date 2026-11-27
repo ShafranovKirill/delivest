@@ -60,7 +60,10 @@ test('failed section retries, and empty bootstrap has no cards', async ({ page }
 
   await page.unrouteAll({ behavior: 'wait' })
   await bootstrap(page, body => ({ ...body, menu: [] }))
+  const emptyBootstrap = page.waitForResponse(bootstrapUrl)
   await page.reload()
+  await emptyBootstrap
+  await expect(page.getByText('В этом меню пока нет товаров.')).toBeVisible()
   await expect(cards(page)).toHaveCount(0)
 })
 
