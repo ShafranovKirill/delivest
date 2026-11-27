@@ -3,7 +3,10 @@
     "category-names.spec.ts",
     "customer-ui.spec.ts",
     "loader-brand-color.spec.ts",
+    "menu-background-images.spec.ts",
+    "menu-performance.spec.ts",
     "map-lazy.spec.ts",
+    "product-modal-loading.spec.ts",
     "storefront-bootstrap.spec.ts",
     "storefront-maintenance.spec.ts",
     "s2-client.spec.ts",
@@ -15,6 +18,7 @@
     "checkout-return.spec.ts",
     "delivery-address-mode.spec.ts",
     "delivery-priority-client.spec.ts",
+    "menu-icon-transfer.spec.ts",
     "pickup-selection.spec.ts",
     "order-success.spec.ts"
   ],
