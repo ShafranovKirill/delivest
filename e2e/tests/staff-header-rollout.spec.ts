@@ -265,6 +265,43 @@ test('the active status count has readable contrast in the dark theme', async ({
   expect(contrast).toBeGreaterThanOrEqual(4.5)
 })
 
+test('dark page actions use white buttons while dashboard shortcuts stay dark', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await branchPage(page, 'dashboard')
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark' })
+
+  const dashboardAction = page.locator('#dashboard-edit')
+  const shortcut = page.locator('.dashboard-action-link').first()
+  await expect(dashboardAction).toBeVisible()
+  await expect(shortcut).toBeVisible()
+  await expect.poll(() => dashboardAction.evaluate(element => {
+    const style = getComputedStyle(element)
+    return { background: style.backgroundColor, color: style.color }
+  })).toEqual({ background: 'rgb(255, 255, 255)', color: 'rgb(0, 0, 0)' })
+
+  const shortcutColors = await shortcut.evaluate(element => {
+    const style = getComputedStyle(element)
+    const canvas = document.createElement('canvas')
+    canvas.width = canvas.height = 1
+    const context = canvas.getContext('2d')!
+    context.fillStyle = style.color
+    context.fillRect(0, 0, 1, 1)
+    const text = Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3)
+    return { background: style.backgroundColor, text }
+  })
+  expect(shortcutColors.background).not.toBe('rgb(255, 255, 255)')
+  expect(Math.min(...shortcutColors.text)).toBeGreaterThan(180)
+
+  await branchPage(page, 'products')
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark' })
+  const create = page.locator('#create-product')
+  await expect(create).toBeVisible()
+  await expect.poll(() => create.evaluate(element => {
+    const style = getComputedStyle(element)
+    return { background: style.backgroundColor, color: style.color }
+  })).toEqual({ background: 'rgb(255, 255, 255)', color: 'rgb(0, 0, 0)' })
+})
+
 test('promotion action opens the scenario route', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await branchPage(page, 'promotions')
