@@ -79,6 +79,66 @@ test('mobile settings and order navigation stay directly below the global header
   await expectPageFrame(page, 0)
 })
 
+test('orders keep their authorized sections in the shared navigation on direct links', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  const navigation = page.locator('#staff-context-navigation #staff-section-navigation')
+  const allOrders = navigation.locator('#section-nav-orders')
+  const newOrder = navigation.locator('#section-nav-orders_new')
+  const pos = navigation.locator('#section-nav-pos')
+
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 844 })
+    await page.goto(`${adminUrl}/staff/b/${branchSlug}/orders`)
+    await page.locator('[data-phx-main].phx-connected').waitFor()
+    await expect(navigation).toBeVisible()
+    await expect.poll(async () => (await navigation.boundingBox())?.y).toBe(56)
+    await expect(allOrders).toHaveAttribute('aria-current', 'page')
+    await expect(newOrder).toHaveAttribute('href', `/staff/b/${branchSlug}/orders/new`)
+    await expect(pos).toHaveAttribute('href', `/staff/b/${branchSlug}/pos`)
+    const firstThree = await navigation.locator('a').evaluateAll(links =>
+      links.slice(0, 3).map(link => link.id),
+    )
+    expect(firstThree).toEqual(['section-nav-orders', 'section-nav-orders_new', 'section-nav-pos'])
+    await expect.poll(() => page.evaluate(() =>
+      document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    )).toBeLessThanOrEqual(1)
+    if (width === 390) {
+      const colors = []
+      for (const theme of ['light', 'dark']) {
+        colors.push(await navigation.evaluate((element, selectedTheme) => {
+          document.documentElement.dataset.theme = selectedTheme
+          const active = element.querySelector('[aria-current="page"]')!
+          return {
+            background: getComputedStyle(element.parentElement!).backgroundColor,
+            active: getComputedStyle(active).color,
+            underline: getComputedStyle(active).borderBottomColor,
+            underlineWidth: getComputedStyle(active).borderBottomWidth,
+            underlineBottom: active.getBoundingClientRect().bottom,
+            navigationBottom: element.getBoundingClientRect().bottom,
+          }
+        }, theme))
+      }
+      expect(colors[0]).not.toEqual(colors[1])
+      for (const color of colors) {
+        expect(color.underline).toBe(color.active)
+        expect(color.underlineWidth).toBe('2px')
+        expect(color.underlineBottom).toBeLessThanOrEqual(color.navigationBottom + 1)
+      }
+    }
+  }
+
+  await newOrder.click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/orders/new`)
+  await expect(newOrder).toHaveAttribute('aria-current', 'page')
+  await allOrders.click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/orders`)
+  await expect(allOrders).toHaveAttribute('aria-current', 'page')
+
+  await pos.click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/pos`)
+  await expect(pos).toHaveAttribute('aria-current', 'page')
+})
+
 test('orders keep the one-row toolbar visible at narrow widths and in fullscreen', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.setViewportSize({ width: 1280, height: 800 })
@@ -142,7 +202,11 @@ test('orders keep the one-row toolbar visible at narrow widths and in fullscreen
     window.scrollTo(0, document.documentElement.scrollHeight)
   })
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
-  await expect.poll(async () => Math.round((await toolbar.boundingBox())!.y)).toBe(56)
+  await expect.poll(async () => {
+    const toolbarBox = await toolbar.boundingBox()
+    const navigationBox = await page.locator('#staff-context-navigation').boundingBox()
+    return Math.round(toolbarBox!.y - (navigationBox!.y + navigationBox!.height))
+  }).toBe(0)
 })
 
 test('the active status count has readable contrast in the dark theme', async ({ staff }) => {

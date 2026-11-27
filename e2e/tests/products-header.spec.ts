@@ -20,7 +20,7 @@ const sections: Section[] = [
 ]
 
 const productNavigation = (page: Page) =>
-  page.locator('#staff-section-navigation:visible, #sidebar-staff-section-navigation:visible')
+  page.locator('#staff-context-navigation #staff-section-navigation')
 
 async function expectSectionPage(page: Page, section: Section) {
   const toolbar = page.locator(`main #${section.toolbar}.staff-page-toolbar`)
@@ -197,7 +197,8 @@ test('sidebar accordion saves desktop width and hidden sidebar keeps the navigat
   for (const width of [1440, 1920]) {
     await page.setViewportSize({ width, height: 1080 })
     await page.evaluate(() => window.scrollTo(0, 0))
-    await expect(navigation).toBeHidden()
+    await expect(navigation).toBeVisible()
+    await expect.poll(async () => (await navigation.boundingBox())?.y).toBe(56)
     await expect(page.locator('#main-sidebar #sidebar-product-section-tab-products')).toBeVisible()
     await expect(page.locator('#main-sidebar #sidebar-product-section-tab-products')).toHaveAttribute('aria-current', 'page')
     expect(await page.evaluate(() => {
@@ -251,7 +252,7 @@ test('sidebar accordion saves desktop width and hidden sidebar keeps the navigat
   await page.screenshot({ path: test.info().outputPath('navigation-desktop-hidden-sidebar.png'), animations: 'disabled' })
   await page.locator('#header-sidebar-toggle').click()
   await expect(page.locator('#main-sidebar')).toBeVisible()
-  await expect(navigation).toBeHidden()
+  await expect(navigation).toBeVisible()
 
   await page.locator('#sidebar-group-delivery-toggle').click()
   await page.locator('#sidebar-section-nav-deliveries').click()

@@ -128,6 +128,16 @@ test('settings use the existing desktop sidebar and a mobile navigation row', as
     const nav = page.locator('#sidebar-settings-navigation')
     await expect(nav).toHaveCount(1)
     await expect(page.locator('#staff-section-navigation')).toHaveCount(0)
+    const topNav = page.locator('#staff-context-navigation #settings-navigation')
+    await expect(topNav).toBeVisible()
+    await expect(topNav.locator('[aria-current="page"]')).toHaveCount(1)
+    const topLabels = await topNav.locator('a').evaluateAll(anchors =>
+      anchors.map(anchor => anchor.textContent?.trim()),
+    )
+    const sidebarLabels = await nav.locator('a').evaluateAll(anchors =>
+      anchors.map(anchor => anchor.textContent?.trim()),
+    )
+    expect(topLabels).toEqual(sidebarLabels)
 
     const links = await nav.locator('a').evaluateAll(anchors =>
       anchors.map(anchor => ({ id: anchor.id, href: anchor.getAttribute('href') ?? '' })),
@@ -138,7 +148,7 @@ test('settings use the existing desktop sidebar and a mobile navigation row', as
     expect(content).not.toBeNull()
     expect(content!.x).toBeGreaterThanOrEqual(240)
     expect(content!.x).toBeLessThan(272)
-    await expect(page.locator('#staff-context-navigation')).toBeHidden()
+    await expect.poll(async () => (await page.locator('#staff-context-navigation').boundingBox())?.y).toBe(56)
     expect(content!.x + content!.width).toBeGreaterThan(1850)
     if (expectedLinks) {
       expect(links.map(link => link.id)).toEqual(expectedLinks.map(link => link.id))
