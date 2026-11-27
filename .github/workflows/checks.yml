@@ -10,10 +10,83 @@ concurrency:
   group: checks-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  server:
+  server-contract:
     runs-on: ubuntu-24.04
+    services:
+      db:
+        image: postgres:16-alpine
+        ports: ['5432:5432']
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.19.5-otp-28'
+          otp-version: '28.4.2'
+      - run: mix deps.get
+        working-directory: server
+      - run: mix compile --warnings-as-errors
+        working-directory: server
+        env:
+          MIX_ENV: test
+      - run: mix ecto.create --quiet && mix ecto.migrate --quiet
+        working-directory: server
+        env:
+          MIX_ENV: test
+      - name: Check OpenAPI snapshot
+        working-directory: server
+        env:
+          MIX_ENV: test
+        run: |
+          mix run -e 'File.write!("/tmp/delivest-openapi.json", Jason.encode!(DelivestWeb.OpenApi.spec()))'
+          diff -u <(jq -S . ../client/src/api/docs/swagger.json) <(jq -S . /tmp/delivest-openapi.json)
+      - name: Check Yaak collections
+        working-directory: server
+        env:
+          MIX_ENV: test
+        run: |
+          mix api.check
+          mix api.export --scalar --output /tmp/delivest-yaak-inventory.json
+          python3 ../scripts/yaak_collection.py verify --profile local --spec /tmp/delivest-openapi.json --inventory /tmp/delivest-yaak-inventory.json --bundle ../tools/yaak/delivest-local.yaak.json
+          python3 ../scripts/yaak_collection.py verify --profile staging --spec /tmp/delivest-openapi.json --inventory /tmp/delivest-yaak-inventory.json --bundle ../tools/yaak/delivest-staging.yaak.json
+  server-analysis:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.19.5-otp-28'
+          otp-version: '28.4.2'
+      - run: mix deps.get
+        working-directory: server
+      - name: Cache dialyzer PLT
+        uses: actions/cache@v4
+        with:
+          path: |
+            server/_build/test/*.plt
+            server/_build/test/*.plt.hash
+          key: dialyzer-${{ runner.os }}-otp28.4.2-elixir1.19.5-${{ hashFiles('server/mix.lock') }}
+      - run: mix format --check-formatted && mix credo --strict && mix dialyzer
+        working-directory: server
+        env:
+          MIX_ENV: test
+  server-tests:
+    name: Server tests / ${{ matrix.partition }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        partition: ['1', '2', '3']
     env:
       CHROME_EXECUTABLE: /usr/bin/google-chrome
+      MIX_TEST_PARTITION: ${{ matrix.partition }}
     services:
       db:
         image: postgres:16-alpine
@@ -36,38 +109,30 @@ jobs:
         run: |
           google-chrome --version
           timeout 30s google-chrome --headless --disable-gpu --user-data-dir="$RUNNER_TEMP/delivest-pdf-probe" --dump-dom about:blank
-      - name: Cache dialyzer PLT
-        uses: actions/cache@v4
-        with:
-          path: |
-            server/_build/test/*.plt
-            server/_build/test/*.plt.hash
-          key: dialyzer-${{ runner.os }}-otp28.4.2-elixir1.19.5-${{ hashFiles('server/mix.lock') }}
-      - name: Render PDF smoke
-        run: mix test test/delivest/printing_test.exs --max-cases 1
+      - run: mix test --partitions 3
         working-directory: server
         env:
           MIX_ENV: test
-      - run: mix format --check-formatted && mix compile --warnings-as-errors && mix credo --strict && mix dialyzer && mix test
-        working-directory: server
+  server:
+    name: server
+    needs: [server-contract, server-analysis, server-tests]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Reject cancelled workflow
+        if: cancelled()
+        run: exit 1
+      - name: Verify server jobs passed
+        if: always()
         env:
-          MIX_ENV: test
-      - name: Check OpenAPI snapshot
-        working-directory: server
-        env:
-          MIX_ENV: test
+          CONTRACT_RESULT: ${{ needs.server-contract.result }}
+          ANALYSIS_RESULT: ${{ needs.server-analysis.result }}
+          TESTS_RESULT: ${{ needs.server-tests.result }}
         run: |
-          mix run -e 'File.write!("/tmp/delivest-openapi.json", Jason.encode!(DelivestWeb.OpenApi.spec()))'
-          diff -u <(jq -S . ../client/src/api/docs/swagger.json) <(jq -S . /tmp/delivest-openapi.json)
-      - name: Check Yaak collections
-        working-directory: server
-        env:
-          MIX_ENV: test
-        run: |
-          mix api.check
-          mix api.export --scalar --output /tmp/delivest-yaak-inventory.json
-          python3 ../scripts/yaak_collection.py verify --profile local --spec /tmp/delivest-openapi.json --inventory /tmp/delivest-yaak-inventory.json --bundle ../tools/yaak/delivest-local.yaak.json
-          python3 ../scripts/yaak_collection.py verify --profile staging --spec /tmp/delivest-openapi.json --inventory /tmp/delivest-yaak-inventory.json --bundle ../tools/yaak/delivest-staging.yaak.json
+          if [[ "$CONTRACT_RESULT" != "success" || "$ANALYSIS_RESULT" != "success" || "$TESTS_RESULT" != "success" ]]; then
+            echo "Server contract: $CONTRACT_RESULT; analysis: $ANALYSIS_RESULT; tests: $TESTS_RESULT"
+            exit 1
+          fi
   agent:
     runs-on: ubuntu-24.04
     steps:

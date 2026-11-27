@@ -19,7 +19,9 @@
     "delivery-address-mode.spec.ts",
     "delivery-priority-client.spec.ts",
     "menu-icon-transfer.spec.ts",
+    "menu-combo.spec.ts",
     "pickup-selection.spec.ts",
+    "saved-payment-methods.spec.ts",
     "order-success.spec.ts"
   ],
   "operations-pos": [
@@ -28,13 +30,16 @@
     "pickup.spec.ts",
     "staff-created-order.spec.ts",
     "order-timing.spec.ts",
+    "order-recovery.spec.ts",
     "intake-dialog.spec.ts",
-    "pos.spec.ts"
+    "pos.spec.ts",
+    "staff-stage-five.spec.ts"
   ],
   "admin-catalog": [
     "admin-menu-workflows.spec.ts",
     "product-operations.spec.ts",
     "product-pagination.spec.ts",
+    "product-bulk-selection.spec.ts",
     "products-header.spec.ts",
     "dashboard-layout.spec.ts",
     "staff-header-rollout.spec.ts",

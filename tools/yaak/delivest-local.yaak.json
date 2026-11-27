@@ -378,12 +378,21 @@
       },
       {
         "model": "folder",
+        "id": "fl_c8925ab72a37e264",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "Client / payment-methods",
+        "sortPriority": 16.0
+      },
+      {
+        "model": "folder",
         "id": "fl_6c7668be1de7be44",
         "workspaceId": "wk_f41c73bdec2b3021",
         "createdAt": "2026-01-01T00:00:00",
         "updatedAt": "2026-01-01T00:00:00",
         "name": "Client / push",
-        "sortPriority": 16.0
+        "sortPriority": 17.0
       },
       {
         "model": "folder",
@@ -392,7 +401,7 @@
         "createdAt": "2026-01-01T00:00:00",
         "updatedAt": "2026-01-01T00:00:00",
         "name": "Client / socket_token",
-        "sortPriority": 17.0
+        "sortPriority": 18.0
       },
       {
         "model": "folder",
@@ -401,7 +410,7 @@
         "createdAt": "2026-01-01T00:00:00",
         "updatedAt": "2026-01-01T00:00:00",
         "name": "Client / {branch_id}",
-        "sortPriority": 18.0
+        "sortPriority": 19.0
       },
       {
         "model": "folder",
@@ -410,7 +419,7 @@
         "createdAt": "2026-01-01T00:00:00",
         "updatedAt": "2026-01-01T00:00:00",
         "name": "Integrations / crm",
-        "sortPriority": 19.0
+        "sortPriority": 20.0
       },
       {
         "model": "folder",
@@ -419,7 +428,7 @@
         "createdAt": "2026-01-01T00:00:00",
         "updatedAt": "2026-01-01T00:00:00",
         "name": "Integrations / fiscal",
-        "sortPriority": 20.0
+        "sortPriority": 21.0
       },
       {
         "model": "folder",
@@ -428,7 +437,7 @@
         "createdAt": "2026-01-01T00:00:00",
         "updatedAt": "2026-01-01T00:00:00",
         "name": "Integrations / yandex-eda",
-        "sortPriority": 21.0
+        "sortPriority": 22.0
       },
       {
         "model": "folder",
@@ -437,7 +446,7 @@
         "createdAt": "2026-01-01T00:00:00",
         "updatedAt": "2026-01-01T00:00:00",
         "name": "Integrations / yookassa",
-        "sortPriority": 22.0
+        "sortPriority": 23.0
       },
       {
         "model": "folder",
@@ -446,7 +455,7 @@
         "createdAt": "2026-01-01T00:00:00",
         "updatedAt": "2026-01-01T00:00:00",
         "name": "Integrations / zvonok",
-        "sortPriority": 23.0
+        "sortPriority": 24.0
       }
     ],
     "httpRequests": [
@@ -1852,9 +1861,17 @@
             "value": "${[ response.body.path(request='rq_2d3072a779914e8f',path='$.data.id',behavior='never') ]}"
           }
         ],
-        "headers": [],
-        "bodyType": null,
-        "body": {},
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "application/json",
+        "body": {
+          "text": "{}"
+        },
         "sortPriority": 48.0,
         "authenticationType": null,
         "authentication": {}
@@ -1894,6 +1911,50 @@
       },
       {
         "model": "http_request",
+        "id": "rq_c56649b31e863842",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c8925ab72a37e264",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "GET /client/payment-methods",
+        "description": "Сохранённые способы оплаты текущего клиента",
+        "method": "GET",
+        "url": "${[ base_url ]}/client/payment-methods",
+        "urlParameters": [],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 50.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
+        "id": "rq_f50931e7e5be9fd6",
+        "workspaceId": "wk_f41c73bdec2b3021",
+        "folderId": "fl_c8925ab72a37e264",
+        "createdAt": "2026-01-01T00:00:00",
+        "updatedAt": "2026-01-01T00:00:00",
+        "name": "DELETE /client/payment-methods/{id}",
+        "description": "Локально удалить сохранённый способ оплаты",
+        "method": "DELETE",
+        "url": "${[ base_url ]}/client/payment-methods/:id",
+        "urlParameters": [
+          {
+            "enabled": true,
+            "name": ":id",
+            "value": "${[ id ]}"
+          }
+        ],
+        "headers": [],
+        "bodyType": null,
+        "body": {},
+        "sortPriority": 51.0,
+        "authenticationType": null,
+        "authentication": {}
+      },
+      {
+        "model": "http_request",
         "id": "rq_950dc6aa10e1285d",
         "workspaceId": "wk_f41c73bdec2b3021",
         "folderId": "fl_6c7668be1de7be44",
@@ -1913,7 +1974,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 50.0,
+        "sortPriority": 52.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ access_token ]}",
@@ -1943,7 +2004,7 @@
         "body": {
           "text": "{\n  \"endpoint\": \"https://example.test\",\n  \"keys\": {\n    \"auth\": \"x\",\n    \"p256dh\": \"x\"\n  }\n}"
         },
-        "sortPriority": 51.0,
+        "sortPriority": 53.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ access_token ]}",
@@ -1965,7 +2026,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 52.0,
+        "sortPriority": 54.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -1996,7 +2057,7 @@
         ],
         "bodyType": null,
         "body": {},
-        "sortPriority": 53.0,
+        "sortPriority": 55.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2015,7 +2076,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 54.0,
+        "sortPriority": 56.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2050,7 +2111,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 55.0,
+        "sortPriority": 57.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2075,7 +2136,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 56.0,
+        "sortPriority": 58.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2116,7 +2177,7 @@
         ],
         "bodyType": null,
         "body": {},
-        "sortPriority": 57.0,
+        "sortPriority": 59.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2141,7 +2202,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 58.0,
+        "sortPriority": 60.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2166,7 +2227,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 59.0,
+        "sortPriority": 61.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2185,7 +2246,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 60.0,
+        "sortPriority": 62.0,
         "authenticationType": null,
         "authentication": {},
         "settingFollowRedirects": {
@@ -2227,7 +2288,7 @@
         "body": {
           "text": "{}"
         },
-        "sortPriority": 61.0,
+        "sortPriority": 63.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2265,7 +2326,7 @@
         "body": {
           "text": "{}"
         },
-        "sortPriority": 62.0,
+        "sortPriority": 64.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2290,7 +2351,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 63.0,
+        "sortPriority": 65.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2318,7 +2379,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 64.0,
+        "sortPriority": 66.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2348,7 +2409,7 @@
         "body": {
           "text": "{\n  \"deliveryInfo\": {\n    \"courierArrivementDate\": \"2026-01-01T00:00:00Z\"\n  },\n  \"discriminator\": \"yandex\",\n  \"eatsId\": \"x\",\n  \"items\": [\n    {\n      \"id\": \"x\",\n      \"price\": 0,\n      \"quantity\": 1\n    }\n  ],\n  \"paymentInfo\": {\n    \"itemsCost\": 0,\n    \"paymentType\": \"CARD\"\n  },\n  \"restaurantId\": \"x\"\n}"
         },
-        "sortPriority": 65.0,
+        "sortPriority": 67.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2384,7 +2445,7 @@
         "body": {
           "text": "{}"
         },
-        "sortPriority": 66.0,
+        "sortPriority": 68.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2412,7 +2473,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 67.0,
+        "sortPriority": 69.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2440,7 +2501,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 68.0,
+        "sortPriority": 70.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2476,7 +2537,7 @@
         "body": {
           "text": "{}"
         },
-        "sortPriority": 69.0,
+        "sortPriority": 71.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2504,7 +2565,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 70.0,
+        "sortPriority": 72.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2540,7 +2601,7 @@
         "body": {
           "text": "{\n  \"status\": \"TAKEN_BY_COURIER\"\n}"
         },
-        "sortPriority": 71.0,
+        "sortPriority": 73.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2568,7 +2629,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 72.0,
+        "sortPriority": 74.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2596,7 +2657,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 73.0,
+        "sortPriority": 75.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2624,7 +2685,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 74.0,
+        "sortPriority": 76.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2646,7 +2707,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 75.0,
+        "sortPriority": 77.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2668,7 +2729,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 76.0,
+        "sortPriority": 78.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2698,7 +2759,7 @@
         "body": {
           "text": "{\n  \"client_id\": \"${[ client_id ]}\",\n  \"client_secret\": \"${[ client_secret ]}\",\n  \"grant_type\": \"client_credentials\"\n}"
         },
-        "sortPriority": 77.0,
+        "sortPriority": 79.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2725,7 +2786,7 @@
         "body": {
           "text": "{\n  \"feedback\": {\n    \"rating\": 1\n  }\n}"
         },
-        "sortPriority": 78.0,
+        "sortPriority": 80.0,
         "authenticationType": "bearer",
         "authentication": {
           "token": "${[ yandex_access_token ]}",
@@ -2761,7 +2822,7 @@
         "body": {
           "text": "{}"
         },
-        "sortPriority": 79.0,
+        "sortPriority": 81.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2806,7 +2867,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 80.0,
+        "sortPriority": 82.0,
         "authenticationType": null,
         "authentication": {}
       },
@@ -2825,7 +2886,7 @@
         "headers": [],
         "bodyType": null,
         "body": {},
-        "sortPriority": 81.0,
+        "sortPriority": 83.0,
         "authenticationType": null,
         "authentication": {}
       }

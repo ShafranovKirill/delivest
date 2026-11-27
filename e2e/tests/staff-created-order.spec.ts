@@ -22,6 +22,7 @@ test('on mobile a new order scrolls inside the catalog and the checkout form', a
   await expect(checkoutButton).toBeInViewport({ ratio: 1 })
   await checkoutTab.click()
   const form = workspace.locator('#order-checkout-scroll')
+  await expect(form).toBeVisible()
   const formBox = (await form.boundingBox())!
   await operator.mouse.move(formBox.x + formBox.width / 2, formBox.y + formBox.height / 2)
   await operator.mouse.wheel(0, 600)

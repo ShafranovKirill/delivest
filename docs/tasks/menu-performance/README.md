@@ -12,7 +12,7 @@ node scripts/storefront-measure.mjs --url http://localhost:3100/e2e --passes 5 -
 
 Run each command against its corresponding checkout/build, with exactly the same fixture and media host. Each run starts five fresh browser contexts, measures a cold navigation and a warm reload in each, waits for the first visible card and then settles 2.5 seconds. The Chromium profile is 390×844, DPR 1, mobile touch, ru-RU, service workers blocked, 10 Mbps download, 2 Mbps upload and 80 ms latency. `--capture` saves screenshots and traces; omit it for a smaller run. Raw output goes to `browser.json` and includes per-request transfer bytes, HTTP status (including 304), cache indicators, WebSocket counts and frame payload sizes, LCP, CLS (excluding recent input), first visible decoded product photograph, and category/card counts. JSON URLs are stored without query strings; errors are counts only. Optional Chromium traces can contain raw request URLs, so capture only the controlled `/e2e` fixture without user data; the CLI rejects an entry URL with query parameters. Photo timing is `null` if no actual visible photo appears in the settle window. Compare medians of five samples per mode and inspect missing values and errors before drawing conclusions. Network conditions do not model CPU throttling. The earlier CLI forms (`--url=`, `--api=`, `--runs=`, `--modes=`, `--settle-ms=`, `--output=path.json`, `--label=`) remain accepted, and the JSON retains its former `summary` and `results` fields alongside the new samples.
 
-For photo-enabled runs, first prepare the isolated fixture database using the **final** additive media migration and `MENU_PERFORMANCE_PHOTO_FIXTURE=1 mix run priv/repo/e2e_seeds.exs` from the final `server`. Snapshot this database and restore an identical copy for each before/media-stage/final run. The old server can read the additive media row, emits the legacy 800 px `photo_url`, and the old client ignores the additional variant metadata; later revisions emit responsive variants. Run the final checkout's measurement script against each stage's server/client. Copy the four deterministic files from `e2e/fixtures/menu-performance` into `server/priv/static/images` for each revision before starting Phoenix, and start Phoenix with `DEV_S3_PORT=4100` so public URLs resolve through Plug.Static at port 4100. The before checkout does not contain the new seed or measurement script. Ordinary E2E seed runs without the opt-in flag retain their existing products. Keep absent photo values missing. The [Lighthouse workflow](../../../.github/workflows/storefront-lhci.yml) runs on matching develop PR paths and manual dispatch, with three reports against the seeded `/e2e` fixture and uploads its output. It is report only: initial thresholds warn, with no blocking performance gate. The LHCI version and dependency tree are pinned in `tools/lighthouse/package-lock.json`; assertions initially warn until CI reproducibility is established.
+For photo-enabled runs, first prepare the isolated fixture database using the **final** additive media migration and `MENU_PERFORMANCE_PHOTO_FIXTURE=1 mix run priv/repo/e2e_seeds.exs` from the final `server`. Snapshot this database and restore an identical copy for each before/media-stage/final run. The old server can read the additive media row, emits the legacy 800 px `photo_url`, and the old client ignores the additional variant metadata; later revisions emit responsive variants. Run the final checkout's measurement script against each stage's server/client. Copy the four deterministic files from `e2e/fixtures/menu-performance` into `server/priv/static/images` for each revision before starting Phoenix, and start Phoenix with `DEV_S3_PORT=4100` so public URLs resolve through Plug.Static at port 4100. The before checkout does not contain the new seed or measurement script. Ordinary E2E seed runs without the opt-in flag retain their existing products. Keep absent photo values missing.
 
 ## Targeted UI regression run
 
@@ -47,16 +47,13 @@ five-pair before/media/final browser series, three cold/warm SQL repetitions,
 first modal click, quality comparisons, screenshots and targeted checks.
 The local fixture is the original `/demo-center` snapshot copied into
 `delivest_menu_perf_20261126`; it matches the original 5 categories, 31 cards,
-6 stories and real photographs. The `/e2e` fixture remains separate for UI and LHCI.
+6 stories and real photographs. The `/e2e` fixture remains separate for the UI tests.
 
 The pinned toolchain, PostgreSQL, S3, Chromium and containerized production Nginx
 are available on this device. Earlier offline limitations do not apply to these
 completed measurements. Source fixes discovered by runtime checks are included
 in the final client/server commits recorded in the results metadata.
 
-The optional visualizer and LHCI tool now have committed lockfiles. Install with
-`npm ci --prefix client/tools/bundle-analysis` and `npm ci --prefix tools/lighthouse`.
-The Lighthouse workflow uploads both the HTML bundle report and Lighthouse results;
-all initial thresholds in `tools/lighthouse/lighthouserc.cjs` are warnings. CI itself
-has not run for the new local commits: push/PR/merge require the owner's separate
-command. No full preflight or full E2E was run.
+The optional bundle visualizer can be installed with
+`npm ci --prefix client/tools/bundle-analysis`. Historical measurements are recorded
+in [RESULTS.md](RESULTS.md).
