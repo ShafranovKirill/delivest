@@ -920,3 +920,18 @@ title-768-normal.png и другие title/pending PNG; логи /tmp/menu-bg-br
 Следующий шаг владельца — открыть локальное демо и продолжить визуальную приёмку.
 Для develop по отдельной команде: fetch, release migration policy, полный make preflight
 без PLAYWRIGHT_ARGS и обязательный CI на финальном SHA. Production не разрешён.
+
+### Подготовка menu/story/modal/address к PR и релизу — 27 ноября 2026, 10:07 MSK
+
+Рабочая ветка `codex/menu-performance`. Для следующего PR обновлена политика
+миграций от server SHA стабильного v1.22.0 (`b1789ebb`) к кандидату
+`b3870162`: добавление `media_files.variant_keys` с пустым значением по
+умолчанию совместимо с прежним сервером. Четыре новых E2E spec включены в
+группы CI; storefront-группа получает media fixture и локальные изображения.
+Прежняя ветка только с promo и старый handoff сохранены в локальном stash.
+
+По текущему указанию владельца все тесты и preflight выполняются только в
+GitHub CI. Локальные тесты и preflight при этой подготовке не запускались;
+результатов CI пока нет. Следующие шаги: review diff, коммит, push и PR в
+`develop`, дождаться обязательных проверок на финальном SHA, затем отдельно
+готовить release PR в `main`. Production не разрешён.

@@ -59,6 +59,8 @@ jobs:
     env:
       CI: "1"
       DEV_DATABASE: delivest_e2e
+      MENU_PERFORMANCE_PHOTO_FIXTURE: ${{ matrix.group == 'storefront-account' && '1' || '0' }}
+      DEV_S3_PORT: ${{ matrix.group == 'storefront-account' && '4100' || '8333' }}
     services:
       db:
         image: postgres:16-alpine
@@ -106,6 +108,9 @@ jobs:
           mix ecto.create
           mix ecto.migrate
           mix run priv/repo/e2e_seeds.exs
+          if [[ "$MENU_PERFORMANCE_PHOTO_FIXTURE" == "1" ]]; then
+            cp ../e2e/fixtures/menu-performance/* priv/static/images/
+          fi
 
       - name: Client
         working-directory: client
@@ -118,6 +123,9 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps chromium
+          if [[ "$GROUP" == "storefront-account" ]]; then
+            mkdir -p ../artifacts/menu-performance ../artifacts/menu-background
+          fi
           node scripts/spec-groups.mjs run "$GROUP" --workers=1
 
       - uses: actions/upload-artifact@v4
