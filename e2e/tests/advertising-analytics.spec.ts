@@ -141,8 +141,8 @@ test('advertising redirect, verified phone, checkout and OMS completion preserve
   await expectStatus(card, 'Выполнен')
 
   await waitForReport(admin, `statistics?tab=sources&period=today&link_id=${linkId}`,
-    '#statistics-report-table tbody tr')
-  const source = admin.locator('#statistics-report-table tbody tr', { hasText: slug })
+    '#statistics-report-rows-table tbody tr')
+  const source = admin.locator('#statistics-report-rows-table tbody tr', { hasText: slug })
   await expect.poll(async () => {
     if (await source.count() !== 1) return 0
     const values = await source.locator('td').allInnerTexts()
@@ -174,7 +174,7 @@ test('advertising redirect, verified phone, checkout and OMS completion preserve
   await expect(admin.locator('#statistics-funnel-outcomes')).toBeVisible()
 
   await waitForReport(admin, 'statistics?tab=channels&period=today&channel=app',
-    '#statistics-report-table tbody tr')
+    '#statistics-report-rows-table tbody tr')
   await expect(admin.locator('#statistics-report-summary')).toBeVisible()
 
   await branchPage(admin, 'statistics?tab=franchise&period=today')
