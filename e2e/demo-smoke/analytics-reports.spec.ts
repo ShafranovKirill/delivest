@@ -17,8 +17,8 @@ test('existing demo renders the four analytics reports without resetting data', 
 
   await page.goto('/staff/statistics')
   await page.locator('[data-phx-main].phx-connected').waitFor()
-  await page.locator('#statistics-heatmap-link').click()
-  await expect(page).toHaveURL(/tab=overview.*#statistics-heatmap$/)
+  await expect(page.locator('#statistics-sales-charts + #statistics-heatmap')).toBeVisible()
+  await expect(page).not.toHaveURL(/tab=overview/)
   const heatmap = page.locator('#statistics-heatmap-chart')
   await expect(heatmap.locator('canvas').first()).toBeVisible()
   const data = JSON.parse((await heatmap.getAttribute('data-chart'))!) as {

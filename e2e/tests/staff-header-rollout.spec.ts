@@ -79,6 +79,90 @@ test('mobile settings and order navigation stay directly below the global header
   await expectPageFrame(page, 0)
 })
 
+test('orders keep their authorized sections in the shared navigation on direct links', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  const navigation = page.locator('#staff-context-navigation #staff-section-navigation')
+  const allOrders = navigation.locator('#section-nav-orders')
+  const newOrder = navigation.locator('#section-nav-orders_new')
+  const pos = navigation.locator('#section-nav-pos')
+
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 844 })
+    await page.goto(`${adminUrl}/staff/b/${branchSlug}/orders`)
+    await page.locator('[data-phx-main].phx-connected').waitFor()
+    await expect(navigation).toBeVisible()
+    await expect.poll(async () => (await navigation.boundingBox())?.y).toBe(56)
+    await expect(allOrders).toHaveAttribute('aria-current', 'page')
+    await expect(newOrder).toHaveAttribute('href', `/staff/b/${branchSlug}/orders/new`)
+    await expect(pos).toHaveAttribute('href', `/staff/b/${branchSlug}/pos`)
+    const firstThree = await navigation.locator('a').evaluateAll(links =>
+      links.slice(0, 3).map(link => link.id),
+    )
+    expect(firstThree).toEqual(['section-nav-orders', 'section-nav-orders_new', 'section-nav-pos'])
+    await expect.poll(() => page.evaluate(() =>
+      document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    )).toBeLessThanOrEqual(1)
+    if (width === 390) {
+      const colors = []
+      for (const theme of ['light', 'dark']) {
+        colors.push(await navigation.evaluate((element, selectedTheme) => {
+          document.documentElement.dataset.theme = selectedTheme
+          const active = element.querySelector('[aria-current="page"]')!
+          return {
+            background: getComputedStyle(element.parentElement!).backgroundColor,
+            active: getComputedStyle(active).color,
+            underline: getComputedStyle(active).borderBottomColor,
+            underlineWidth: getComputedStyle(active).borderBottomWidth,
+            underlineBottom: active.getBoundingClientRect().bottom,
+            navigationBottom: element.getBoundingClientRect().bottom,
+          }
+        }, theme))
+      }
+      expect(colors[0]).not.toEqual(colors[1])
+      for (const color of colors) {
+        expect(color.underline).toBe(color.active)
+        expect(color.underlineWidth).toBe('2px')
+        expect(color.underlineBottom).toBeLessThanOrEqual(color.navigationBottom + 1)
+      }
+    }
+  }
+
+  await newOrder.click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/orders/new`)
+  await expect(newOrder).toHaveAttribute('aria-current', 'page')
+  await allOrders.click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/orders`)
+  await expect(allOrders).toHaveAttribute('aria-current', 'page')
+
+  await pos.click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/pos`)
+  await expect(pos).toHaveAttribute('aria-current', 'page')
+})
+
+test('closing order details restores the list position and the original action', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await page.setViewportSize({ width: 1440, height: 700 })
+  await page.goto(`${adminUrl}/staff/b/${branchSlug}/orders?period=all`)
+  await page.locator('[data-phx-main].phx-connected').waitFor()
+
+  const open = page.locator('#orders [id^="order-view-"]').nth(5)
+  await open.scrollIntoViewIfNeeded()
+  const id = await open.getAttribute('id')
+  const position = await page.evaluate(() => window.scrollY)
+  expect(position).toBeGreaterThan(0)
+
+  await open.click()
+  await expect(page.locator('#order-slideover-toggle')).toBeChecked()
+  const close = page.locator('#order-slideover-toggle + .drawer-side button').first()
+  await expect(close).toHaveAttribute('aria-label', 'Закрыть')
+  await expect(close).toBeFocused()
+  await close.click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/orders?period=all`)
+  await expect(page.locator(`#${id}`)).toBeFocused()
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(position - 2)
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(position + 2)
+})
+
 test('orders keep the one-row toolbar visible at narrow widths and in fullscreen', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.setViewportSize({ width: 1280, height: 800 })
@@ -92,9 +176,24 @@ test('orders keep the one-row toolbar visible at narrow widths and in fullscreen
   const newOrder = toolbar.getByRole('link', { name: 'Новый заказ' })
   await expect(orders.getByRole('heading', { name: 'Заказы', exact: true })).toHaveCount(0)
   await expect(orders.locator('#intake-menu')).toHaveCount(0)
+  await page.locator('#orders').evaluate(element => { element.style.minHeight = '200vh' })
+
+  const expectToolbarAligned = async () => {
+    await expect.poll(async () => {
+      const toolbarBox = await toolbar.boundingBox()
+      const navigationBox = await page.locator('#staff-context-navigation').boundingBox()
+      return Boolean(toolbarBox && navigationBox &&
+        Math.abs(toolbarBox.y - (navigationBox.y + navigationBox.height)) <= 1 &&
+        Math.abs(toolbarBox.x - navigationBox.x) <= 1 &&
+        Math.abs(toolbarBox.x + toolbarBox.width - navigationBox.x - navigationBox.width) <= 1)
+    }).toBe(true)
+  }
 
   for (const width of [1280, 640, 320]) {
     await page.setViewportSize({ width, height: 800 })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
+    await expectToolbarAligned()
     if (width < 1024) {
       await expect.poll(() => page.locator('.staff-shell-content').evaluate((element) =>
         getComputedStyle(element).marginLeft,
@@ -113,11 +212,22 @@ test('orders keep the one-row toolbar visible at narrow widths and in fullscreen
     expect(boxes[0]!.width).toBeGreaterThanOrEqual(36)
     expect(boxes[5]!.x + boxes[5]!.width).toBeLessThanOrEqual(width)
     await expectPageFrame(page, 0)
+    await page.evaluate(() => window.scrollTo(0, 24))
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+    await expectToolbarAligned()
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(24)
+    await expectToolbarAligned()
   }
 
+  await page.locator('#orders').evaluate(element => { element.style.minHeight = '' })
+  await page.evaluate(() => window.scrollTo(0, 0))
   await page.setViewportSize({ width: 1280, height: 800 })
   await fullscreen.click()
   await expect(page.locator('#orders-page:fullscreen')).toBeVisible()
+  await expect.poll(() => toolbar.evaluate(element =>
+    Math.round(element.getBoundingClientRect().top),
+  )).toBe(0)
   await toolbar.locator('#orders-period').selectOption('all')
   await expect(page).toHaveURL(/period=all/)
   await status.click()
@@ -142,7 +252,11 @@ test('orders keep the one-row toolbar visible at narrow widths and in fullscreen
     window.scrollTo(0, document.documentElement.scrollHeight)
   })
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
-  await expect.poll(async () => Math.round((await toolbar.boundingBox())!.y)).toBe(56)
+  await expect.poll(async () => {
+    const toolbarBox = await toolbar.boundingBox()
+    const navigationBox = await page.locator('#staff-context-navigation').boundingBox()
+    return Math.round(toolbarBox!.y - (navigationBox!.y + navigationBox!.height))
+  }).toBe(0)
 })
 
 test('the active status count has readable contrast in the dark theme', async ({ staff }) => {
@@ -175,6 +289,43 @@ test('the active status count has readable contrast in the dark theme', async ({
   })
 
   expect(contrast).toBeGreaterThanOrEqual(4.5)
+})
+
+test('dark page actions use white buttons while dashboard shortcuts stay dark', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await branchPage(page, 'dashboard')
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark' })
+
+  const dashboardAction = page.locator('#dashboard-edit')
+  const shortcut = page.locator('.dashboard-action-link').first()
+  await expect(dashboardAction).toBeVisible()
+  await expect(shortcut).toBeVisible()
+  await expect.poll(() => dashboardAction.evaluate(element => {
+    const style = getComputedStyle(element)
+    return { background: style.backgroundColor, color: style.color }
+  })).toEqual({ background: 'rgb(255, 255, 255)', color: 'rgb(0, 0, 0)' })
+
+  const shortcutColors = await shortcut.evaluate(element => {
+    const style = getComputedStyle(element)
+    const canvas = document.createElement('canvas')
+    canvas.width = canvas.height = 1
+    const context = canvas.getContext('2d')!
+    context.fillStyle = style.color
+    context.fillRect(0, 0, 1, 1)
+    const text = Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3)
+    return { background: style.backgroundColor, text }
+  })
+  expect(shortcutColors.background).not.toBe('rgb(255, 255, 255)')
+  expect(Math.min(...shortcutColors.text)).toBeGreaterThan(180)
+
+  await branchPage(page, 'products')
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark' })
+  const create = page.locator('#create-product')
+  await expect(create).toBeVisible()
+  await expect.poll(() => create.evaluate(element => {
+    const style = getComputedStyle(element)
+    return { background: style.backgroundColor, color: style.color }
+  })).toEqual({ background: 'rgb(255, 255, 255)', color: 'rgb(0, 0, 0)' })
 })
 
 test('promotion action opens the scenario route', async ({ staff }) => {
