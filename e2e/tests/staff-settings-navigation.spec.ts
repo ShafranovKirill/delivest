@@ -144,10 +144,17 @@ test('settings use the existing desktop sidebar and a mobile navigation row', as
     )
     const box = await nav.boundingBox()
     const content = await page.locator('#settings-center').boundingBox()
+    const sidebar = await page.locator('#main-sidebar').boundingBox()
+    const main = page.locator('.staff-shell-content > main')
+    const mainBox = await main.boundingBox()
+    const mainPadding = await main.evaluate(element => parseFloat(getComputedStyle(element).paddingLeft))
     expect(box).not.toBeNull()
     expect(content).not.toBeNull()
-    expect(content!.x).toBeGreaterThanOrEqual(240)
-    expect(content!.x).toBeLessThan(272)
+    expect(sidebar).not.toBeNull()
+    expect(mainBox).not.toBeNull()
+    expect(mainPadding).toBe(24)
+    expect(mainBox!.x - (sidebar!.x + sidebar!.width)).toBeCloseTo(8, 0)
+    expect(content!.x).toBeCloseTo(mainBox!.x + mainPadding, 0)
     await expect.poll(async () => (await page.locator('#staff-context-navigation').boundingBox())?.y).toBe(56)
     expect(content!.x + content!.width).toBeGreaterThan(1850)
     if (expectedLinks) {
@@ -166,7 +173,6 @@ test('settings use the existing desktop sidebar and a mobile navigation row', as
         }
       } else expect(links).toEqual(expectedLinks)
     } else expectedLinks = links
-    const sidebar = await page.locator('#main-sidebar').boundingBox()
     expect(sidebar!.width).toBe(240)
     expect(box!.x).toBeGreaterThanOrEqual(sidebar!.x)
     expect(box!.x + box!.width).toBeLessThanOrEqual(sidebar!.x + sidebar!.width)
