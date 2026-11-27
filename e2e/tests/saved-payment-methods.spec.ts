@@ -163,6 +163,7 @@ test("pending saved payment offers ordinary fallback on the same order only when
   await signIn(page, phone());
   const orderId = "7066f799-7588-4f8b-9cff-e8d43168bcbc";
   let available = false;
+  let awaitingPayment = true;
   await page.route(`**/client/orders/${orderId}`, (route) => {
     if (route.request().method() !== "GET") return route.continue();
     return route.fulfill({
@@ -174,7 +175,7 @@ test("pending saved payment offers ordinary fallback on the same order only when
           cart_id: "cart-test",
           short_number: "123",
           status: "created",
-          awaiting_payment: true,
+          awaiting_payment: awaitingPayment,
           payment_method: "online",
           saved_payment_fallback_available: available,
           total_amount: 59000,
@@ -192,6 +193,10 @@ test("pending saved payment offers ordinary fallback on the same order only when
   const fallbackCalls: Record<string, unknown>[] = [];
   await page.route(`**/client/orders/${orderId}/pay`, (route) => {
     fallbackCalls.push(route.request().postDataJSON());
+    if (fallbackCalls.length === 2) {
+      awaitingPayment = false;
+      return route.fulfill({ status: 204 });
+    }
     return route.fulfill({
       status: 409,
       json: { error: "payment_unavailable", message: "Pending" },
@@ -214,5 +219,11 @@ test("pending saved payment offers ordinary fallback on the same order only when
       "Новая оплата пока недоступна. Проверьте статус заказа позже",
     ),
   ).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/checkout/order/${orderId}$`));
+  const fallback = page.getByRole("button", {
+    name: "Оплатить другим способом · 590 ₽",
+  });
+  await fallback.click();
+  await expect(fallback).toHaveCount(0);
   await expect(page).toHaveURL(new RegExp(`/checkout/order/${orderId}$`));
 });
