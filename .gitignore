@@ -1,4 +1,7 @@
 .env
+node_modules/
+/artifacts/
+/.lighthouseci/
 .delivest-release-manifest.json
 .delivest-manual-release/
 scripts/__pycache__/

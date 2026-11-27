@@ -1,0 +1,22 @@
+{
+  "mode": "delivery",
+  "samples": [
+    {
+      "url": "/assets/cart-basket-bold-QyyrHXvp.webp",
+      "bytes": 4998
+    }
+  ],
+  "inlineIcons": [
+    {
+      "decodedBytes": 1654,
+      "encodedCharacters": 2208
+    },
+    {
+      "decodedBytes": 1788,
+      "encodedCharacters": 2384
+    }
+  ],
+  "scenarioNetworkBytes": 778285,
+  "scenarioScriptBytes": 641998,
+  "totalBytes": 4998
+}

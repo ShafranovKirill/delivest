@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const serverPort = 4100
-const clientPort = 3100
+const serverPort = Number(process.env.DELIVEST_E2E_SERVER_PORT || 4100)
+const clientPort = Number(process.env.DELIVEST_E2E_CLIENT_PORT || 3100)
 
 export default defineConfig({
   testDir: './tests',

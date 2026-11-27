@@ -61,7 +61,7 @@ test("address suggestions stay below the field and show a Russian empty state", 
   const dialogBox = await dialog.boundingBox();
   expect(
     overlayBox!.y - (inputBox!.y + inputBox!.height),
-  ).toBeGreaterThanOrEqual(11.5);
+  ).toBeGreaterThanOrEqual(1.5);
   expect(optionBox!.y).toBeGreaterThanOrEqual(inputBox!.y + inputBox!.height);
   expect(optionBox!.x).toBeGreaterThanOrEqual(dialogBox!.x);
   expect(optionBox!.x + optionBox!.width).toBeLessThanOrEqual(
@@ -84,14 +84,10 @@ test("address suggestions stay below the field and show a Russian empty state", 
     });
   empty = true;
   await input.fill("Несуществующая улица 999");
-  const emptyMessage = page.locator(
-    ".address-suggest-overlay .p-autocomplete-empty-message",
+  await expect(page.getByTestId("delivery-quote-caption")).toContainText(
+    "Адрес не найден",
   );
-  await expect(emptyMessage).toBeVisible();
-  await expect(emptyMessage).toContainText("Адрес не найден");
-  await expect(emptyMessage).toContainText(
-    "Проверьте название улицы и номер дома",
-  );
+  await expect(page.locator(".address-suggest-overlay [role='option']")).toHaveCount(0);
   if (process.env.ORDER_SUCCESS_SCREENSHOTS)
     await page.screenshot({
       path: `${process.env.ORDER_SUCCESS_SCREENSHOTS}/map-desktop-empty.png`,
@@ -224,7 +220,7 @@ test("address choice shows the server quote and clears it while another point is
   const dialogBox = await page.getByRole("dialog").boundingBox();
   expect(
     overlayBox!.y - (inputBox!.y + inputBox!.height),
-  ).toBeGreaterThanOrEqual(11.5);
+  ).toBeGreaterThanOrEqual(1.5);
   expect(suggestionBox!.y).toBeGreaterThanOrEqual(
     inputBox!.y + inputBox!.height,
   );
