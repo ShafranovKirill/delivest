@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { selectPickupLocation } from "../support/pickup";
 
 const phone = () => `+7998${String(Date.now() % 10_000_000).padStart(7, "0")}`;
+let authSession = 0;
 const method = {
   id: "e16bca24-a0f1-4b82-9af6-d38567166378",
   type: "bank_card",
@@ -30,6 +31,12 @@ async function enableOnlinePayment(page: Page) {
 }
 
 async function signIn(page: Page, number: string) {
+  const ip = `198.19.0.${++authSession}`;
+  await page.route("**/client/auth/**", (route) =>
+    route.continue({
+      headers: { ...route.request().headers(), "x-forwarded-for": ip },
+    }),
+  );
   await page.locator("header").getByRole("button", { name: "Войти" }).click();
   const confirmed = page.waitForResponse(
     (response) =>
