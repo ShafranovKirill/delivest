@@ -176,9 +176,24 @@ test('orders keep the one-row toolbar visible at narrow widths and in fullscreen
   const newOrder = toolbar.getByRole('link', { name: 'Новый заказ' })
   await expect(orders.getByRole('heading', { name: 'Заказы', exact: true })).toHaveCount(0)
   await expect(orders.locator('#intake-menu')).toHaveCount(0)
+  await page.locator('#orders').evaluate(element => { element.style.minHeight = '200vh' })
+
+  const expectToolbarAligned = async () => {
+    await expect.poll(async () => {
+      const toolbarBox = await toolbar.boundingBox()
+      const navigationBox = await page.locator('#staff-context-navigation').boundingBox()
+      return Boolean(toolbarBox && navigationBox &&
+        Math.abs(toolbarBox.y - (navigationBox.y + navigationBox.height)) <= 1 &&
+        Math.abs(toolbarBox.x - navigationBox.x) <= 1 &&
+        Math.abs(toolbarBox.x + toolbarBox.width - navigationBox.x - navigationBox.width) <= 1)
+    }).toBe(true)
+  }
 
   for (const width of [1280, 640, 320]) {
     await page.setViewportSize({ width, height: 800 })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
+    await expectToolbarAligned()
     if (width < 1024) {
       await expect.poll(() => page.locator('.staff-shell-content').evaluate((element) =>
         getComputedStyle(element).marginLeft,
@@ -197,11 +212,22 @@ test('orders keep the one-row toolbar visible at narrow widths and in fullscreen
     expect(boxes[0]!.width).toBeGreaterThanOrEqual(36)
     expect(boxes[5]!.x + boxes[5]!.width).toBeLessThanOrEqual(width)
     await expectPageFrame(page, 0)
+    await page.evaluate(() => window.scrollTo(0, 24))
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+    await expectToolbarAligned()
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(24)
+    await expectToolbarAligned()
   }
 
+  await page.locator('#orders').evaluate(element => { element.style.minHeight = '' })
+  await page.evaluate(() => window.scrollTo(0, 0))
   await page.setViewportSize({ width: 1280, height: 800 })
   await fullscreen.click()
   await expect(page.locator('#orders-page:fullscreen')).toBeVisible()
+  await expect.poll(() => toolbar.evaluate(element =>
+    Math.round(element.getBoundingClientRect().top),
+  )).toBe(0)
   await toolbar.locator('#orders-period').selectOption('all')
   await expect(page).toHaveURL(/period=all/)
   await status.click()
