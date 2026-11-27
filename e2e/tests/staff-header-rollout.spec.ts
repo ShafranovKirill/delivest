@@ -139,6 +139,30 @@ test('orders keep their authorized sections in the shared navigation on direct l
   await expect(pos).toHaveAttribute('aria-current', 'page')
 })
 
+test('closing order details restores the list position and the original action', async ({ staff }) => {
+  const page = await staff('e2e_admin')
+  await page.setViewportSize({ width: 1440, height: 700 })
+  await page.goto(`${adminUrl}/staff/b/${branchSlug}/orders?period=all`)
+  await page.locator('[data-phx-main].phx-connected').waitFor()
+
+  const open = page.locator('#orders [id^="order-view-"]').nth(5)
+  await open.scrollIntoViewIfNeeded()
+  const id = await open.getAttribute('id')
+  const position = await page.evaluate(() => window.scrollY)
+  expect(position).toBeGreaterThan(0)
+
+  await open.click()
+  await expect(page.locator('#order-slideover-toggle')).toBeChecked()
+  const close = page.locator('#order-slideover-toggle + .drawer-side button').first()
+  await expect(close).toHaveAttribute('aria-label', 'Закрыть')
+  await expect(close).toBeFocused()
+  await close.click()
+  await expect(page).toHaveURL(`${adminUrl}/staff/b/${branchSlug}/orders?period=all`)
+  await expect(page.locator(`#${id}`)).toBeFocused()
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(position - 2)
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(position + 2)
+})
+
 test('orders keep the one-row toolbar visible at narrow widths and in fullscreen', async ({ staff }) => {
   const page = await staff('e2e_admin')
   await page.setViewportSize({ width: 1280, height: 800 })
