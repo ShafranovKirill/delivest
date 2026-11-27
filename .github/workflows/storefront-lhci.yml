@@ -74,7 +74,7 @@ jobs:
           docker run -d --name storefront-lhci-nginx --network host \
             -v "$PWD/client/dist:/usr/share/nginx/html:ro" \
             -v "$PWD/artifacts/lighthouse/nginx.conf:/etc/nginx/conf.d/default.conf:ro" nginx:1.28-alpine
-          for i in $(seq 1 120); do
+          for _ in $(seq 1 120); do
             if curl -fsS http://localhost:4100/staff/auth/login >/dev/null && curl -fsS http://localhost:3100/e2e >/dev/null; then exit 0; fi
             sleep 2
           done
@@ -88,7 +88,8 @@ jobs:
             | node -e "let data=''; process.stdin.on('data', c => data += c); process.stdin.on('end', () => { const menu = JSON.parse(data).menu; if (!menu.some(c => c.products?.some(p => p.photo_variants?.length === 3))) process.exit(1) })"
       - name: Lighthouse CI collect and save report
         run: |
-          export CHROME_PATH="$(cd e2e && node -e "console.log(require('@playwright/test').chromium.executablePath())")"
+          CHROME_PATH="$(cd e2e && node -e "console.log(require('@playwright/test').chromium.executablePath())")"
+          export CHROME_PATH
           tools/lighthouse/node_modules/.bin/lhci collect --url=http://localhost:3100/e2e --numberOfRuns=3 --settings.chromeFlags='--no-sandbox --headless'
           tools/lighthouse/node_modules/.bin/lhci assert --config=tools/lighthouse/lighthouserc.cjs
           tools/lighthouse/node_modules/.bin/lhci upload --target=filesystem --outputDir=artifacts/lighthouse/report
