@@ -14,6 +14,21 @@ spec.loader.exec_module(upgrade)
 SHA1, SHA2 = 'a' * 40, 'b' * 40
 
 class UpgradeTest(unittest.TestCase):
+    def test_candidate_uses_site_only_manifest_after_legacy_release(self):
+        legacy = {'version': '1.17.0', 'root_sha': SHA1,
+                  'gitlinks': {name: SHA1 for name in upgrade.installer.LEGACY_COMPONENTS},
+                  'images': {name: 'sha256:' + 'a' * 64 for name in upgrade.installer.LEGACY_COMPONENTS}}
+        self.assertEqual(set(upgrade.installer.validate(legacy, '1.17.0')),
+                         set(upgrade.installer.LEGACY_COMPONENTS))
+        with tempfile.TemporaryDirectory() as directory:
+            for name in upgrade.installer.COMPONENTS:
+                (Path(directory) / f'{name}.digest').write_text(f'{name} sha256:{"b" * 64}\n')
+            with patch.object(upgrade, 'git', return_value=SHA2), \
+                 patch.object(upgrade, 'validate_gitlinks'):
+                candidate = upgrade.candidate_manifest('1.18.0', SHA2, Path(directory))
+        self.assertEqual(candidate['schema_version'], 2)
+        self.assertEqual(set(candidate['images']), set(upgrade.installer.COMPONENTS))
+
     def test_previous_is_highest_published_lower_stable(self):
         releases = [{'tag_name': 'v1.16.0', 'draft': False, 'prerelease': False, 'published_at': 'now'},
                     {'tag_name': 'v1.17.0', 'draft': False, 'prerelease': False, 'published_at': 'now'},
@@ -61,7 +76,7 @@ class UpgradeTest(unittest.TestCase):
 
     def test_candidate_rejects_invalid_digest(self):
         with tempfile.TemporaryDirectory() as directory:
-            for variant in ('server', 'client', 'agent'):
+            for variant in ('server', 'client'):
                 (Path(directory) / f'{variant}.digest').write_text(f'{variant} bad\n')
             with patch.object(upgrade, 'git', return_value=SHA1):
                 with self.assertRaisesRegex(ValueError, 'invalid images'):

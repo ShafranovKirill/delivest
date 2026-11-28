@@ -82,7 +82,7 @@ trap 'exit 143' TERM
 trap 'exit 130' INT
 read_refs() {
   local source=$1
-  for variant in server client agent; do
+  for variant in server client; do
     local digest
     digest=$(jq -r --arg name "$variant" ".$source.images[\$name]" "$report")
     printf -v "${variant^^}_IMAGE" 'ghcr.io/%s-%s@%s' 'shafranovkirill/delivest' "$variant" "$digest"

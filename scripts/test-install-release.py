@@ -3,6 +3,7 @@ import importlib.util
 import json
 from pathlib import Path
 import subprocess
+import tarfile
 import tempfile
 import unittest
 from unittest import mock
@@ -10,6 +11,9 @@ from unittest import mock
 spec = importlib.util.spec_from_file_location("install_release", Path(__file__).with_name("install-release.py"))
 installer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(installer)
+package_spec = importlib.util.spec_from_file_location("build_release_package", Path(__file__).with_name("build-release-package.py"))
+packager = importlib.util.module_from_spec(package_spec)
+package_spec.loader.exec_module(packager)
 
 
 class InstallReleaseTest(unittest.TestCase):
@@ -18,8 +22,8 @@ class InstallReleaseTest(unittest.TestCase):
         self.digest = "sha256:" + "b" * 64
         self.manifest = {
             "version": "1.2.3", "root_sha": self.sha,
-            "gitlinks": {component: self.sha for component in installer.COMPONENTS},
-            "images": {component: self.digest for component in installer.COMPONENTS},
+            "gitlinks": {component: self.sha for component in installer.LEGACY_COMPONENTS},
+            "images": {component: self.digest for component in installer.LEGACY_COMPONENTS},
         }
 
     def test_strict_manifest_and_fixed_image_names(self):
@@ -34,6 +38,122 @@ class InstallReleaseTest(unittest.TestCase):
         del broken["images"]["agent"]
         with self.assertRaises(ValueError):
             installer.validate(broken, "1.2.3")
+
+    def test_version_two_manifest_contains_site_images_only(self):
+        manifest = {"schema_version": 2, "version": "1.2.3", "root_sha": self.sha,
+                    "gitlinks": {component: self.sha for component in installer.COMPONENTS},
+                    "images": {component: self.digest for component in installer.COMPONENTS}}
+        refs = installer.validate(manifest, "1.2.3")
+        self.assertEqual(set(refs), {"server", "client"})
+        broken = json.loads(json.dumps(manifest))
+        broken["images"]["agent"] = self.digest
+        with self.assertRaises(ValueError):
+            installer.validate(broken, "1.2.3")
+
+    def test_version_two_package_contains_manifest_and_agent_free_compose(self):
+        manifest = {"schema_version": 2, "version": "1.2.3", "root_sha": self.sha,
+                    "gitlinks": {component: self.sha for component in installer.COMPONENTS},
+                    "images": {component: self.digest for component in installer.COMPONENTS}}
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest_path = Path(temporary) / "release-manifest.json"
+            manifest_path.write_text(json.dumps(manifest))
+            with mock.patch.object(packager.subprocess, "check_output", side_effect=self.package_git_output):
+                archive = packager.build(manifest_path, Path(temporary))
+            with tarfile.open(archive) as package:
+                self.assertEqual(set(package.getnames()), {"release-manifest.json", "docker-compose.yml",
+                                                           "deploy/nginx/gateway.conf.template"})
+                compose = package.extractfile("docker-compose.yml").read().decode()
+                self.assertNotIn("  agent:", compose)
+                self.assertNotIn("/var/run/docker.sock", compose)
+                for component in installer.COMPONENTS:
+                    ref = installer.validate(manifest, manifest["version"])[component]
+                    self.assertIn(f"${{DELIVEST_{component.upper()}_IMAGE:-{ref}}}", compose)
+                self.assertNotIn(":latest", compose)
+                self.assertEqual(json.load(package.extractfile("release-manifest.json")), manifest)
+
+    def package_git_output(self, command, **_kwargs):
+        if command == ["git", "rev-parse", "HEAD"]:
+            return self.sha
+        if command[:2] == ["git", "show"]:
+            path = command[2].split(":", 1)[1]
+            return (packager.ROOT / path).read_bytes()
+        raise AssertionError(command)
+
+    def test_upgrade_metadata_is_bound_to_the_exact_gate_and_previous_release(self):
+        candidate = {
+            "schema_version": 2, "version": "1.2.4", "root_sha": self.sha,
+            "gitlinks": {name: "c" * 40 for name in installer.COMPONENTS},
+            "images": {name: self.digest for name in installer.COMPONENTS},
+        }
+        report = {
+            "candidate": candidate, "previous": self.manifest,
+            "status": "passed", "compatibility": "compatible",
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "report.json").write_text(json.dumps(report))
+            (root / "manifest.json").write_text(json.dumps(candidate))
+            with mock.patch.object(packager.subprocess, "check_output", side_effect=self.package_git_output):
+                archive = packager.build(root / "manifest.json", root, root / "report.json")
+            with tarfile.open(archive) as package:
+                self.assertEqual(json.load(package.extractfile("managed-upgrade.json")), {
+                    "base_version": "1.2.3", "base_server_sha": self.sha,
+                    "candidate_server_sha": "c" * 40, "compatibility": "compatible",
+                })
+
+            report["candidate"] = self.manifest
+            (root / "report.json").write_text(json.dumps(report))
+            with self.assertRaisesRegex(ValueError, "candidate differs"):
+                packager.upgrade_metadata(root / "report.json", candidate)
+
+    def test_package_rejects_legacy_and_malformed_manifests(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest_path = Path(temporary) / "release-manifest.json"
+            for broken in (self.manifest,
+                           {"schema_version": 2, "version": "1.2.3", "root_sha": self.sha,
+                            "gitlinks": {component: self.sha for component in installer.COMPONENTS},
+                            "images": {"server": self.digest}},
+                           {"schema_version": 2, "version": "1.2.3", "root_sha": self.sha,
+                            "gitlinks": {component: self.sha for component in installer.COMPONENTS},
+                            "images": {component: "not-a-digest" for component in installer.COMPONENTS}},
+                           []):
+                manifest_path.write_text(json.dumps(broken))
+                with self.assertRaises(ValueError):
+                    packager.build(manifest_path, Path(temporary))
+
+    def test_package_uses_committed_configuration(self):
+        manifest = {"schema_version": 2, "version": "1.2.3", "root_sha": self.sha,
+                    "gitlinks": {component: self.sha for component in installer.COMPONENTS},
+                    "images": {component: self.digest for component in installer.COMPONENTS}}
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest_path = Path(temporary) / "release-manifest.json"
+            manifest_path.write_text(json.dumps(manifest))
+
+            def committed_output(command, **kwargs):
+                result = self.package_git_output(command, **kwargs)
+                if command[:2] == ["git", "show"] and command[2].endswith(":docker-compose.yml"):
+                    return b"# committed-only\n" + result
+                return result
+
+            with mock.patch.object(packager.subprocess, "check_output", side_effect=committed_output):
+                archive = packager.build(manifest_path, Path(temporary))
+            with tarfile.open(archive) as package:
+                compose = package.extractfile("docker-compose.yml").read()
+            self.assertIn(b"committed-only", compose)
+
+            with mock.patch.object(packager.subprocess, "check_output", side_effect=lambda *_args, **_kwargs: "c" * 40):
+                with self.assertRaisesRegex(ValueError, "root SHA differs"):
+                    packager.build(manifest_path, Path(temporary))
+
+            def malformed_compose(command, **kwargs):
+                result = self.package_git_output(command, **kwargs)
+                if command[:2] == ["git", "show"] and command[2].endswith(":docker-compose.yml"):
+                    return result.replace(b"DELIVEST_SERVER_IMAGE", b"INVALID_IMAGE")
+                return result
+
+            with mock.patch.object(packager.subprocess, "check_output", side_effect=malformed_compose):
+                with self.assertRaisesRegex(ValueError, "no unique DELIVEST_SERVER_IMAGE"):
+                    packager.build(manifest_path, Path(temporary))
 
     def test_persist_refs_preserves_secrets_and_is_atomic(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -61,7 +181,7 @@ class InstallReleaseTest(unittest.TestCase):
                 if "get-url" in argv:
                     return "https://github.com/ShafranovKirill/delivest.git"
                 if "ls-tree" in argv:
-                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.COMPONENTS)
+                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.LEGACY_COMPONENTS)
                 if "rev-parse" in argv:
                     return "c" * 40
                 return ""
@@ -92,7 +212,7 @@ class InstallReleaseTest(unittest.TestCase):
                 if "get-url" in argv:
                     return "https://github.com/ShafranovKirill/delivest.git"
                 if "ls-tree" in argv:
-                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.COMPONENTS)
+                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.LEGACY_COMPONENTS)
                 return ""
 
             with mock.patch.object(installer, "__file__", str(root / "scripts" / "install-release.py")), \
@@ -122,7 +242,7 @@ class InstallReleaseTest(unittest.TestCase):
                 if "get-url" in argv:
                     return "https://github.com/ShafranovKirill/delivest.git"
                 if "ls-tree" in argv:
-                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.COMPONENTS)
+                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.LEGACY_COMPONENTS)
                 if "rev-parse" in argv:
                     return previous_head
                 return ""
@@ -164,7 +284,7 @@ class InstallReleaseTest(unittest.TestCase):
                 if "get-url" in argv:
                     return "https://github.com/ShafranovKirill/delivest.git"
                 if "ls-tree" in argv:
-                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.COMPONENTS)
+                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.LEGACY_COMPONENTS)
                 if "status" in argv and str(root / "agent") not in argv:
                     return "M agent"
                 if "rev-parse" in argv:
