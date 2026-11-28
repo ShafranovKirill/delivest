@@ -8,4 +8,26 @@ The server accepts a prepared new storefront origin for CORS and WebSocket befor
 
 For a managed production installation, the guest session and branch cookies use `Secure; SameSite=None` so an external HTTPS storefront can call the stable API host. Staff session cookies remain scoped as before. Browsers that block all third-party cookies still require a separate compatibility decision; the pilot must test guest checkout in the target browsers. An open guest cart is not transferred when the storefront domain changes, and customers may sign in again.
 
-The local checks cover the server contracts and command paths. A real isolated pilot must still verify a root domain and subdomain, managed and external DNS, public HTTPS and object signatures, browser guest checkout, payments in test mode, and rollback while another installation remains available. Production DNS, certificates and data are outside this stage's local work.
+The targeted server checks are:
+
+```sh
+cd server
+ERL_FLAGS='+S 4:4' MIX_TEST_PARTITION=saas_stage_three mix test \
+  test/delivest/managed_storage_test.exs \
+  test/delivest/managed_bootstrap_test.exs \
+  test/delivest/public_site_test.exs \
+  test/delivest/media_public_url_test.exs \
+  test/delivest_web/helpers/cookie_helper_managed_test.exs \
+  test/delivest_web/controllers/seo/seo_controller_test.exs \
+  test/delivest/payments_test.exs \
+  test/delivest/printing_test.exs \
+  test/delivest/push/push_test.exs
+mix compile --warnings-as-errors
+cd ..
+docker compose --env-file .env.example config --quiet
+python3 scripts/test-install-release.py
+```
+
+Run `python3 scripts/test-managed-storage.py` explicitly to check real SeaweedFS 4.50 and Nginx 1.28 TLS on isolated Docker containers with temporary test credentials and a local CA. It verifies internal S3 operations, signed HTTPS public upload and read, signed private download, anonymous private denial, browser preflight for a new origin, and removal of that origin on rollback. The script binds random ports to loopback, verifies the test CA, and removes its containers and network on exit. It requires Docker, OpenSSL, and the server's compiled Mix dependencies. No customer data, production DNS, or production credentials are used.
+
+The local storage integration and server contracts passed. An installation pilot must still verify a root domain and subdomain, managed and external DNS, browser guest checkout (including third-party cookie restrictions), payments in test mode, and rollback while another installation remains available. Production DNS, certificates and data are outside this stage's local work.
