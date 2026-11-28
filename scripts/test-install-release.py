@@ -57,7 +57,7 @@ class InstallReleaseTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             manifest_path = Path(temporary) / "release-manifest.json"
             manifest_path.write_text(json.dumps(manifest))
-            with mock.patch.object(packager.subprocess, "check_output", return_value=self.sha):
+            with mock.patch.object(packager.subprocess, "check_output", side_effect=self.package_git_output):
                 archive = packager.build(manifest_path, Path(temporary))
             with tarfile.open(archive) as package:
                 self.assertEqual(set(package.getnames()), {"release-manifest.json", "docker-compose.yml",
@@ -65,7 +65,68 @@ class InstallReleaseTest(unittest.TestCase):
                 compose = package.extractfile("docker-compose.yml").read().decode()
                 self.assertNotIn("  agent:", compose)
                 self.assertNotIn("/var/run/docker.sock", compose)
+                for component in installer.COMPONENTS:
+                    ref = installer.validate(manifest, manifest["version"])[component]
+                    self.assertIn(f"${{DELIVEST_{component.upper()}_IMAGE:-{ref}}}", compose)
+                self.assertNotIn(":latest", compose)
                 self.assertEqual(json.load(package.extractfile("release-manifest.json")), manifest)
+
+    def package_git_output(self, command, **_kwargs):
+        if command == ["git", "rev-parse", "HEAD"]:
+            return self.sha
+        if command[:2] == ["git", "show"]:
+            path = command[2].split(":", 1)[1]
+            return (packager.ROOT / path).read_bytes()
+        raise AssertionError(command)
+
+    def test_package_rejects_legacy_and_malformed_manifests(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest_path = Path(temporary) / "release-manifest.json"
+            for broken in (self.manifest,
+                           {"schema_version": 2, "version": "1.2.3", "root_sha": self.sha,
+                            "gitlinks": {component: self.sha for component in installer.COMPONENTS},
+                            "images": {"server": self.digest}},
+                           {"schema_version": 2, "version": "1.2.3", "root_sha": self.sha,
+                            "gitlinks": {component: self.sha for component in installer.COMPONENTS},
+                            "images": {component: "not-a-digest" for component in installer.COMPONENTS}},
+                           []):
+                manifest_path.write_text(json.dumps(broken))
+                with self.assertRaises(ValueError):
+                    packager.build(manifest_path, Path(temporary))
+
+    def test_package_uses_committed_configuration(self):
+        manifest = {"schema_version": 2, "version": "1.2.3", "root_sha": self.sha,
+                    "gitlinks": {component: self.sha for component in installer.COMPONENTS},
+                    "images": {component: self.digest for component in installer.COMPONENTS}}
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest_path = Path(temporary) / "release-manifest.json"
+            manifest_path.write_text(json.dumps(manifest))
+
+            def committed_output(command, **kwargs):
+                result = self.package_git_output(command, **kwargs)
+                if command[:2] == ["git", "show"] and command[2].endswith(":docker-compose.yml"):
+                    return b"# committed-only\n" + result
+                return result
+
+            with mock.patch.object(packager.subprocess, "check_output", side_effect=committed_output):
+                archive = packager.build(manifest_path, Path(temporary))
+            with tarfile.open(archive) as package:
+                compose = package.extractfile("docker-compose.yml").read()
+            self.assertIn(b"committed-only", compose)
+
+            with mock.patch.object(packager.subprocess, "check_output", side_effect=lambda *_args, **_kwargs: "c" * 40):
+                with self.assertRaisesRegex(ValueError, "root SHA differs"):
+                    packager.build(manifest_path, Path(temporary))
+
+            def malformed_compose(command, **kwargs):
+                result = self.package_git_output(command, **kwargs)
+                if command[:2] == ["git", "show"] and command[2].endswith(":docker-compose.yml"):
+                    return result.replace(b"DELIVEST_SERVER_IMAGE", b"INVALID_IMAGE")
+                return result
+
+            with mock.patch.object(packager.subprocess, "check_output", side_effect=malformed_compose):
+                with self.assertRaisesRegex(ValueError, "no unique DELIVEST_SERVER_IMAGE"):
+                    packager.build(manifest_path, Path(temporary))
 
     def test_persist_refs_preserves_secrets_and_is_atomic(self):
         with tempfile.TemporaryDirectory() as temporary:
