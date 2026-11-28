@@ -31,3 +31,13 @@ python3 scripts/test-install-release.py
 Run `python3 scripts/test-managed-storage.py` explicitly to check real SeaweedFS 4.50 and Nginx 1.28 TLS on isolated Docker containers with temporary test credentials and a local CA. It verifies internal S3 operations, signed HTTPS public upload and read, signed private download, anonymous private denial, browser preflight for a new origin, and removal of that origin on rollback. The script binds random ports to loopback, verifies the test CA, and removes its containers and network on exit. It requires Docker, OpenSSL, and the server's compiled Mix dependencies. No customer data, production DNS, or production credentials are used.
 
 The local storage integration and server contracts passed. An installation pilot must still verify a root domain and subdomain, managed and external DNS, browser guest checkout (including third-party cookie restrictions), payments in test mode, and rollback while another installation remains available. Production DNS, certificates and data are outside this stage's local work.
+
+## Local validation record
+
+- Server `64445d5`: 40 targeted tests passed in an independent run.
+- Bastion `b59ab53`: 54 targeted tests passed in an independent run.
+- Node `b2d392d`: 18 Elixir and 20 Python tests passed in independent runs; the same Python files passed at `890073a`. The production Mix release was rebuilt at `b2d392d`.
+- Agent protocol baseline: 55 tests passed. Release installer: 11 tests passed.
+- The committed `python3 scripts/test-managed-storage.py` passed independently: all six storage, TLS, CORS, and rollback results were true; its temporary containers and network were removed.
+
+The `Dockerfile.server` image build did not complete. The first attempt timed out downloading Rebar3 from `builds.hex.pm` on Docker's default network; a host-network retry failed while resolving Debian Bookworm metadata because Docker Hub IPv6 was unreachable. No server image was published or verified ready. Full preflight, E2E, CI, push, and a real DNS/browser pilot were not run under the current authorization.
