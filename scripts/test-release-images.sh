@@ -63,11 +63,11 @@ chmod +x "$tmp/bin/docker"
 chmod +x "$tmp/bin/gh"
 export PATH="$tmp/bin:$PATH" EXPECTED_DIGEST="$digest" CALLS="$tmp/calls" FAILED_ONCE="$tmp/failed-once"
 cd "$tmp"
-for variant in server client agent; do
+for variant in server client; do
   printf '%s %s\n' "$variant" "$digest" > "$variant.digest"
 done
 "$root/scripts/release-images.sh" verify
-jq -e --arg digest "$digest" '.images.server == $digest and .images.client == $digest and .images.agent == $digest' release-manifest.json >/dev/null
+jq -e --arg digest "$digest" '.schema_version == 2 and .images.server == $digest and .images.client == $digest and (.images | keys == ["client", "server"])' release-manifest.json >/dev/null
 INSPECT_TAIL_BYTES=8388608 "$root/scripts/release-images.sh" verify
 for failure in INSPECT_FAIL INSPECT_NO_DIGEST; do
   if env "$failure=1" "$root/scripts/release-images.sh" alias; then exit 1; fi
@@ -79,23 +79,23 @@ for failure in INSPECT_FAIL_VERSION RELEASE_UNAVAILABLE; do
 done
 if VERSION_EXISTS=1 VERSION_DIGEST_MISMATCH=1 "$root/scripts/release-images.sh" alias; then exit 1; fi
 test ! -e "$CALLS"
-if CREATE_FAIL_AFTER=3 "$root/scripts/release-images.sh" alias; then exit 1; fi
-test "$(wc -l < "$CALLS")" -eq 3
+if CREATE_FAIL_AFTER=2 "$root/scripts/release-images.sh" alias; then exit 1; fi
+test "$(wc -l < "$CALLS")" -eq 2
 "$root/scripts/release-images.sh" alias
-test "$(wc -l < "$CALLS")" -eq 11
+test "$(wc -l < "$CALLS")" -eq 7
 cp release-manifest.json "$tmp/published.json"
 export PUBLISHED_MANIFEST="$tmp/published.json"
 VERSION_EXISTS=1 RELEASE_EXISTS=1 "$root/scripts/release-images.sh" alias
-test "$(wc -l < "$CALLS")" -eq 17
+test "$(wc -l < "$CALLS")" -eq 11
 printf '{}\n' > "$tmp/published.json"
 if VERSION_EXISTS=1 RELEASE_EXISTS=1 "$root/scripts/release-images.sh" alias; then exit 1; fi
-test "$(wc -l < "$CALLS")" -eq 17
-rm "$CALLS" agent.digest
+test "$(wc -l < "$CALLS")" -eq 11
+rm "$CALLS" client.digest
 if "$root/scripts/release-images.sh" alias; then exit 1; fi
 test ! -e "$CALLS"
-printf '%s %s\n' agent 'sha256:invalid' > agent.digest
+printf '%s %s\n' client 'sha256:invalid' > client.digest
 if "$root/scripts/release-images.sh" verify; then exit 1; fi
-printf '%s %s\n' agent "$digest" > agent.digest
+printf '%s %s\n' agent "$digest" > client.digest
 EXPECTED_DIGEST="sha256:$(printf 'b%.0s' {1..64})"
 export EXPECTED_DIGEST
 if "$root/scripts/release-images.sh" alias; then exit 1; fi

@@ -14,7 +14,8 @@ import tempfile
 import urllib.request
 
 REPOSITORY = "ShafranovKirill/delivest"
-COMPONENTS = ("server", "client", "agent")
+COMPONENTS = ("server", "client")
+LEGACY_COMPONENTS = (*COMPONENTS, "agent")
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 DIGEST = re.compile(r"sha256:[0-9a-f]{64}\Z")
 VERSION = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?\Z")
@@ -57,26 +58,37 @@ def manifest_for(version):
     return json.loads(data)
 
 
+def components_for(manifest):
+    if not isinstance(manifest, dict):
+        raise ValueError("invalid manifest")
+    if manifest.get("schema_version") == 2 and set(manifest) == {"schema_version", "version", "root_sha", "gitlinks", "images"}:
+        return COMPONENTS
+    if "schema_version" not in manifest and set(manifest) == {"version", "root_sha", "gitlinks", "images"}:
+        return LEGACY_COMPONENTS
+    raise ValueError("invalid manifest schema")
+
+
 def validate(manifest, version):
-    if not isinstance(manifest, dict) or set(manifest) != {"version", "root_sha", "gitlinks", "images"} or manifest["version"] != version or not VERSION.fullmatch(version):
+    components = components_for(manifest)
+    if manifest["version"] != version or not VERSION.fullmatch(version):
         raise ValueError("manifest version or shape does not match the selected release")
     if not isinstance(manifest["root_sha"], str) or not SHA.fullmatch(manifest["root_sha"]):
         raise ValueError("invalid root SHA")
     for field, regex in (("gitlinks", SHA), ("images", DIGEST)):
         entries = manifest[field]
-        if not isinstance(entries, dict) or set(entries) != set(COMPONENTS):
+        if not isinstance(entries, dict) or set(entries) != set(components):
             raise ValueError(f"invalid {field} entries")
-        if not all(isinstance(entries[component], str) and regex.fullmatch(entries[component]) for component in COMPONENTS):
+        if not all(isinstance(entries[component], str) and regex.fullmatch(entries[component]) for component in components):
             raise ValueError(f"invalid {field} value")
-    return {component: f"ghcr.io/shafranovkirill/delivest-{component}@{manifest['images'][component]}" for component in COMPONENTS}
+    return {component: f"ghcr.io/shafranovkirill/delivest-{component}@{manifest['images'][component]}" for component in components}
 
 
 def persist_refs(root, refs):
     path = root / ".env"
     content = path.read_text() if path.exists() else ""
-    names = {f"DELIVEST_{component.upper()}_IMAGE" for component in COMPONENTS}
+    names = {f"DELIVEST_{component.upper()}_IMAGE" for component in LEGACY_COMPONENTS}
     lines = [line for line in content.splitlines() if line.partition("=")[0] not in names]
-    lines.extend(f"DELIVEST_{component.upper()}_IMAGE={refs[component]}" for component in COMPONENTS)
+    lines.extend(f"DELIVEST_{component.upper()}_IMAGE={refs[component]}" for component in refs)
     mode = path.stat().st_mode & 0o660 if path.exists() else 0o600
     fd, temp = tempfile.mkstemp(prefix=".env.release-", dir=root)
     try:
@@ -182,12 +194,13 @@ def main():
         if manifest != published:
             raise ValueError("provided manifest differs from published release asset")
         refs = validate(manifest, args.version)
+        components = components_for(manifest)
         remote = run("git", "-C", str(root), "remote", "get-url", "origin")
         if remote not in ("https://github.com/ShafranovKirill/delivest.git", "git@github.com:ShafranovKirill/delivest.git"):
             raise ValueError("unexpected source repository")
         run("git", "-C", str(root), "fetch", "--no-recurse-submodules", "origin", manifest["root_sha"])
         tree = dict(line.split("\t", 1)[::-1] for line in run("git", "-C", str(root), "ls-tree", manifest["root_sha"]).splitlines())
-        if any(tree.get(component) != f"160000 commit {manifest['gitlinks'][component]}" for component in COMPONENTS):
+        if any(tree.get(component) != f"160000 commit {manifest['gitlinks'][component]}" for component in components):
             raise ValueError("manifest gitlinks do not match root SHA")
         if not checkout_clean(root):
             raise ValueError("checkout must be clean before manual installation")
@@ -200,16 +213,16 @@ def main():
         print(f"Previous configuration saved in {previous}", flush=True)
         try:
             run("git", "-C", str(root), "checkout", "--detach", manifest["root_sha"])
-            run("git", "-C", str(root), "submodule", "update", "--init", "server", "client", "agent")
+            run("git", "-C", str(root), "submodule", "update", "--init", *components)
             persist_refs(root, refs)
             config = json.loads(subprocess.check_output(["docker", "compose", "config", "--format", "json"], cwd=root, text=True))
-            if any(config.get("services", {}).get(component, {}).get("image") != refs[component] for component in COMPONENTS):
+            if any(config.get("services", {}).get(component, {}).get("image") != refs[component] for component in components):
                 raise ValueError("selected checkout does not resolve the release image references")
             (root / ".delivest-release-manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
         except Exception:
             restore_env(root, old_env, old_env_mode)
             run("git", "-C", str(root), "checkout", "--detach", old_head)
-            run("git", "-C", str(root), "submodule", "update", "--init", "server", "client", "agent")
+            run("git", "-C", str(root), "submodule", "update", "--init", *components)
             raise
         if args.apply:
             subprocess.run(["docker", "compose", "up", "-d", "--no-deps", "server", "client", "gateway"], cwd=root, check=True)

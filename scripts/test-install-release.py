@@ -3,6 +3,7 @@ import importlib.util
 import json
 from pathlib import Path
 import subprocess
+import tarfile
 import tempfile
 import unittest
 from unittest import mock
@@ -10,6 +11,9 @@ from unittest import mock
 spec = importlib.util.spec_from_file_location("install_release", Path(__file__).with_name("install-release.py"))
 installer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(installer)
+package_spec = importlib.util.spec_from_file_location("build_release_package", Path(__file__).with_name("build-release-package.py"))
+packager = importlib.util.module_from_spec(package_spec)
+package_spec.loader.exec_module(packager)
 
 
 class InstallReleaseTest(unittest.TestCase):
@@ -18,8 +22,8 @@ class InstallReleaseTest(unittest.TestCase):
         self.digest = "sha256:" + "b" * 64
         self.manifest = {
             "version": "1.2.3", "root_sha": self.sha,
-            "gitlinks": {component: self.sha for component in installer.COMPONENTS},
-            "images": {component: self.digest for component in installer.COMPONENTS},
+            "gitlinks": {component: self.sha for component in installer.LEGACY_COMPONENTS},
+            "images": {component: self.digest for component in installer.LEGACY_COMPONENTS},
         }
 
     def test_strict_manifest_and_fixed_image_names(self):
@@ -34,6 +38,34 @@ class InstallReleaseTest(unittest.TestCase):
         del broken["images"]["agent"]
         with self.assertRaises(ValueError):
             installer.validate(broken, "1.2.3")
+
+    def test_version_two_manifest_contains_site_images_only(self):
+        manifest = {"schema_version": 2, "version": "1.2.3", "root_sha": self.sha,
+                    "gitlinks": {component: self.sha for component in installer.COMPONENTS},
+                    "images": {component: self.digest for component in installer.COMPONENTS}}
+        refs = installer.validate(manifest, "1.2.3")
+        self.assertEqual(set(refs), {"server", "client"})
+        broken = json.loads(json.dumps(manifest))
+        broken["images"]["agent"] = self.digest
+        with self.assertRaises(ValueError):
+            installer.validate(broken, "1.2.3")
+
+    def test_version_two_package_contains_manifest_and_agent_free_compose(self):
+        manifest = {"schema_version": 2, "version": "1.2.3", "root_sha": self.sha,
+                    "gitlinks": {component: self.sha for component in installer.COMPONENTS},
+                    "images": {component: self.digest for component in installer.COMPONENTS}}
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest_path = Path(temporary) / "release-manifest.json"
+            manifest_path.write_text(json.dumps(manifest))
+            with mock.patch.object(packager.subprocess, "check_output", return_value=self.sha):
+                archive = packager.build(manifest_path, Path(temporary))
+            with tarfile.open(archive) as package:
+                self.assertEqual(set(package.getnames()), {"release-manifest.json", "docker-compose.yml",
+                                                           "deploy/nginx/gateway.conf.template"})
+                compose = package.extractfile("docker-compose.yml").read().decode()
+                self.assertNotIn("  agent:", compose)
+                self.assertNotIn("/var/run/docker.sock", compose)
+                self.assertEqual(json.load(package.extractfile("release-manifest.json")), manifest)
 
     def test_persist_refs_preserves_secrets_and_is_atomic(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -61,7 +93,7 @@ class InstallReleaseTest(unittest.TestCase):
                 if "get-url" in argv:
                     return "https://github.com/ShafranovKirill/delivest.git"
                 if "ls-tree" in argv:
-                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.COMPONENTS)
+                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.LEGACY_COMPONENTS)
                 if "rev-parse" in argv:
                     return "c" * 40
                 return ""
@@ -92,7 +124,7 @@ class InstallReleaseTest(unittest.TestCase):
                 if "get-url" in argv:
                     return "https://github.com/ShafranovKirill/delivest.git"
                 if "ls-tree" in argv:
-                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.COMPONENTS)
+                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.LEGACY_COMPONENTS)
                 return ""
 
             with mock.patch.object(installer, "__file__", str(root / "scripts" / "install-release.py")), \
@@ -122,7 +154,7 @@ class InstallReleaseTest(unittest.TestCase):
                 if "get-url" in argv:
                     return "https://github.com/ShafranovKirill/delivest.git"
                 if "ls-tree" in argv:
-                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.COMPONENTS)
+                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.LEGACY_COMPONENTS)
                 if "rev-parse" in argv:
                     return previous_head
                 return ""
@@ -164,7 +196,7 @@ class InstallReleaseTest(unittest.TestCase):
                 if "get-url" in argv:
                     return "https://github.com/ShafranovKirill/delivest.git"
                 if "ls-tree" in argv:
-                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.COMPONENTS)
+                    return "\n".join(f"160000 commit {self.sha}\t{component}" for component in installer.LEGACY_COMPONENTS)
                 if "status" in argv and str(root / "agent") not in argv:
                     return "M agent"
                 if "rev-parse" in argv:

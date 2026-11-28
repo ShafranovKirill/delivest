@@ -13,7 +13,7 @@ cleanup() {
     if (( result != 0 )); then
       mkdir -p "${RUNNER_TEMP:-/tmp}/release-smoke-diagnostics"
       "${compose_cmd[@]}" ps > "${RUNNER_TEMP:-/tmp}/release-smoke-diagnostics/ps.txt" 2>&1 || true
-      "${compose_cmd[@]}" logs --tail=60 gateway server client postgres s3 agent > "${RUNNER_TEMP:-/tmp}/release-smoke-diagnostics/logs.txt" 2>&1 || true
+      "${compose_cmd[@]}" logs --tail=60 gateway server client postgres s3 > "${RUNNER_TEMP:-/tmp}/release-smoke-diagnostics/logs.txt" 2>&1 || true
     fi
     "${compose_cmd[@]}" down -v --remove-orphans >/dev/null || true
   fi
@@ -45,7 +45,7 @@ set +a
 export SMOKE_SECRET
 SMOKE_SECRET=$(openssl rand -hex 64)
 
-for variant in server client agent; do
+for variant in server client; do
   read -r recorded digest < "${DIGEST_DIR:-.}/$variant.digest"
   test "$recorded" = "$variant"
   [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
@@ -94,6 +94,4 @@ runtime_config=$("${compose_cmd[@]}" exec -T gateway wget -qO- --header='Host: s
 "${compose_cmd[@]}" exec -T gateway wget -qO- --header='Host: api.smoke.local' --header='X-Forwarded-Proto: https' http://127.0.0.1/health >/dev/null
 "${compose_cmd[@]}" exec -T gateway wget -qO- --header='Host: api.smoke.local' --header='X-Forwarded-Proto: https' 'http://127.0.0.1/client/storefront/v1/bootstrap?locale=ru' |
   jq -e '(.schema_version == 1) and (.branches | type == "array") and (.branches | length == 0) and (.selected_branch == null) and (.menu == null)' >/dev/null
-test "$("${compose_cmd[@]}" ps --status running --services | sort)" = "$(printf '%s\n' agent client gateway postgres s3 server | sort)"
-"${compose_cmd[@]}" exec -T agent docker --version
-"${compose_cmd[@]}" exec -T agent docker compose version
+test "$("${compose_cmd[@]}" ps --status running --services | sort)" = "$(printf '%s\n' client gateway postgres s3 server | sort)"
