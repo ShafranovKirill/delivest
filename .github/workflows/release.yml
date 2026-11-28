@@ -39,7 +39,6 @@ jobs:
         include:
           - {variant: server, file: Dockerfile.server}
           - {variant: client, file: Dockerfile.client}
-          - {variant: agent, file: Dockerfile.agent}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -177,6 +176,10 @@ jobs:
           SHA: ${{ github.sha }}
           VERSION: ${{ needs.prepare.outputs.version }}
         run: ./scripts/release-images.sh verify
+      - name: Package deployment configuration
+        run: |
+          python3 scripts/build-release-package.py --upgrade-report release-upgrade-result/report.json
+          (cd dist && sha256sum delivest-deploy-${{ needs.prepare.outputs.version }}.tar.gz > delivest-deploy-${{ needs.prepare.outputs.version }}.tar.gz.sha256)
       - name: Confirm upgrade gate used these exact candidate digests
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
@@ -205,12 +208,20 @@ jobs:
             git tag "v$VERSION"
             git push origin "v$VERSION"
           fi
+          package="dist/delivest-deploy-$VERSION.tar.gz"
+          checksum="$package.sha256"
           if gh release view "v$VERSION" >/dev/null 2>&1; then
             existing_manifest=$(mktemp)
             gh release download "v$VERSION" -p release-manifest.json -O "$existing_manifest"
             jq -e -S . release-manifest.json > expected-manifest.json
             jq -e -S . "$existing_manifest" > published-manifest.json
             cmp expected-manifest.json published-manifest.json
+            existing_package=$(mktemp)
+            gh release download "v$VERSION" -p "delivest-deploy-$VERSION.tar.gz" -O "$existing_package"
+            cmp "$package" "$existing_package"
+            existing_checksum=$(mktemp)
+            gh release download "v$VERSION" -p "delivest-deploy-$VERSION.tar.gz.sha256" -O "$existing_checksum"
+            cmp "$checksum" "$existing_checksum"
           else
-            gh release create "v$VERSION" --title "v$VERSION" --notes-file notes.md release-manifest.json
+            gh release create "v$VERSION" --title "v$VERSION" --notes-file notes.md release-manifest.json "$package" "$checksum"
           fi

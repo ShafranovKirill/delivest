@@ -44,19 +44,6 @@ services:
       S3_PORT: "8333"
     volumes: !override
       - storage:/data
-  agent:
-    container_name: !reset null
-    image: ${AGENT_IMAGE:?}
-    environment: !override
-      BASTION_URL: ""
-      BASTION_TOKEN: ""
-      INSTANCE_NAME: smoke
-      PHX_HOST: api.smoke.local
-      CLIENT_ORIGIN: http://shop.smoke.local
-      S3_PUBLIC_HOST: s3.smoke.local
-    volumes: !override
-      - agent_data:/data
-    restart: "no"
 volumes:
   database:
   storage:

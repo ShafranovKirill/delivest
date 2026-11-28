@@ -121,7 +121,7 @@ def policy_for(path, before, after, changes):
 
 
 def candidate_manifest(version, sha, directory):
-    manifest = {'version': version, 'root_sha': sha, 'gitlinks': {}, 'images': {}}
+    manifest = {'schema_version': 2, 'version': version, 'root_sha': sha, 'gitlinks': {}, 'images': {}}
     for name in installer.COMPONENTS:
         variant, digest = (directory / f'{name}.digest').read_text().strip().split()
         if variant != name:
