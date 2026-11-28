@@ -79,6 +79,33 @@ class InstallReleaseTest(unittest.TestCase):
             return (packager.ROOT / path).read_bytes()
         raise AssertionError(command)
 
+    def test_upgrade_metadata_is_bound_to_the_exact_gate_and_previous_release(self):
+        candidate = {
+            "schema_version": 2, "version": "1.2.4", "root_sha": self.sha,
+            "gitlinks": {name: "c" * 40 for name in installer.COMPONENTS},
+            "images": {name: self.digest for name in installer.COMPONENTS},
+        }
+        report = {
+            "candidate": candidate, "previous": self.manifest,
+            "status": "passed", "compatibility": "compatible",
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "report.json").write_text(json.dumps(report))
+            (root / "manifest.json").write_text(json.dumps(candidate))
+            with mock.patch.object(packager.subprocess, "check_output", side_effect=self.package_git_output):
+                archive = packager.build(root / "manifest.json", root, root / "report.json")
+            with tarfile.open(archive) as package:
+                self.assertEqual(json.load(package.extractfile("managed-upgrade.json")), {
+                    "base_version": "1.2.3", "base_server_sha": self.sha,
+                    "candidate_server_sha": "c" * 40, "compatibility": "compatible",
+                })
+
+            report["candidate"] = self.manifest
+            (root / "report.json").write_text(json.dumps(report))
+            with self.assertRaisesRegex(ValueError, "candidate differs"):
+                packager.upgrade_metadata(root / "report.json", candidate)
+
     def test_package_rejects_legacy_and_malformed_manifests(self):
         with tempfile.TemporaryDirectory() as temporary:
             manifest_path = Path(temporary) / "release-manifest.json"

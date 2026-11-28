@@ -17,7 +17,30 @@ installer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(installer)
 
 
-def build(manifest_path, output_dir):
+def upgrade_metadata(report_path, manifest):
+    report = json.loads(report_path.read_text())
+    if report.get("candidate") != manifest:
+        raise ValueError("upgrade report candidate differs from the deployment manifest")
+    previous = report.get("previous")
+    if report.get("status") == "baseline_only" and previous is None:
+        return None
+    if report.get("status") != "passed" or report.get("compatibility") not in (
+        "compatible",
+        "incompatible",
+    ):
+        raise ValueError("deployment package requires a passed upgrade report")
+    if not isinstance(previous, dict) or not isinstance(previous.get("version"), str):
+        raise ValueError("upgrade report is missing the previous release")
+    installer.validate(previous, previous["version"])
+    return {
+        "base_version": previous["version"],
+        "base_server_sha": previous["gitlinks"]["server"],
+        "candidate_server_sha": manifest["gitlinks"]["server"],
+        "compatibility": report["compatibility"],
+    }
+
+
+def build(manifest_path, output_dir, report_path=None):
     manifest = json.loads(manifest_path.read_text())
     if not isinstance(manifest, dict) or not isinstance(manifest.get("version"), str):
         raise ValueError("invalid deployment manifest")
@@ -35,11 +58,15 @@ def build(manifest_path, output_dir):
         compose, count = re.subn(pattern, lambda match: match[1] + "${" + variable + ":-" + refs[component] + "}", compose)
         if count != 1:
             raise ValueError(f"committed Compose has no unique {variable} image default")
-    files = (
+    files = [
         ("docker-compose.yml", compose.encode()),
         ("deploy/nginx/gateway.conf.template", committed_blob(root_sha, "deploy/nginx/gateway.conf.template")),
         ("release-manifest.json", manifest_path.read_bytes()),
-    )
+    ]
+    if report_path is not None:
+        metadata = upgrade_metadata(report_path, manifest)
+        if metadata is not None:
+            files.append(("managed-upgrade.json", json.dumps(metadata, sort_keys=True).encode() + b"\n"))
     output_dir.mkdir(parents=True, exist_ok=True)
     archive = output_dir / f"delivest-deploy-{manifest['version']}.tar.gz"
     with archive.open("wb") as output, gzip.GzipFile(fileobj=output, mode="wb", mtime=0) as zipped:
@@ -63,5 +90,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, default=Path("release-manifest.json"))
     parser.add_argument("--output-dir", type=Path, default=Path("dist"))
+    parser.add_argument("--upgrade-report", type=Path)
     args = parser.parse_args()
-    print(build(args.manifest, args.output_dir))
+    print(build(args.manifest, args.output_dir, args.upgrade_report))

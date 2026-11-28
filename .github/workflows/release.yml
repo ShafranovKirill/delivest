@@ -178,7 +178,7 @@ jobs:
         run: ./scripts/release-images.sh verify
       - name: Package deployment configuration
         run: |
-          python3 scripts/build-release-package.py
+          python3 scripts/build-release-package.py --upgrade-report release-upgrade-result/report.json
           (cd dist && sha256sum delivest-deploy-${{ needs.prepare.outputs.version }}.tar.gz > delivest-deploy-${{ needs.prepare.outputs.version }}.tar.gz.sha256)
       - name: Confirm upgrade gate used these exact candidate digests
         env:
