@@ -28,8 +28,10 @@ services:
     environment:
       - DATABASE_URL=ecto://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}
       - INSTANCE_BACKUP_DIR=/instance-backups
+      - DELIVEST_PUBLIC_CONFIG_PATH=/app/state/public-site.json
     volumes:
       - instance_backups:/instance-backups
+      - public_site_state:/app/state
     depends_on:
       - postgres
       - s3
@@ -49,8 +51,6 @@ services:
     image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
     container_name: ${COMPOSE_PROJECT_NAME:-delivest}_prod_postgres
     restart: always
-    env_file:
-      - .env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -97,3 +97,4 @@ volumes:
   postgres_prod_data:
   s3_data:
   instance_backups:
+  public_site_state:

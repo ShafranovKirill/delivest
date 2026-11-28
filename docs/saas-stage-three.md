@@ -1,0 +1,11 @@
+# SaaS stage 3: managed storefront address and media
+
+The managed Node installs one pinned deployment package per franchise. The Compose project keeps PostgreSQL, S3 data, backup and public-site state in separate named volumes. `DELIVEST_PUBLIC_CONFIG_PATH` points to `/app/state/public-site.json` on a persistent volume. The initial primary URL comes from `CLIENT_ORIGIN`; Node changes it through `Delivest.PublicSite.apply_encoded/1` after HTTPS preparation. The API host (`PHX_HOST`) and media host (`S3_PUBLIC_HOST`) are stable when the storefront domain changes.
+
+The server accepts a prepared new storefront origin for CORS and WebSocket before changing the primary URL. It writes the new configuration atomically and refuses malformed or insecure production origins. S3 bucket CORS is updated through the internal endpoint before the saved configuration changes. `Delivest.PublicSite.current_json/0` returns the current configuration for a Node rollback.
+
+`Delivest.Release.setup_managed/0` requires a stable generated `ADMIN_PASSWORD` and fails if bucket creation, public read policy or bucket CORS cannot be established. `Delivest.Release.check_managed_storage/0` checks internal S3 writes and public HTTPS upload, read and signed private download, then removes its probe objects. Node uses this after the routes are prepared, before marking the installation ready.
+
+For a managed production installation, the guest session and branch cookies use `Secure; SameSite=None` so an external HTTPS storefront can call the stable API host. Staff session cookies remain scoped as before. Browsers that block all third-party cookies still require a separate compatibility decision; the pilot must test guest checkout in the target browsers. An open guest cart is not transferred when the storefront domain changes, and customers may sign in again.
+
+The local checks cover the server contracts and command paths. A real isolated pilot must still verify a root domain and subdomain, managed and external DNS, public HTTPS and object signatures, browser guest checkout, payments in test mode, and rollback while another installation remains available. Production DNS, certificates and data are outside this stage's local work.
